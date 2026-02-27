@@ -9,7 +9,3 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 interface GenerationResultsHolder {
     var currentResults: List<GenerationResult>?
 }
-
-class GenerationResultsHolderImpl : GenerationResultsHolder {
-    override var currentResults: List<GenerationResult>? = null
-}

@@ -7,7 +7,7 @@ import com.middleton.studiosnap.core.presentation.navigation.Route
 sealed interface PaywallNavigationAction : NavigationAction {
     data object PurchaseComplete : PaywallNavigationAction {
         override val navigationCommand: NavigationCommand
-            get() = NavigationCommand.NavigateAndClearStack(Route.MainRestoreScreen)
+            get() = NavigationCommand.NavigateAndClearStack(Route.Home)
     }
 
     data object Dismiss : PaywallNavigationAction {

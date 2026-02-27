@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.processing.domain.usecase
 
+import com.middleton.studiosnap.core.data.datasource.ReplicateApiException
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
 import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationError
@@ -47,14 +48,21 @@ class GeneratePreviewUseCase(
     }
 
     private fun mapError(throwable: Throwable): GenerationError {
-        return when {
-            throwable.message?.contains("timeout", ignoreCase = true) == true ->
-                GenerationError.TIMEOUT
-            throwable.message?.contains("network", ignoreCase = true) == true ->
-                GenerationError.NETWORK
-            throwable.message?.contains("content", ignoreCase = true) == true ->
-                GenerationError.CONTENT_FILTERED
-            else -> GenerationError.UNKNOWN
+        return when (throwable) {
+            is ReplicateApiException -> when {
+                throwable.isRateLimited -> GenerationError.API_ERROR
+                throwable.statusCode in 400..499 -> GenerationError.CONTENT_FILTERED
+                else -> GenerationError.API_ERROR
+            }
+            is kotlinx.coroutines.TimeoutCancellationException -> GenerationError.TIMEOUT
+            else -> {
+                val message = throwable.message?.lowercase() ?: ""
+                when {
+                    message.contains("connect") || message.contains("network") ||
+                    message.contains("timeout") -> GenerationError.NETWORK
+                    else -> GenerationError.UNKNOWN
+                }
+            }
         }
     }
 }

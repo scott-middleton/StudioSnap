@@ -10,7 +10,3 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 interface GenerationConfigHolder {
     var currentConfig: GenerationConfig?
 }
-
-class GenerationConfigHolderImpl : GenerationConfigHolder {
-    override var currentConfig: GenerationConfig? = null
-}

@@ -10,8 +10,8 @@ import com.middleton.studiosnap.core.presentation.BaseViewModelTest
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
+import com.middleton.studiosnap.feature.home.data.repository.GenerationConfigHolderImpl
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
-import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolderImpl
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
@@ -207,7 +207,7 @@ class HomeViewModelTest : BaseViewModelTest() {
     fun `error dismissed clears error`() {
         val viewModel = createViewModel()
         viewModel.handleAction(HomeUiAction.OnErrorDismissed)
-        assertNull(viewModel.uiState.value.errorMessage)
+        assertNull(viewModel.uiState.value.error)
     }
 
     @Test

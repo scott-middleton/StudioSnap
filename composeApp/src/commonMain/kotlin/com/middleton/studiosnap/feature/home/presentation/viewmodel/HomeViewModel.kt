@@ -57,7 +57,7 @@ class HomeViewModel(
             is HomeUiAction.OnSettingsClicked -> navigateTo(HomeNavigationAction.GoToSettings)
             is HomeUiAction.OnHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
             is HomeUiAction.OnCreditBalanceClicked -> navigateTo(HomeNavigationAction.GoToCreditStore)
-            is HomeUiAction.OnErrorDismissed -> _uiState.update { it.copy(errorMessage = null) }
+            is HomeUiAction.OnErrorDismissed -> _uiState.update { it.copy(error = null) }
         }
     }
 

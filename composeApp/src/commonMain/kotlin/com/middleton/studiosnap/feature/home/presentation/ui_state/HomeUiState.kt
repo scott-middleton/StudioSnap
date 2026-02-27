@@ -15,7 +15,7 @@ data class HomeUiState(
     val exportFormat: ExportFormat = ExportFormat.DEFAULT,
     val creditBalance: Int = 0,
     val isSignedIn: Boolean = false,
-    val errorMessage: String? = null
+    val error: HomeError? = null
 ) {
     val canGenerate: Boolean
         get() = photos.isNotEmpty() && selectedStyle != null
@@ -29,4 +29,9 @@ data class HomeUiState(
     companion object {
         const val MAX_PHOTOS = 10
     }
+}
+
+sealed interface HomeError {
+    data object TooManyPhotos : HomeError
+    data object GenerationFailed : HomeError
 }

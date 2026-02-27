@@ -7,142 +7,106 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class NavigationStrategyTest {
-    
-    @Test
-    fun `SharedNavigationStrategy should call SharedNavigationManager with correct command for onboarding`() {
-        // Given
-        val fakeNavigationHandler = FakeNavigationHandler()
-        val sharedNavigationManager = SharedNavigationManager(fakeNavigationHandler)
-        val strategy = SharedNavigationStrategy<OnboardingNavigationAction>(sharedNavigationManager)
-        
-        // When
-        strategy.navigate(OnboardingNavigationAction.OnGetStarted)
-        
-        // Then
-        assertEquals(1, fakeNavigationHandler.capturedCommands.size)
-        assertTrue(fakeNavigationHandler.capturedCommands[0] is NavigationCommand.NavigateAndClearStack)
-        val navigateCommand = fakeNavigationHandler.capturedCommands[0] as NavigationCommand.NavigateAndClearStack
-        assertEquals(Route.MainRestoreScreen, navigateCommand.destination)
-    }
-    
-    @Test
-    fun `SharedNavigationStrategy should handle back navigation for onboarding`() {
-        // Given
-        val fakeNavigationHandler = FakeNavigationHandler()
-        val sharedNavigationManager = SharedNavigationManager(fakeNavigationHandler)
-        val strategy = SharedNavigationStrategy<OnboardingNavigationAction>(sharedNavigationManager)
-        
-        // When
-        strategy.navigate(OnboardingNavigationAction.OnBack)
-        
-        // Then
-        assertEquals(1, fakeNavigationHandler.capturedCommands.size)
-        assertTrue(fakeNavigationHandler.capturedCommands[0] is NavigationCommand.NavigateBack)
-    }
-    
-    @Test
-    fun `SharedNavigationStrategy should handle multiple navigation calls for onboarding`() {
-        // Given
-        val fakeNavigationHandler = FakeNavigationHandler()
-        val sharedNavigationManager = SharedNavigationManager(fakeNavigationHandler)
-        val strategy = SharedNavigationStrategy<OnboardingNavigationAction>(sharedNavigationManager)
-        
-        // When
-        strategy.navigate(OnboardingNavigationAction.OnGetStarted)
-        strategy.navigate(OnboardingNavigationAction.OnBack)
-        strategy.navigate(OnboardingNavigationAction.OnGetStarted)
-        
-        // Then
-        assertEquals(3, fakeNavigationHandler.capturedCommands.size)
-        assertTrue(fakeNavigationHandler.capturedCommands[0] is NavigationCommand.NavigateAndClearStack)
-        assertTrue(fakeNavigationHandler.capturedCommands[1] is NavigationCommand.NavigateBack)
-        assertTrue(fakeNavigationHandler.capturedCommands[2] is NavigationCommand.NavigateAndClearStack)
-    }
-    
-    @Test
-    fun `SharedNavigationStrategy should work with splash navigation actions`() {
-        // Given
-        val fakeNavigationHandler = FakeNavigationHandler()
-        val sharedNavigationManager = SharedNavigationManager(fakeNavigationHandler)
-        val strategy = SharedNavigationStrategy<SplashNavigationAction>(sharedNavigationManager)
-        
-        // When
-        strategy.navigate(SplashNavigationAction.NavigateToOnboarding)
-        
-        // Then
-        assertEquals(1, fakeNavigationHandler.capturedCommands.size)
-        assertTrue(fakeNavigationHandler.capturedCommands[0] is NavigationCommand.NavigateAndClearStack)
-        val navigateCommand = fakeNavigationHandler.capturedCommands[0] as NavigationCommand.NavigateAndClearStack
-        assertEquals(Route.OnboardingCarousel, navigateCommand.destination)
-    }
-    
-    @Test
-    fun `SharedNavigationStrategy should work with different action types using same pattern`() {
-        // Given
-        val fakeNavigationHandler1 = FakeNavigationHandler()
-        val fakeNavigationHandler2 = FakeNavigationHandler()
-        val sharedNavigationManager1 = SharedNavigationManager(fakeNavigationHandler1)
-        val sharedNavigationManager2 = SharedNavigationManager(fakeNavigationHandler2)
-        val onboardingStrategy = SharedNavigationStrategy<OnboardingNavigationAction>(sharedNavigationManager1)
-        val splashStrategy = SharedNavigationStrategy<SplashNavigationAction>(sharedNavigationManager2)
-        
-        // When
-        onboardingStrategy.navigate(OnboardingNavigationAction.OnGetStarted)
-        splashStrategy.navigate(SplashNavigationAction.NavigateToOnboarding)
-        
-        // Then
-        assertEquals(1, fakeNavigationHandler1.capturedCommands.size)
-        assertEquals(1, fakeNavigationHandler2.capturedCommands.size)
-        
-        val onboardingCommand = fakeNavigationHandler1.capturedCommands[0] as NavigationCommand.NavigateAndClearStack
-        val splashCommand = fakeNavigationHandler2.capturedCommands[0] as NavigationCommand.NavigateAndClearStack
 
-        assertEquals(Route.MainRestoreScreen, onboardingCommand.destination)
-        assertEquals(Route.OnboardingCarousel, splashCommand.destination)
-    }
-    
     @Test
-    fun `FakeNavigationStrategy should track navigation actions correctly`() {
-        // Given
+    fun `SharedNavigationStrategy calls handler with correct command for onboarding`() {
+        val fakeHandler = FakeNavigationHandler()
+        val manager = SharedNavigationManager(fakeHandler)
+        val strategy = SharedNavigationStrategy<OnboardingNavigationAction>(manager)
+
+        strategy.navigate(OnboardingNavigationAction.GoToHome)
+
+        assertEquals(1, fakeHandler.capturedCommands.size)
+        assertTrue(fakeHandler.capturedCommands[0] is NavigationCommand.NavigateAndClearStack)
+        val cmd = fakeHandler.capturedCommands[0] as NavigationCommand.NavigateAndClearStack
+        assertEquals(Route.Home, cmd.destination)
+    }
+
+    @Test
+    fun `SharedNavigationStrategy handles multiple calls`() {
+        val fakeHandler = FakeNavigationHandler()
+        val manager = SharedNavigationManager(fakeHandler)
+        val strategy = SharedNavigationStrategy<OnboardingNavigationAction>(manager)
+
+        strategy.navigate(OnboardingNavigationAction.GoToHome)
+        strategy.navigate(OnboardingNavigationAction.GoToHome)
+
+        assertEquals(2, fakeHandler.capturedCommands.size)
+    }
+
+    @Test
+    fun `SharedNavigationStrategy works with splash actions`() {
+        val fakeHandler = FakeNavigationHandler()
+        val manager = SharedNavigationManager(fakeHandler)
+        val strategy = SharedNavigationStrategy<SplashNavigationAction>(manager)
+
+        strategy.navigate(SplashNavigationAction.GoToOnboarding)
+
+        assertEquals(1, fakeHandler.capturedCommands.size)
+        val cmd = fakeHandler.capturedCommands[0] as NavigationCommand.NavigateAndClearStack
+        assertEquals(Route.Onboarding, cmd.destination)
+    }
+
+    @Test
+    fun `splash GoToHome navigates to Home`() {
+        val fakeHandler = FakeNavigationHandler()
+        val manager = SharedNavigationManager(fakeHandler)
+        val strategy = SharedNavigationStrategy<SplashNavigationAction>(manager)
+
+        strategy.navigate(SplashNavigationAction.GoToHome)
+
+        val cmd = fakeHandler.capturedCommands[0] as NavigationCommand.NavigateAndClearStack
+        assertEquals(Route.Home, cmd.destination)
+    }
+
+    @Test
+    fun `different strategy types are independent`() {
+        val handler1 = FakeNavigationHandler()
+        val handler2 = FakeNavigationHandler()
+        val onboardingStrategy = SharedNavigationStrategy<OnboardingNavigationAction>(SharedNavigationManager(handler1))
+        val splashStrategy = SharedNavigationStrategy<SplashNavigationAction>(SharedNavigationManager(handler2))
+
+        onboardingStrategy.navigate(OnboardingNavigationAction.GoToHome)
+        splashStrategy.navigate(SplashNavigationAction.GoToOnboarding)
+
+        assertEquals(1, handler1.capturedCommands.size)
+        assertEquals(1, handler2.capturedCommands.size)
+        assertEquals(Route.Home, (handler1.capturedCommands[0] as NavigationCommand.NavigateAndClearStack).destination)
+        assertEquals(Route.Onboarding, (handler2.capturedCommands[0] as NavigationCommand.NavigateAndClearStack).destination)
+    }
+
+    @Test
+    fun `FakeNavigationStrategy tracks actions correctly`() {
         val fakeStrategy = FakeNavigationStrategy<OnboardingNavigationAction>()
-        
-        // When
-        fakeStrategy.navigate(OnboardingNavigationAction.OnGetStarted)
-        fakeStrategy.navigate(OnboardingNavigationAction.OnBack)
-        
-        // Then
-        assertEquals(2, fakeStrategy.getNavigationCount())
+
+        fakeStrategy.navigate(OnboardingNavigationAction.GoToHome)
+
+        assertEquals(1, fakeStrategy.getNavigationCount())
         assertTrue(fakeStrategy.hasNavigated())
-        assertTrue(fakeStrategy.hasNavigatedTo(OnboardingNavigationAction.OnGetStarted))
-        assertTrue(fakeStrategy.hasNavigatedTo(OnboardingNavigationAction.OnBack))
-        assertEquals(OnboardingNavigationAction.OnBack, fakeStrategy.getLastNavigatedAction())
+        assertTrue(fakeStrategy.hasNavigatedTo(OnboardingNavigationAction.GoToHome))
+        assertEquals(OnboardingNavigationAction.GoToHome, fakeStrategy.getLastNavigatedAction())
     }
-    
+
     @Test
-    fun `FakeNavigationStrategy should clear navigation history`() {
-        // Given
+    fun `FakeNavigationStrategy clears history`() {
         val fakeStrategy = FakeNavigationStrategy<OnboardingNavigationAction>()
-        fakeStrategy.navigate(OnboardingNavigationAction.OnGetStarted)
-        
-        // When
+        fakeStrategy.navigate(OnboardingNavigationAction.GoToHome)
+
         fakeStrategy.clear()
-        
-        // Then
+
         assertEquals(0, fakeStrategy.getNavigationCount())
         assertEquals(null, fakeStrategy.getLastNavigatedAction())
     }
-    
+
     @Test
-    fun `FakeNavigationStrategy should throw error when configured`() {
-        // Given
+    fun `FakeNavigationStrategy throws error when configured`() {
         val fakeStrategy = FakeNavigationStrategy<OnboardingNavigationAction>()
         fakeStrategy.shouldThrowError = true
         fakeStrategy.errorMessage = "Test navigation error"
-        
-        // When/Then
+
         try {
-            fakeStrategy.navigate(OnboardingNavigationAction.OnGetStarted)
-            throw AssertionError("Expected IllegalStateException to be thrown")
+            fakeStrategy.navigate(OnboardingNavigationAction.GoToHome)
+            throw AssertionError("Expected IllegalStateException")
         } catch (e: IllegalStateException) {
             assertEquals("Test navigation error", e.message)
         }

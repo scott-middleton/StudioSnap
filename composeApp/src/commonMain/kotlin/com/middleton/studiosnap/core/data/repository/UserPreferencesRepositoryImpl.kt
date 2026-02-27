@@ -11,8 +11,14 @@ class UserPreferencesRepositoryImpl(
     private val dao: UserPreferencesDao
 ) : UserPreferencesRepository {
 
+    @Volatile
+    private var initialized = false
+
     private suspend fun ensureExists() {
-        dao.insertDefault(UserPreferencesEntity())
+        if (!initialized) {
+            dao.insertDefault(UserPreferencesEntity())
+            initialized = true
+        }
     }
 
     override suspend fun hasCompletedOnboarding(): Boolean {

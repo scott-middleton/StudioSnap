@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.flow
  * Emits progress after each image completes. Does NOT run in parallel —
  * Replicate has rate limits and sequential is simpler for error handling.
  */
-class GenerateBatchPreviewsUseCase(
+open class GenerateBatchPreviewsUseCase(
     private val generatePreviewUseCase: GeneratePreviewUseCase
 ) {
 
@@ -18,7 +18,7 @@ class GenerateBatchPreviewsUseCase(
      * Returns a Flow that emits [BatchProgress] after each photo is processed.
      * Consumer can cancel the flow to abort remaining images.
      */
-    operator fun invoke(config: GenerationConfig): Flow<BatchProgress> = flow {
+    open operator fun invoke(config: GenerationConfig): Flow<BatchProgress> = flow {
         val results = mutableListOf<GenerationResult>()
 
         config.photos.forEachIndexed { index, photo ->

@@ -7,6 +7,11 @@ import com.middleton.studiosnap.feature.home.domain.model.StyleCategory.*
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import kotlinx.datetime.Month
 
+/**
+ * In-memory style library with hardcoded Kontext prompts.
+ * Prompts are intentionally English-only — Flux Kontext is a text-guided model
+ * that works best with English prompts regardless of the user's locale.
+ */
 class StyleRepositoryImpl : StyleRepository {
 
     private val styles: List<Style> = buildStyleLibrary()

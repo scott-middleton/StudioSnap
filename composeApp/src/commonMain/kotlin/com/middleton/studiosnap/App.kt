@@ -6,14 +6,17 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.middleton.studiosnap.core.data.di.coreDataModule
 import com.middleton.studiosnap.core.data.di.platformModule
 import com.middleton.studiosnap.core.data.di.supabaseModule
@@ -21,16 +24,8 @@ import com.middleton.studiosnap.core.presentation.di.coreNavigationModule
 import com.middleton.studiosnap.core.presentation.navigation.Route
 import com.middleton.studiosnap.core.presentation.theme.ImageCloneAiTheme
 import com.middleton.studiosnap.feature.auth.presentation.di.authModule
-import com.middleton.studiosnap.feature.mainrestore.presentation.MainRestoreScreen
-import com.middleton.studiosnap.feature.mainrestore.presentation.ProcessingScreen
-import com.middleton.studiosnap.feature.mainrestore.presentation.RestorationExamplesScreen
-import com.middleton.studiosnap.feature.mainrestore.presentation.RestorationDetailScreen
-import com.middleton.studiosnap.feature.mainrestore.presentation.RestorationGridScreen
-import com.middleton.studiosnap.feature.mainrestore.presentation.ResultScreen
-import com.middleton.studiosnap.feature.mainrestore.presentation.di.mainRestoreModule
 import com.middleton.studiosnap.feature.onboarding.presentation.OnboardingCarouselScreen
 import com.middleton.studiosnap.feature.onboarding.presentation.di.onboardingModule
-import com.middleton.studiosnap.feature.paywall.presentation.PaywallScreen
 import com.middleton.studiosnap.feature.paywall.presentation.di.paywallModule
 import com.middleton.studiosnap.feature.splash.presentation.SplashScreen
 import com.middleton.studiosnap.feature.splash.presentation.di.splashModule
@@ -51,7 +46,6 @@ fun App() {
             authModule,
             splashModule,
             onboardingModule,
-            mainRestoreModule,
             paywallModule
         )
     }) {
@@ -65,8 +59,8 @@ fun App() {
                 popExitTransition = getAppTransitions().popExitTransition
             ) {
                 addSplashScreen()
-                addOnboardingScreens()
-                addPlaceholderScreens(navController)
+                addOnboardingScreen()
+                addStubScreens()
             }
         }
     }
@@ -80,57 +74,28 @@ private fun NavGraphBuilder.addSplashScreen() {
     }
 }
 
-private fun NavGraphBuilder.addOnboardingScreens() {
-    composable<Route.OnboardingCarousel>(
+private fun NavGraphBuilder.addOnboardingScreen() {
+    composable<Route.Onboarding>(
         enterTransition = { EnterTransition.None }
     ) {
         OnboardingCarouselScreen()
     }
 }
 
-private fun NavGraphBuilder.addPlaceholderScreens(navController: NavController) {
-    
-    composable<Route.MainRestoreScreen> {
-        MainRestoreScreen()
-    }
-    
-    composable<Route.PaywallScreen> {
-        PaywallScreen()
-    }
+/**
+ * Stub composable destinations — will be replaced with real screens in Phase 5.
+ */
+private fun NavGraphBuilder.addStubScreens() {
+    composable<Route.Home> { StubScreen("Home") }
+    composable<Route.CreditStore> { StubScreen("Credit Store") }
+    composable<Route.History> { StubScreen("History") }
+    composable<Route.Settings> { StubScreen("Settings") }
+}
 
-    composable<Route.ProcessingScreen> { backStackEntry ->
-        val route = backStackEntry.toRoute<Route.ProcessingScreen>()
-        ProcessingScreen(
-            imageUri = route.imageUri,
-            isFreeRestoration = route.isFreeRestoration,
-            userPrompt = route.userPrompt
-        )
-    }
-
-    composable<Route.ResultScreen> {
-        ResultScreen()
-    }
-    
-    composable<Route.RestorationGridScreen> {
-        RestorationGridScreen()
-    }
-
-    composable<Route.RestorationDetailScreen> { backStackEntry ->
-        val route = backStackEntry.toRoute<Route.RestorationDetailScreen>()
-        RestorationDetailScreen(restorationId = route.restorationId)
-    }
-
-    composable<Route.RestorationExamplesScreen> { backStackEntry ->
-        val route = backStackEntry.toRoute<Route.RestorationExamplesScreen>()
-        RestorationExamplesScreen(
-            initialType = route.initialType,
-            onNavigateBack = {
-                navController.popBackStack()
-            },
-            onTryRestoration = { tier ->
-                navController.popBackStack()
-            }
-        )
+@Composable
+private fun StubScreen(name: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text("$name (coming soon)")
     }
 }
 

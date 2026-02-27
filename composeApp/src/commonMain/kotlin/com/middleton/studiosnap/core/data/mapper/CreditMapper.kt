@@ -7,6 +7,6 @@ import com.middleton.studiosnap.core.domain.model.UserCredits
  */
 fun Int.toUserCredits(): UserCredits {
     return UserCredits(
-        tokenCount = this
+        amount = this
     )
 }
