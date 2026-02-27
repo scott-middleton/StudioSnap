@@ -22,11 +22,16 @@ import com.middleton.studiosnap.core.data.di.platformModule
 import com.middleton.studiosnap.core.data.di.supabaseModule
 import com.middleton.studiosnap.core.presentation.di.coreNavigationModule
 import com.middleton.studiosnap.core.presentation.navigation.Route
-import com.middleton.studiosnap.core.presentation.theme.ImageCloneAiTheme
+import com.middleton.studiosnap.core.presentation.theme.StudioSnapTheme
 import com.middleton.studiosnap.feature.auth.presentation.di.authModule
+import com.middleton.studiosnap.feature.history.presentation.di.historyModule
+import com.middleton.studiosnap.feature.home.presentation.di.homeModule
 import com.middleton.studiosnap.feature.onboarding.presentation.OnboardingCarouselScreen
 import com.middleton.studiosnap.feature.onboarding.presentation.di.onboardingModule
 import com.middleton.studiosnap.feature.paywall.presentation.di.paywallModule
+import com.middleton.studiosnap.feature.processing.presentation.di.processingModule
+import com.middleton.studiosnap.feature.results.presentation.di.resultsModule
+import com.middleton.studiosnap.feature.settings.presentation.di.settingsModule
 import com.middleton.studiosnap.feature.splash.presentation.SplashScreen
 import com.middleton.studiosnap.feature.splash.presentation.di.splashModule
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -46,10 +51,15 @@ fun App() {
             authModule,
             splashModule,
             onboardingModule,
-            paywallModule
+            paywallModule,
+            homeModule,
+            processingModule,
+            resultsModule,
+            historyModule,
+            settingsModule
         )
     }) {
-        ImageCloneAiTheme {
+        StudioSnapTheme {
             NavHost(
                 navController = navController,
                 startDestination = Route.Splash,

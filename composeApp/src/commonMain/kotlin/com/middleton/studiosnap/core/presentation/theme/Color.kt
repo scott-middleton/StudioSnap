@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-object ImageCloneAiColors {
+object StudioSnapColors {
     val RestoreBlue = Color(0xFF2563EB)
     val EnhanceGold = Color(0xFFF59E0B)
     val PhotoSilver = Color(0xFF64748B)
@@ -40,108 +40,108 @@ data class ExtendedColorScheme(
 
 val extendedLight = ExtendedColorScheme(
     restore = ColorFamily(
-        color = ImageCloneAiColors.RestoreBlue,
+        color = StudioSnapColors.RestoreBlue,
         onColor = Color.White,
-        colorContainer = ImageCloneAiColors.RestoreBlue.copy(alpha = 0.1f),
-        onColorContainer = ImageCloneAiColors.RestoreBlue
+        colorContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.1f),
+        onColorContainer = StudioSnapColors.RestoreBlue
     ),
     enhance = ColorFamily(
-        color = ImageCloneAiColors.EnhanceGold,
+        color = StudioSnapColors.EnhanceGold,
         onColor = Color.White,
-        colorContainer = ImageCloneAiColors.EnhanceGold.copy(alpha = 0.1f),
-        onColorContainer = ImageCloneAiColors.EnhanceGold
+        colorContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.1f),
+        onColorContainer = StudioSnapColors.EnhanceGold
     ),
     photo = ColorFamily(
-        color = ImageCloneAiColors.PhotoSilver,
+        color = StudioSnapColors.PhotoSilver,
         onColor = Color.White,
-        colorContainer = ImageCloneAiColors.PhotoSilver.copy(alpha = 0.1f),
-        onColorContainer = ImageCloneAiColors.PhotoSilver
+        colorContainer = StudioSnapColors.PhotoSilver.copy(alpha = 0.1f),
+        onColorContainer = StudioSnapColors.PhotoSilver
     ),
     success = ColorFamily(
-        color = ImageCloneAiColors.SuccessGreen,
+        color = StudioSnapColors.SuccessGreen,
         onColor = Color.White,
-        colorContainer = ImageCloneAiColors.SuccessGreen.copy(alpha = 0.1f),
-        onColorContainer = ImageCloneAiColors.SuccessGreen
+        colorContainer = StudioSnapColors.SuccessGreen.copy(alpha = 0.1f),
+        onColorContainer = StudioSnapColors.SuccessGreen
     ),
     processing = ColorFamily(
-        color = ImageCloneAiColors.ProcessingPurple,
+        color = StudioSnapColors.ProcessingPurple,
         onColor = Color.White,
-        colorContainer = ImageCloneAiColors.ProcessingPurple.copy(alpha = 0.1f),
-        onColorContainer = ImageCloneAiColors.ProcessingPurple
+        colorContainer = StudioSnapColors.ProcessingPurple.copy(alpha = 0.1f),
+        onColorContainer = StudioSnapColors.ProcessingPurple
     ),
-    surfaceVariant = ImageCloneAiColors.SoftGray,
-    onSurfaceVariant = ImageCloneAiColors.PhotoSilver
+    surfaceVariant = StudioSnapColors.SoftGray,
+    onSurfaceVariant = StudioSnapColors.PhotoSilver
 )
 
 val extendedDark = ExtendedColorScheme(
     restore = ColorFamily(
-        color = ImageCloneAiColors.RestoreBlue.copy(alpha = 0.8f),
+        color = StudioSnapColors.RestoreBlue.copy(alpha = 0.8f),
         onColor = Color.Black,
-        colorContainer = ImageCloneAiColors.RestoreBlue.copy(alpha = 0.2f),
-        onColorContainer = ImageCloneAiColors.RestoreBlue.copy(alpha = 0.9f)
+        colorContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.2f),
+        onColorContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.9f)
     ),
     enhance = ColorFamily(
-        color = ImageCloneAiColors.EnhanceGold.copy(alpha = 0.8f),
+        color = StudioSnapColors.EnhanceGold.copy(alpha = 0.8f),
         onColor = Color.Black,
-        colorContainer = ImageCloneAiColors.EnhanceGold.copy(alpha = 0.2f),
-        onColorContainer = ImageCloneAiColors.EnhanceGold.copy(alpha = 0.9f)
+        colorContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.2f),
+        onColorContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.9f)
     ),
     photo = ColorFamily(
-        color = ImageCloneAiColors.PhotoSilver.copy(alpha = 0.8f),
+        color = StudioSnapColors.PhotoSilver.copy(alpha = 0.8f),
         onColor = Color.Black,
-        colorContainer = ImageCloneAiColors.PhotoSilver.copy(alpha = 0.2f),
-        onColorContainer = ImageCloneAiColors.PhotoSilver.copy(alpha = 0.9f)
+        colorContainer = StudioSnapColors.PhotoSilver.copy(alpha = 0.2f),
+        onColorContainer = StudioSnapColors.PhotoSilver.copy(alpha = 0.9f)
     ),
     success = ColorFamily(
-        color = ImageCloneAiColors.SuccessGreen.copy(alpha = 0.8f),
+        color = StudioSnapColors.SuccessGreen.copy(alpha = 0.8f),
         onColor = Color.Black,
-        colorContainer = ImageCloneAiColors.SuccessGreen.copy(alpha = 0.2f),
-        onColorContainer = ImageCloneAiColors.SuccessGreen.copy(alpha = 0.9f)
+        colorContainer = StudioSnapColors.SuccessGreen.copy(alpha = 0.2f),
+        onColorContainer = StudioSnapColors.SuccessGreen.copy(alpha = 0.9f)
     ),
     processing = ColorFamily(
-        color = ImageCloneAiColors.ProcessingPurple.copy(alpha = 0.8f),
+        color = StudioSnapColors.ProcessingPurple.copy(alpha = 0.8f),
         onColor = Color.Black,
-        colorContainer = ImageCloneAiColors.ProcessingPurple.copy(alpha = 0.2f),
-        onColorContainer = ImageCloneAiColors.ProcessingPurple.copy(alpha = 0.9f)
+        colorContainer = StudioSnapColors.ProcessingPurple.copy(alpha = 0.2f),
+        onColorContainer = StudioSnapColors.ProcessingPurple.copy(alpha = 0.9f)
     ),
-    surfaceVariant = ImageCloneAiColors.DarkGray,
-    onSurfaceVariant = ImageCloneAiColors.PhotoSilver.copy(alpha = 0.8f)
+    surfaceVariant = StudioSnapColors.DarkGray,
+    onSurfaceVariant = StudioSnapColors.PhotoSilver.copy(alpha = 0.8f)
 )
 
 val lightScheme = lightColorScheme(
-    primary = ImageCloneAiColors.RestoreBlue,
+    primary = StudioSnapColors.RestoreBlue,
     onPrimary = Color.White,
-    primaryContainer = ImageCloneAiColors.RestoreBlue.copy(alpha = 0.1f),
-    onPrimaryContainer = ImageCloneAiColors.RestoreBlue,
-    secondary = ImageCloneAiColors.EnhanceGold,
+    primaryContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.1f),
+    onPrimaryContainer = StudioSnapColors.RestoreBlue,
+    secondary = StudioSnapColors.EnhanceGold,
     onSecondary = Color.White,
-    secondaryContainer = ImageCloneAiColors.EnhanceGold.copy(alpha = 0.1f),
-    onSecondaryContainer = ImageCloneAiColors.EnhanceGold,
-    tertiary = ImageCloneAiColors.ProcessingPurple,
+    secondaryContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.1f),
+    onSecondaryContainer = StudioSnapColors.EnhanceGold,
+    tertiary = StudioSnapColors.ProcessingPurple,
     onTertiary = Color.White,
-    error = ImageCloneAiColors.ErrorRed,
-    surface = ImageCloneAiColors.White,
+    error = StudioSnapColors.ErrorRed,
+    surface = StudioSnapColors.White,
     onSurface = Color.Black,
-    surfaceVariant = ImageCloneAiColors.SoftGray,
-    onSurfaceVariant = ImageCloneAiColors.PhotoSilver
+    surfaceVariant = StudioSnapColors.SoftGray,
+    onSurfaceVariant = StudioSnapColors.PhotoSilver
 )
 
 val darkScheme = darkColorScheme(
-    primary = ImageCloneAiColors.RestoreBlue.copy(alpha = 0.8f),
+    primary = StudioSnapColors.RestoreBlue.copy(alpha = 0.8f),
     onPrimary = Color.Black,
-    primaryContainer = ImageCloneAiColors.RestoreBlue.copy(alpha = 0.2f),
-    onPrimaryContainer = ImageCloneAiColors.RestoreBlue.copy(alpha = 0.9f),
-    secondary = ImageCloneAiColors.EnhanceGold.copy(alpha = 0.8f),
+    primaryContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.2f),
+    onPrimaryContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.9f),
+    secondary = StudioSnapColors.EnhanceGold.copy(alpha = 0.8f),
     onSecondary = Color.Black,
-    secondaryContainer = ImageCloneAiColors.EnhanceGold.copy(alpha = 0.2f),
-    onSecondaryContainer = ImageCloneAiColors.EnhanceGold.copy(alpha = 0.9f),
-    tertiary = ImageCloneAiColors.ProcessingPurple.copy(alpha = 0.8f),
+    secondaryContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.2f),
+    onSecondaryContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.9f),
+    tertiary = StudioSnapColors.ProcessingPurple.copy(alpha = 0.8f),
     onTertiary = Color.Black,
-    error = ImageCloneAiColors.ErrorRed.copy(alpha = 0.8f),
-    surface = ImageCloneAiColors.DarkGray,
+    error = StudioSnapColors.ErrorRed.copy(alpha = 0.8f),
+    surface = StudioSnapColors.DarkGray,
     onSurface = Color.White,
-    surfaceVariant = ImageCloneAiColors.DarkGray,
-    onSurfaceVariant = ImageCloneAiColors.PhotoSilver.copy(alpha = 0.8f)
+    surfaceVariant = StudioSnapColors.DarkGray,
+    onSurfaceVariant = StudioSnapColors.PhotoSilver.copy(alpha = 0.8f)
 )
 
 val LocalExtendedColorScheme = staticCompositionLocalOf { extendedLight }

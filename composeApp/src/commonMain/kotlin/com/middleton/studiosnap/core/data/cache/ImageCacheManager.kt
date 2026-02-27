@@ -195,7 +195,7 @@ class ImageCacheManager :
 
     private fun getCacheDirectory(): Path {
         val tempDir = getSystemTempDirectory()
-        val cacheDir = (tempDir.toString() + "/image_clone_cache").toPath()
+        val cacheDir = (tempDir.toString() + "/studiosnap_cache").toPath()
 
         if (!fileSystem.exists(cacheDir)) {
             fileSystem.createDirectory(cacheDir)
@@ -205,7 +205,7 @@ class ImageCacheManager :
     }
 
     private fun getPersistentDirectory(): Path {
-        val persistentDir = (getPersistentBaseDirectory().toString() + "/image_clone_persistent").toPath()
+        val persistentDir = (getPersistentBaseDirectory().toString() + "/studiosnap_persistent").toPath()
 
         if (!fileSystem.exists(persistentDir)) {
             fileSystem.createDirectory(persistentDir)

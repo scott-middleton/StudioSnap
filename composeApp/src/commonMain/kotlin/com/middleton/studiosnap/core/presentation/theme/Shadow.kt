@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.Dp
 @Composable
 fun Modifier.modernShadow(
     elevation: Dp,
-    shape: Shape = RoundedCornerShape(ImageCloneAiCorners.Medium),
+    shape: Shape = RoundedCornerShape(StudioSnapCorners.Medium),
     ambientColor: Color = Color.Black.copy(alpha = 0.08f),
     spotColor: Color = Color.Black.copy(alpha = 0.15f)
 ): Modifier = this.shadow(
@@ -31,14 +31,14 @@ fun Modifier.modernShadow(
 fun Modifier.interactiveShadow(
     isSelected: Boolean = false,
     isPressed: Boolean = false,
-    shape: Shape = RoundedCornerShape(ImageCloneAiCorners.Medium),
+    shape: Shape = RoundedCornerShape(StudioSnapCorners.Medium),
     ambientColor: Color = Color.Black.copy(alpha = 0.08f),
     spotColor: Color = Color.Black.copy(alpha = 0.15f)
 ): Modifier {
     val targetElevation = when {
-        isPressed -> ImageCloneAiElevation.Level1
-        isSelected -> ImageCloneAiElevation.Level3
-        else -> ImageCloneAiElevation.Level2
+        isPressed -> StudioSnapElevation.Level1
+        isSelected -> StudioSnapElevation.Level3
+        else -> StudioSnapElevation.Level2
     }
     
     val animatedElevation by animateDpAsState(
@@ -57,9 +57,9 @@ fun Modifier.interactiveShadow(
 @Composable
 fun Modifier.pressableShadow(
     interactionSource: MutableInteractionSource,
-    baseElevation: Dp = ImageCloneAiElevation.Level2,
-    pressedElevation: Dp = ImageCloneAiElevation.Level1,
-    shape: Shape = RoundedCornerShape(ImageCloneAiCorners.Medium),
+    baseElevation: Dp = StudioSnapElevation.Level2,
+    pressedElevation: Dp = StudioSnapElevation.Level1,
+    shape: Shape = RoundedCornerShape(StudioSnapCorners.Medium),
     ambientColor: Color = Color.Black.copy(alpha = 0.08f),
     spotColor: Color = Color.Black.copy(alpha = 0.15f)
 ): Modifier {
@@ -79,14 +79,14 @@ fun Modifier.pressableShadow(
 
 object ModernShadows {
     @Composable
-    fun Modifier.subtle(shape: Shape = RoundedCornerShape(ImageCloneAiCorners.Medium)) = 
-        modernShadow(ImageCloneAiElevation.Level1, shape)
+    fun Modifier.subtle(shape: Shape = RoundedCornerShape(StudioSnapCorners.Medium)) = 
+        modernShadow(StudioSnapElevation.Level1, shape)
     
     @Composable
-    fun Modifier.medium(shape: Shape = RoundedCornerShape(ImageCloneAiCorners.Medium)) = 
-        modernShadow(ImageCloneAiElevation.Level2, shape)
+    fun Modifier.medium(shape: Shape = RoundedCornerShape(StudioSnapCorners.Medium)) = 
+        modernShadow(StudioSnapElevation.Level2, shape)
     
     @Composable
-    fun Modifier.strong(shape: Shape = RoundedCornerShape(ImageCloneAiCorners.Medium)) = 
-        modernShadow(ImageCloneAiElevation.Level4, shape)
+    fun Modifier.strong(shape: Shape = RoundedCornerShape(StudioSnapCorners.Medium)) = 
+        modernShadow(StudioSnapElevation.Level4, shape)
 }

@@ -5,7 +5,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-data class ImageCloneAiTextStyles(
+data class StudioSnapTextStyles(
     val splashTitle: TextStyle = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
@@ -71,4 +71,4 @@ data class ImageCloneAiTextStyles(
     )
 )
 
-val imageCloneAiTextStyles = ImageCloneAiTextStyles()
+val imageCloneAiTextStyles = StudioSnapTextStyles()

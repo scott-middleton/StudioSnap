@@ -2,7 +2,7 @@ package com.middleton.studiosnap.core.presentation.theme
 
 import androidx.compose.ui.unit.dp
 
-object ImageCloneAiElevation {
+object StudioSnapElevation {
     val Level0 = 0.dp
     val Level1 = 2.dp
     val Level2 = 4.dp
@@ -12,7 +12,7 @@ object ImageCloneAiElevation {
     val Level6 = 16.dp
 }
 
-object ImageCloneAiCorners {
+object StudioSnapCorners {
     val Small = 8.dp
     val Medium = 12.dp
     val Large = 16.dp
