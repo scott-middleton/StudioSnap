@@ -62,6 +62,9 @@ fun OnboardingCarouselScreen() {
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
+            // Page layout: [0] Hero → [1..N-2] Demo pages → [N-1] Value/CTA
+            // Requires TOTAL_PAGES >= 3 for at least one demo page.
+            check(OnboardingViewModel.TOTAL_PAGES >= 3) { "Onboarding requires at least 3 pages" }
             when (page) {
                 0 -> OnboardingHeroPage(
                     onNext = { viewModel.handleAction(OnboardingUiAction.NextPage) }
@@ -70,8 +73,8 @@ fun OnboardingCarouselScreen() {
                     onGetStarted = { viewModel.handleAction(OnboardingUiAction.GetStarted) }
                 )
                 else -> OnboardingDemoPage(
-                    headline = "Style Demo $page",
-                    subheadline = "See your products transformed"
+                    headline = "Style Demo $page", // TODO: Replace with Res.string in Phase 5
+                    subheadline = "See your products transformed" // TODO: Replace with Res.string in Phase 5
                 )
             }
         }

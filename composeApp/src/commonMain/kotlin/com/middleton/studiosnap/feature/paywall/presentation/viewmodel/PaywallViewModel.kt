@@ -103,7 +103,9 @@ class PaywallViewModel(
                 }
                 .sortedBy { it.grantedCredits }
 
-            // Assign badges
+            // Assign badges: "Most Popular" = 2nd smallest pack (Standard 25 credits),
+            // "Best Value" = largest pack. Indices assume packs sorted by grantedCredits ascending.
+            // If pack lineup changes, review these assignments.
             val packs = sortedPacks.mapIndexed { index, pack ->
                 pack.copy(
                     isMostPopular = sortedPacks.size >= 2 && index == 1,

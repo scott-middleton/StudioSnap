@@ -92,6 +92,7 @@ private fun NavGraphBuilder.addStubScreens() {
     composable<Route.Settings> { StubScreen("Settings") }
 }
 
+// TODO: Replace with real screens in Phase 5. Hardcoded strings acceptable in stubs.
 @Composable
 private fun StubScreen(name: String) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

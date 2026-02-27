@@ -6,18 +6,24 @@ import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
 import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class UserPreferencesRepositoryImpl(
     private val dao: UserPreferencesDao
 ) : UserPreferencesRepository {
 
-    @Volatile
     private var initialized = false
+    private val mutex = Mutex()
 
     private suspend fun ensureExists() {
         if (!initialized) {
-            dao.insertDefault(UserPreferencesEntity())
-            initialized = true
+            mutex.withLock {
+                if (!initialized) {
+                    dao.insertDefault(UserPreferencesEntity())
+                    initialized = true
+                }
+            }
         }
     }
 

@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Stub — will be fully reimplemented for StudioSnap value proposition page.
+ * TODO: Replace hardcoded strings with Res.string resources in Phase 5.
  */
 @Composable
 fun OnboardingValuePage(

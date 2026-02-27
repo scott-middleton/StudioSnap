@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 /**
  * Stub — will be replaced with StudioSnap-specific demo content
  * showing product photo style transformations.
+ * TODO: Replace hardcoded strings with Res.string resources in Phase 5.
+ * TODO: Render subheadline or remove parameter when implementing real UI.
  */
 @Composable
 fun OnboardingDemoPage(
