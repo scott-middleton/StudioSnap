@@ -1,9 +1,13 @@
 package com.middleton.studiosnap.feature.home.data.repository
 
 import com.middleton.studiosnap.core.data.cache.ImageCacheManager
+import com.middleton.studiosnap.core.data.database.GenerationDao
+import com.middleton.studiosnap.feature.home.domain.error.PredictionFailedException
+import com.middleton.studiosnap.feature.home.domain.error.PredictionTimeoutException
 import com.middleton.studiosnap.core.data.datasource.KontextRemoteDataSource
 import com.middleton.studiosnap.core.data.model.KontextInput
 import com.middleton.studiosnap.core.data.model.KontextPredictionRequest
+import com.middleton.studiosnap.core.data.model.ReplicatePredictionResponse
 import com.middleton.studiosnap.core.data.util.getImageDimensions
 import com.middleton.studiosnap.core.data.util.resizeImage
 import com.middleton.studiosnap.core.data.util.toBase64DataUri
@@ -24,7 +28,7 @@ class GenerationRepositoryImpl(
     private val imageCacheManager: ImageCacheManager,
     private val buildKontextPromptUseCase: BuildKontextPromptUseCase,
     private val watermarkService: WatermarkService,
-    private val generationDao: com.middleton.studiosnap.core.data.database.GenerationDao
+    private val generationDao: GenerationDao
 ) : GenerationRepository {
 
     override suspend fun generateImage(
@@ -109,7 +113,7 @@ class GenerationRepositoryImpl(
 
     private suspend fun pollForCompletion(
         predictionId: String
-    ): com.middleton.studiosnap.core.data.model.ReplicatePredictionResponse {
+    ): ReplicatePredictionResponse {
         var attempts = 0
         while (attempts < MAX_POLL_ATTEMPTS) {
             delay(POLL_INTERVAL_MS)
@@ -133,11 +137,12 @@ class GenerationRepositoryImpl(
         private const val POLL_INTERVAL_MS = 2000L
         private const val MAX_POLL_ATTEMPTS = 60
 
-        // Flux Kontext [dev] model version
+        /**
+         * Flux Kontext [dev] model version hash.
+         * Must be updated manually when Replicate publishes a new version.
+         * Check: https://replicate.com/black-forest-labs/flux-kontext-dev/versions
+         */
         const val KONTEXT_MODEL_VERSION =
             "85723d503c17da3f9fd9cecfb9987a8bf60ef747fd8f68a25d7636f88260eb59"
     }
 }
-
-class PredictionFailedException(message: String) : Exception(message)
-class PredictionTimeoutException(message: String) : Exception(message)

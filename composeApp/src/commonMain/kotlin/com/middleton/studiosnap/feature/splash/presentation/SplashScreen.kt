@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.navigation.NavigationHandler
 import com.middleton.studiosnap.core.presentation.theme.LocalExtendedColorScheme
-import com.middleton.studiosnap.core.presentation.theme.imageCloneAiTextStyles
+import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import com.middleton.studiosnap.feature.splash.presentation.viewmodel.SplashViewModel
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.app_logo
@@ -243,7 +243,7 @@ fun SplashScreen() {
 
             Text(
                 text = stringResource(Res.string.app_name),
-                style = imageCloneAiTextStyles.splashTitle.copy(
+                style = studioSnapTextStyles.splashTitle.copy(
                     fontSize = 36.sp,
                     fontWeight = FontWeight.ExtraBold,
                     letterSpacing = 1.sp,
@@ -260,7 +260,7 @@ fun SplashScreen() {
 
             Text(
                 text = stringResource(Res.string.app_tagline),
-                style = imageCloneAiTextStyles.onboardingSubheadline.copy(
+                style = studioSnapTextStyles.onboardingSubheadline.copy(
                     fontSize = 14.sp,
                     letterSpacing = 0.8.sp
                 ),

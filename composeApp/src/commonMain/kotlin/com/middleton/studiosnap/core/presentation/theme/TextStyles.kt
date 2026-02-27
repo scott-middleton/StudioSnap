@@ -71,4 +71,4 @@ data class StudioSnapTextStyles(
     )
 )
 
-val imageCloneAiTextStyles = StudioSnapTextStyles()
+val studioSnapTextStyles = StudioSnapTextStyles()

@@ -32,7 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.theme.LocalExtendedColorScheme
-import com.middleton.studiosnap.core.presentation.theme.imageCloneAiTextStyles
+import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.app_logo
 import studiosnap.composeapp.generated.resources.logo
@@ -98,7 +98,7 @@ fun OnboardingHeroPage(
 
             Text(
                 text = stringResource(Res.string.onboarding_hero_headline),
-                style = imageCloneAiTextStyles.onboardingHeadline,
+                style = studioSnapTextStyles.onboardingHeadline,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
@@ -107,7 +107,7 @@ fun OnboardingHeroPage(
 
             Text(
                 text = stringResource(Res.string.onboarding_hero_subheadline),
-                style = imageCloneAiTextStyles.onboardingSubheadline,
+                style = studioSnapTextStyles.onboardingSubheadline,
                 color = Color.White.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
@@ -131,7 +131,7 @@ fun OnboardingHeroPage(
         ) {
             Text(
                 text = stringResource(Res.string.next_button),
-                style = imageCloneAiTextStyles.buttonText.copy(
+                style = studioSnapTextStyles.buttonText.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
