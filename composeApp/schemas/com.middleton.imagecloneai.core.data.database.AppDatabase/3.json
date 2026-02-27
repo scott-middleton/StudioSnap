@@ -1,0 +1,98 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "708f42659f77862406d1d49413362afe",
+    "entities": [
+      {
+        "tableName": "recent_restorations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `originalImagePath` TEXT NOT NULL, `restoredImagePath` TEXT NOT NULL, `thumbnailPath` TEXT, `restoreDate` INTEGER NOT NULL, `restoreMode` TEXT NOT NULL, `upscaleMultiplier` INTEGER NOT NULL, `faceEnhancement` INTEGER NOT NULL, `colorization` INTEGER NOT NULL, `tokenCost` INTEGER NOT NULL, `isDisplayed` INTEGER NOT NULL DEFAULT 1, `isWatermarked` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originalImagePath",
+            "columnName": "originalImagePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restoredImagePath",
+            "columnName": "restoredImagePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "thumbnailPath",
+            "columnName": "thumbnailPath",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "restoreDate",
+            "columnName": "restoreDate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restoreMode",
+            "columnName": "restoreMode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "upscaleMultiplier",
+            "columnName": "upscaleMultiplier",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "faceEnhancement",
+            "columnName": "faceEnhancement",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "colorization",
+            "columnName": "colorization",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tokenCost",
+            "columnName": "tokenCost",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isDisplayed",
+            "columnName": "isDisplayed",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "isWatermarked",
+            "columnName": "isWatermarked",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '708f42659f77862406d1d49413362afe')"
+    ]
+  }
+}

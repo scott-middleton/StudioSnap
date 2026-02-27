@@ -1,0 +1,65 @@
+name: iOS Build Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-ios-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml') }}
+          restore-keys: gradle-ios-
+
+      - name: Cache Kotlin/Native
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml') }}
+          restore-keys: konan-
+
+      - name: Compile Kotlin iOS
+        run: ./gradlew :composeApp:compileKotlinIosArm64
+
+      - name: Build iOS Framework
+        run: ./gradlew :composeApp:linkReleaseFrameworkIosArm64
+
+      - name: Resolve SPM Dependencies
+        working-directory: iosApp
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project iosApp.xcodeproj \
+            -scheme iosApp
+
+      - name: Build iOS App (xcodebuild)
+        working-directory: iosApp
+        run: |
+          xcodebuild build \
+            -project iosApp.xcodeproj \
+            -scheme iosApp \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || tail -50

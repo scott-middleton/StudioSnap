@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Identity -->
+    <string name="app_name">StudioSnap</string>
+    <string name="app_tagline">Product Photos That Sell</string>
+    
+    <!-- Splash Screen -->
+    <string name="splash_loading">Loading Animation</string>
+    <string name="app_logo">App Logo</string>
+    
+    <!-- Onboarding Screens -->
+    <string name="onboarding_hero_headline">Restore Your Precious Memories</string>
+    <string name="onboarding_hero_subheadline">AI-powered photo restoration in seconds</string>
+    <string name="onboarding_demo_headline">See the difference</string>
+    <string name="onboarding_demo_tagline">See what AI restoration can do for your photos</string>
+    <string name="onboarding_value_headline">Powered by cutting-edge AI</string>
+    <string name="get_started_button">Get Started</string>
+    <string name="next_button">Next</string>
+    
+    <!-- Demo Examples -->
+    <string name="demo_faces_title">Restore Faces</string>
+    <string name="demo_faces_description">Bring clarity and color to precious family portraits</string>
+    <string name="demo_color_title">Bring Photos to Life</string>
+    <string name="demo_color_description">Transform black &amp; white photos into vivid, full-color memories</string>
+    <string name="demo_damage_title">Repair Damage</string>
+    <string name="demo_damage_description">Rescue photos from scratches, tears, and years of decay</string>
+    <string name="demo_fading_title">Restore Fading</string>
+    <string name="demo_fading_description">Revive faded childhood memories and bring back vibrant family moments</string>
+    
+    <!-- Demo Labels -->
+    <string name="demo_label_blurry">Blurry</string>
+    <string name="demo_label_enhanced">Enhanced</string>
+    <string name="demo_label_bw">B&amp;W</string>
+    <string name="demo_label_colorized">Colorized</string>
+    <string name="demo_label_damaged">Damaged</string>
+    <string name="demo_label_restored">Restored</string>
+    <string name="demo_label_faded">Faded</string>
+    
+    <!-- Benefits -->
+    <string name="benefit_no_subscriptions_title">No subscriptions, ever</string>
+    <string name="benefit_no_subscriptions_subtitle">Pay per photo. Your credits, your pace.</string>
+    <string name="benefit_ai_pipeline_title">Multi-stage AI pipeline</string>
+    <string name="benefit_ai_pipeline_subtitle">Restore, colorize &amp; upscale to 2K+ resolution</string>
+    <string name="benefit_museum_grade_title">Museum-grade repair</string>
+    <string name="benefit_museum_grade_subtitle">Fix damage, scratches &amp; lost detail</string>
+    <string name="benefit_private_secure_title">Private &amp; secure</string>
+    <string name="benefit_private_secure_subtitle">Photos processed and deleted, never stored</string>
+    
+    <!-- Main Restore Screen -->
+    <string name="main_restore_title">Restore AI</string>
+    <string name="select_photo_button">Select Photo from Gallery</string>
+    <string name="select_photo_description">Choose a photo to restore</string>
+    <string name="token_cost_info">1 token per restoration • +1 for color</string>
+    <string name="restore_damage_option">Restore damage</string>
+    <string name="add_color_option">Add color</string>
+    <string name="restore_now_button">Restore Now</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="this_will_use_tokens">This will use %1$d tokens</string>
+    <string name="insufficient_tokens">Insufficient tokens</string>
+    
+    <!-- Sign In Screen -->
+    <string name="signin_skip">Maybe Later</string>
+    <string name="signin_apple">Continue with Apple</string>
+    <string name="signin_google">Continue with Google</string>
+    <string name="signin_apple_unavailable">Apple sign-in not available</string>
+    <string name="signin_google_unavailable">Google sign-in not available</string>
+    <string name="signin_benefit_1">✓ Credits sync across all your devices</string>
+    <string name="signin_benefit_2">✓ Never lose your restoration history</string>
+    <string name="signin_benefit_3">✓ Secure and private</string>
+
+    <!-- Main Restore Screen -->
+    <string name="main_restore_sign_in">Sign In</string>
+    <string name="main_restore_get_credits">Get Credits</string>
+    <string name="main_restore_menu">Menu</string>
+    <string name="main_restore_processing">Processing...</string>
+    <string name="main_restore_photo_ready">Photo Ready</string>
+    <string name="main_restore_tap_change">Tap to change photo</string>
+    <string name="main_restore_select_photo">Select a Photo to Restore</string>
+    <string name="main_restore_tap_gallery">Tap to choose from gallery</string>
+    <string name="main_restore_selected_photo">Selected photo</string>
+    <string name="main_restore_see_examples">See Examples</string>
+    <string name="main_restore_resolution">Resolution Increase</string>
+    <string name="main_restore_resolution_desc">Increases output resolution. Higher values produce larger, more detailed images but cost more credits.</string>
+    <string name="main_restore_addons">Add-on Features</string>
+    <string name="main_restore_face_enhancement">Face Enhancement</string>
+    <string name="main_restore_face_desc">Specialized AI for portraits</string>
+    <string name="main_restore_face_tooltip">Specialized AI processing for portraits. Improves facial features, skin texture, and eye detail.</string>
+    <string name="main_restore_colorization">Colorization</string>
+    <string name="main_restore_colorize_desc">Add realistic colors to B&amp;W photos</string>
+    <string name="main_restore_colorize_tooltip">Automatically adds realistic colors to black &amp; white photos using AI analysis.</string>
+    <string name="main_restore_show_options">Show Additional Options</string>
+    <string name="main_restore_hide_options">Hide Additional Options</string>
+    <string name="main_restore_recent">Recent</string>
+    <string name="main_restore_view_all">View All</string>
+    <plurals name="main_restore_restore_photo">
+        <item quantity="one">Restore Photo (%1$d credit)</item>
+        <item quantity="other">Restore Photo (%1$d credits)</item>
+    </plurals>
+    <string name="main_restore_loading_credits">Loading Credits...</string>
+    <string name="main_restore_get_more_credits">Get More Credits</string>
+    <plurals name="main_restore_need_credits">
+        <item quantity="one">Need %1$d More Credit</item>
+        <item quantity="other">Need %1$d More Credits</item>
+    </plurals>
+    <string name="main_restore_sign_in_to_restore">Sign In to Restore</string>
+    <string name="main_restore_get_credits_needed">Get Credits (%1$d needed)</string>
+    <string name="main_restore_info_resolution">Resolution increase info</string>
+    <string name="main_restore_info_examples">See examples</string>
+    <string name="main_restore_credits_count">%1$d credits</string>
+    <plurals name="credits_count">
+        <item quantity="one">%1$d credit</item>
+        <item quantity="other">%1$d credits</item>
+    </plurals>
+
+    <!-- Free Trial -->
+    <string name="free_trial_restore_button">Restore for Free</string>
+    <string name="free_trial_badge">Free Trial</string>
+
+    <!-- Watermarked Result -->
+    <string name="result_unlock_full_quality">Get Credits</string>
+    <string name="result_get_credits">Get Credits to Restore More</string>
+    <string name="result_watermark_info">This is a free trial restoration. Shared images will include a watermark. Purchase credits for unlimited watermark-free restorations.</string>
+
+    <!-- Paywall -->
+    <string name="paywall_already_have_account">Already have an account? Sign in</string>
+
+    <!-- Paywall Screen -->
+    <string name="paywall_title">Get Credits</string>
+    <string name="paywall_back">Back</string>
+    <string name="paywall_best_value">Best Value</string>
+    <string name="paywall_most_popular">Most Popular</string>
+    <string name="paywall_credits">credits</string>
+    <string name="paywall_restorations">restorations</string>
+    <string name="paywall_per_restoration">per restoration</string>
+    <string name="paywall_select_pack">Select a pack</string>
+    <string name="paywall_continue">Continue — %1$s</string>
+    <string name="paywall_headline_trial">Remove watermarks.\nUnlock full quality.</string>
+    <string name="paywall_headline_topup">More credits.\nMore restorations.</string>
+    <string name="paywall_subtitle">1 credit = 1 full AI restoration</string>
+    <string name="paywall_error_load_offerings">Unable to load credit packs. Please try again.</string>
+    <string name="paywall_error_purchase_failed">Purchase failed. Please try again.</string>
+    <string name="paywall_error_unlock_failed">Purchase successful, but some restored photos could not be unlocked. Please contact support.</string>
+    <string name="paywall_sign_in_success">Signed in successfully! Choose a pack to get started.</string>
+    <string name="paywall_credits_remaining">%1$d credits remaining</string>
+
+    <!-- Restoration Examples Screen -->
+    <string name="restoration_examples_title">Restoration Examples</string>
+    <string name="restoration_examples_try">Try This Restoration</string>
+    <string name="restoration_examples_what">What's included:</string>
+    <string name="restoration_examples_prev">Previous example</string>
+    <string name="restoration_examples_next">Next example</string>
+    <string name="restoration_examples_before">Before</string>
+    <string name="restoration_examples_after">After</string>
+    <string name="restoration_examples_close">Close enlarged view</string>
+    <string name="restoration_examples_counter">%1$d/%2$d - %3$s</string>
+    <string name="restoration_examples_enlarge">Enlarge example</string>
+    <string name="restoration_examples_standard_title">Standard Restoration</string>
+    <string name="restoration_examples_standard_desc">Fast and reliable AI restoration. Great for general photo enhancement, noise reduction, and detail recovery.</string>
+    <string name="restoration_examples_premium_title">Premium Restoration</string>
+    <string name="restoration_examples_premium_desc">Our most advanced restoration technology with 2K output. Delivers maximum quality results for heavily damaged or important photos.</string>
+    <string name="restoration_examples_feature_standard_1">AI-powered detail enhancement</string>
+    <string name="restoration_examples_feature_standard_2">Noise reduction &amp; sharpening</string>
+    <string name="restoration_examples_feature_standard_3">Damage repair &amp; scratch removal</string>
+    <string name="restoration_examples_feature_standard_4">Fast processing</string>
+    <string name="restoration_examples_feature_standard_5">3 credits per restoration</string>
+    <string name="restoration_examples_feature_premium_1">Maximum quality AI restoration</string>
+    <string name="restoration_examples_feature_premium_2">2K resolution output</string>
+    <string name="restoration_examples_feature_premium_3">Superior damage reconstruction</string>
+    <string name="restoration_examples_feature_premium_4">Best results for important photos</string>
+    <string name="restoration_examples_feature_premium_5">Intelligent detail recovery</string>
+    <string name="restoration_examples_feature_premium_6">8 credits per restoration</string>
+    <string name="restoration_examples_example_portrait">Portrait Enhancement</string>
+    <string name="restoration_examples_example_landscape">Vintage Landscape</string>
+    <string name="restoration_examples_example_family">Family Photo</string>
+    <string name="tier_standard">Standard</string>
+    <string name="tier_premium">Premium</string>
+
+    <!-- Accessibility/Content Descriptions -->
+    <string name="content_close">Close</string>
+    <string name="content_back">Back</string>
+
+    <!-- Restoration Grid -->
+    <string name="restoration_grid_title">All Restorations</string>
+
+    <!-- Restoration Detail -->
+    <string name="restoration_detail_title">Restoration</string>
+    <string name="restoration_detail_share">Share</string>
+    <string name="restoration_detail_delete">Delete</string>
+    <string name="restoration_detail_view_in_gallery">Gallery</string>
+    <string name="restoration_detail_delete_title">Delete Restoration</string>
+    <string name="restoration_detail_delete_message">This will permanently remove this restoration from your history and gallery.</string>
+    <string name="restoration_detail_delete_confirm">Delete</string>
+    <string name="restoration_detail_delete_cancel">Cancel</string>
+    <string name="content_check_circle">Check</string>
+    <string name="content_info">Info</string>
+
+    <!-- Error Messages -->
+    <string name="error_network">Network error. Please check your connection.</string>
+    <string name="error_signin_failed">Failed to complete sign-in</string>
+    <string name="error_load_offerings">Failed to load offerings</string>
+    <string name="error_purchase_failed">Purchase failed</string>
+    <string name="error_connection_failed">Connection failed. Check your internet.</string>
+    <string name="error_insufficient_credits">Not enough credits</string>
+    <string name="error_timeout">Processing took too long. Try a smaller image.</string>
+    <string name="error_credit_deduction_failed">Payment failed. Please try again.</string>
+    <string name="error_processing_failed">Processing failed: %1$s</string>
+    <string name="error_invalid_image">Invalid image: %1$s</string>
+    <string name="error_image_load_failed">Failed to load image</string>
+
+    <!-- Placeholders -->
+    <string name="onboarding_carousel">Onboarding Carousel</string>
+    <string name="main_restore_screen">Main Restore Screen</string>
+    <string name="processing_screen">Processing Screen</string>
+    <string name="result_screen">Result Screen</string>
+
+    <!-- Processing Screen -->
+    <string name="processing_preparing">Preparing image…</string>
+    <string name="processing_uploading">Uploading image…</string>
+    <string name="processing_processing">Enhancing image…</string>
+    <string name="processing_processing_hint">This may take up to 30 seconds</string>
+    <string name="processing_upscaling">Sharpening image…</string>
+    <string name="processing_downloading">Downloading result…</string>
+    <string name="processing_error_title">Something went wrong</string>
+    <string name="processing_retry">Try Again</string>
+    <string name="processing_go_back">Go Back</string>
+    <string name="processing_subtitle_preparing">Analysing your photo</string>
+    <string name="processing_subtitle_uploading">Sending to our AI</string>
+    <string name="processing_subtitle_processing">AI is restoring your photo</string>
+    <string name="processing_subtitle_upscaling">Enhancing resolution and detail</string>
+    <string name="processing_subtitle_downloading">Almost there…</string>
+    <string name="processing_patience">Great restorations take a moment</string>
+    <string name="processing_your_photo">Your photo</string>
+    <string name="processing_do_not_close">Please don't close the app during restoration</string>
+
+    <!-- Result Screen -->
+    <string name="result_title">Your photo, restored</string>
+    <string name="result_before">Before</string>
+    <string name="result_after">After</string>
+    <string name="result_share">Share</string>
+    <string name="result_save">Save</string>
+    <string name="result_restore_another">Restore Another</string>
+    <string name="result_back_to_home">Back to Home</string>
+    <string name="result_loading_after">Failed to load after image</string>
+    <string name="result_loading_before">Failed to load before image</string>
+    <string name="result_saved_to_gallery">Saved to your gallery ✓</string>
+    <string name="result_save_failed">Failed to save. Tap to retry.</string>
+    <string name="result_permission_needed">Storage permission needed. Please grant it in app settings and try again.</string>
+    <string name="result_delete">Delete</string>
+    <string name="result_delete_title">Delete Restoration?</string>
+    <string name="result_delete_message">This will remove the image from your gallery. You&apos;ll need to use credits to restore it again.</string>
+    <string name="result_delete_confirm">Delete</string>
+    <!-- User Prompt -->
+    <string name="user_prompt_add_instructions">✨ Add instructions</string>
+    <string name="user_prompt_placeholder">e.g. "The dress is blue" or "Remove the scratch"</string>
+    <string name="user_prompt_disclaimer">May affect result quality — use sparingly</string>
+    <string name="user_prompt_char_count">%1$d/%2$d</string>
+
+    <string name="result_delete_cancel">Cancel</string>
+    <string name="result_saving">Saving to gallery…</string>
+    <string name="result_close_enlarged">Close enlarged view</string>
+    <string name="result_enlarge">Enlarge comparison</string>
+</resources>

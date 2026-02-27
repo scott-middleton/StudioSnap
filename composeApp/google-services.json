@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "185259932981",
+    "project_id": "imagecloneai-790f3",
+    "storage_bucket": "imagecloneai-790f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:185259932981:android:0d6d037d8fe69c1d21607c",
+        "android_client_info": {
+          "package_name": "com.middleton.imagecloneai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChT6JrWvzmKlzrtE2XXRk9OsUCLlSQgoY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
