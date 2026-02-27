@@ -41,6 +41,9 @@ class ProcessingViewModel(
     fun handleAction(action: ProcessingUiAction) {
         when (action) {
             ProcessingUiAction.OnRetryClicked -> startProcessing()
+            ProcessingUiAction.OnCancelClicked -> {
+                _navigationEvent.value = ProcessingNavigationAction.GoBack
+            }
         }
     }
 
