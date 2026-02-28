@@ -12,10 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import studiosnap.composeapp.generated.resources.Res
+import studiosnap.composeapp.generated.resources.get_started_button
+import studiosnap.composeapp.generated.resources.onboarding_value_headline
 
 /**
  * Stub — will be fully reimplemented for StudioSnap value proposition page.
- * TODO: Replace hardcoded strings with Res.string resources in Phase 5.
  */
 @Composable
 fun OnboardingValuePage(
@@ -27,10 +30,10 @@ fun OnboardingValuePage(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Professional product photos in seconds")
+        Text(stringResource(Res.string.onboarding_value_headline))
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onGetStarted) {
-            Text("Get Started")
+            Text(stringResource(Res.string.get_started_button))
         }
     }
 }

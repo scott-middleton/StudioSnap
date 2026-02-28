@@ -72,10 +72,7 @@ fun OnboardingCarouselScreen() {
                 OnboardingViewModel.TOTAL_PAGES - 1 -> OnboardingValuePage(
                     onGetStarted = { viewModel.handleAction(OnboardingUiAction.GetStarted) }
                 )
-                else -> OnboardingDemoPage(
-                    headline = "Style Demo $page", // TODO: Replace with Res.string in Phase 5
-                    subheadline = "See your products transformed" // TODO: Replace with Res.string in Phase 5
-                )
+                else -> OnboardingDemoPage()
             }
         }
     }
