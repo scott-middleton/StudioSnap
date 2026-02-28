@@ -175,7 +175,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val vm = createViewModel()
 
         assertIs<ProcessingNavigationAction.GoToResults>(vm.navigationEvent.value)
-        vm.onNavigationHandled()
+        vm.handleAction(ProcessingUiAction.OnNavigationHandled)
         assertNull(vm.navigationEvent.value)
     }
 

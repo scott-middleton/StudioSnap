@@ -38,11 +38,8 @@ class HistoryViewModel(
             is HistoryUiAction.OnFilterChanged -> changeFilter(action.filter)
             HistoryUiAction.OnBackClicked ->
                 _navigationEvent.value = HistoryNavigationAction.GoBack
+            HistoryUiAction.OnNavigationHandled -> _navigationEvent.value = null
         }
-    }
-
-    fun onNavigationHandled() {
-        _navigationEvent.value = null
     }
 
     private fun observeHistory() {

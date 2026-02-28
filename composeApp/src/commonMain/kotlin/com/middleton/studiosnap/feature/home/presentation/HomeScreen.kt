@@ -21,11 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -42,8 +38,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -71,6 +65,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
@@ -96,9 +91,10 @@ import studiosnap.composeapp.generated.resources.content_credits
 import studiosnap.composeapp.generated.resources.content_history
 import studiosnap.composeapp.generated.resources.content_settings
 import studiosnap.composeapp.generated.resources.home_add_photos
-import studiosnap.composeapp.generated.resources.home_add_photos_subtitle
 import studiosnap.composeapp.generated.resources.home_empty_subtitle
 import studiosnap.composeapp.generated.resources.home_empty_title
+import studiosnap.composeapp.generated.resources.home_error_generation_failed
+import studiosnap.composeapp.generated.resources.home_error_too_many_photos
 import studiosnap.composeapp.generated.resources.home_export_ebay
 import studiosnap.composeapp.generated.resources.home_export_etsy
 import studiosnap.composeapp.generated.resources.home_export_format
@@ -112,8 +108,25 @@ import studiosnap.composeapp.generated.resources.home_remove_photo
 import studiosnap.composeapp.generated.resources.home_shadow
 import studiosnap.composeapp.generated.resources.home_styles_title
 import studiosnap.composeapp.generated.resources.home_title
+import studiosnap.composeapp.generated.resources.style_beach_vibes
+import studiosnap.composeapp.generated.resources.style_botanical_garden
+import studiosnap.composeapp.generated.resources.style_christmas
+import studiosnap.composeapp.generated.resources.style_clean_white
+import studiosnap.composeapp.generated.resources.style_concrete_minimal
+import studiosnap.composeapp.generated.resources.style_dark_moody
+import studiosnap.composeapp.generated.resources.style_gradient_studio
+import studiosnap.composeapp.generated.resources.style_marble_luxe
+import studiosnap.composeapp.generated.resources.style_morning_kitchen
+import studiosnap.composeapp.generated.resources.style_neon_pop
+import studiosnap.composeapp.generated.resources.style_paper_craft
+import studiosnap.composeapp.generated.resources.style_pastel_dream
+import studiosnap.composeapp.generated.resources.style_rustic_wood
+import studiosnap.composeapp.generated.resources.style_silk_velvet
+import studiosnap.composeapp.generated.resources.style_spring_garden
+import studiosnap.composeapp.generated.resources.style_sunset_glow
+import studiosnap.composeapp.generated.resources.style_terrazzo
+import studiosnap.composeapp.generated.resources.style_warm_linen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
@@ -121,14 +134,31 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val navigationEvent by viewModel.navigationEvent.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(navigationEvent) {
         navigationEvent?.let { action ->
             navigationStrategy.navigate(action)
-            viewModel.onNavigationHandled()
+            viewModel.handleAction(HomeUiAction.OnNavigationHandled)
         }
     }
+
+    HomeScreenContent(
+        state = uiState,
+        onAction = viewModel::handleAction
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreenContent(
+    state: HomeUiState,
+    onAction: (HomeUiAction) -> Unit
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Resolve error messages to strings in the composable
+    val errorTooMany = stringResource(Res.string.home_error_too_many_photos, HomeUiState.MAX_PHOTOS)
+    val errorGenFailed = stringResource(Res.string.home_error_generation_failed)
 
     Scaffold(
         topBar = {
@@ -140,18 +170,17 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    // Credit balance pill
                     CreditBalancePill(
-                        balance = uiState.creditBalance,
-                        onClick = { viewModel.handleAction(HomeUiAction.OnCreditBalanceClicked) }
+                        balance = state.creditBalance,
+                        onClick = { onAction(HomeUiAction.OnCreditBalanceClicked) }
                     )
-                    IconButton(onClick = { viewModel.handleAction(HomeUiAction.OnHistoryClicked) }) {
+                    IconButton(onClick = { onAction(HomeUiAction.OnHistoryClicked) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = stringResource(Res.string.content_history)
                         )
                     }
-                    IconButton(onClick = { viewModel.handleAction(HomeUiAction.OnSettingsClicked) }) {
+                    IconButton(onClick = { onAction(HomeUiAction.OnSettingsClicked) }) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = stringResource(Res.string.content_settings)
@@ -165,12 +194,12 @@ fun HomeScreen(
         },
         floatingActionButton = {
             AnimatedVisibility(
-                visible = uiState.canGenerate,
+                visible = state.canGenerate,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
                 ExtendedFloatingActionButton(
-                    onClick = { viewModel.handleAction(HomeUiAction.OnGenerateClicked) },
+                    onClick = { onAction(HomeUiAction.OnGenerateClicked) },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
@@ -190,52 +219,47 @@ fun HomeScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Photo selection section
             PhotoSection(
-                photos = uiState.photos,
-                onAddPhotos = { /* TODO: Launch gallery picker in Phase 5b */ },
-                onRemovePhoto = { viewModel.handleAction(HomeUiAction.OnPhotoRemoved(it)) }
+                photos = state.photos,
+                onAddPhotos = { /* TODO: Launch gallery picker — wired in platform integration phase */ },
+                onRemovePhoto = { onAction(HomeUiAction.OnPhotoRemoved(it)) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Style picker section
             StylePickerSection(
-                styles = uiState.styles,
-                selectedStyle = uiState.selectedStyle,
-                selectedCategory = uiState.selectedCategory,
-                onStyleSelected = { viewModel.handleAction(HomeUiAction.OnStyleSelected(it)) },
-                onCategorySelected = { viewModel.handleAction(HomeUiAction.OnCategorySelected(it)) }
+                styles = state.styles,
+                selectedStyleId = state.selectedStyle?.id,
+                selectedCategory = state.selectedCategory,
+                onStyleSelected = { onAction(HomeUiAction.OnStyleSelected(it)) },
+                onCategorySelected = { onAction(HomeUiAction.OnCategorySelected(it)) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Options section
             OptionsSection(
-                shadow = uiState.shadow,
-                reflection = uiState.reflection,
-                exportFormat = uiState.exportFormat,
-                onShadowToggled = { viewModel.handleAction(HomeUiAction.OnShadowToggled(it)) },
-                onReflectionToggled = { viewModel.handleAction(HomeUiAction.OnReflectionToggled(it)) },
-                onExportFormatSelected = { viewModel.handleAction(HomeUiAction.OnExportFormatSelected(it)) }
+                shadow = state.shadow,
+                reflection = state.reflection,
+                exportFormat = state.exportFormat,
+                onShadowToggled = { onAction(HomeUiAction.OnShadowToggled(it)) },
+                onReflectionToggled = { onAction(HomeUiAction.OnReflectionToggled(it)) },
+                onExportFormatSelected = { onAction(HomeUiAction.OnExportFormatSelected(it)) }
             )
 
-            // Bottom spacing for FAB
-            Spacer(modifier = Modifier.height(88.dp))
+            // Bottom spacing to clear FAB
+            Spacer(modifier = Modifier.height(FAB_CLEARANCE_DP.dp))
         }
     }
 
-    // Handle errors
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            // TODO: Use Res.string for error messages when wired up
+    LaunchedEffect(state.error) {
+        state.error?.let {
             snackbarHostState.showSnackbar(
                 when (it) {
-                    HomeError.TooManyPhotos -> "Maximum ${HomeUiState.MAX_PHOTOS} photos allowed"
-                    HomeError.GenerationFailed -> "Generation failed. Please try again."
+                    HomeError.TooManyPhotos -> errorTooMany
+                    HomeError.GenerationFailed -> errorGenFailed
                 }
             )
-            viewModel.handleAction(HomeUiAction.OnErrorDismissed)
+            onAction(HomeUiAction.OnErrorDismissed)
         }
     }
 }
@@ -272,7 +296,6 @@ private fun PhotoSection(
     onRemovePhoto: (String) -> Unit
 ) {
     if (photos.isEmpty()) {
-        // Empty state — add first photo
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -311,7 +334,6 @@ private fun PhotoSection(
             }
         }
     } else {
-        // Photos strip
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -343,7 +365,7 @@ private fun PhotoSection(
         ) {
             items(photos, key = { it.id }) { photo ->
                 PhotoChip(
-                    photo = photo,
+                    photoUri = photo.localUri,
                     onRemove = { onRemovePhoto(photo.id) }
                 )
             }
@@ -353,19 +375,18 @@ private fun PhotoSection(
 
 @Composable
 private fun PhotoChip(
-    photo: ProductPhoto,
+    photoUri: String,
     onRemove: () -> Unit
 ) {
     Box(modifier = Modifier.size(80.dp)) {
         AsyncImage(
-            model = photo.localUri,
-            contentDescription = null,
+            model = photoUri,
+            contentDescription = stringResource(Res.string.home_remove_photo),
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop
         )
-        // Remove button
         IconButton(
             onClick = onRemove,
             modifier = Modifier
@@ -389,7 +410,7 @@ private fun PhotoChip(
 @Composable
 private fun StylePickerSection(
     styles: List<Style>,
-    selectedStyle: Style?,
+    selectedStyleId: String?,
     selectedCategory: StyleCategory,
     onStyleSelected: (String) -> Unit,
     onCategorySelected: (StyleCategory) -> Unit
@@ -403,28 +424,21 @@ private fun StylePickerSection(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Category filter chips
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(StyleCategory.entries) { category ->
-                FilterChip(
+                StudioSnapFilterChip(
+                    label = categoryDisplayName(category),
                     selected = category == selectedCategory,
-                    onClick = { onCategorySelected(category) },
-                    label = { Text(categoryDisplayName(category)) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    onClick = { onCategorySelected(category) }
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Style grid (non-scrollable since parent scrolls)
-        // Using FlowRow instead of LazyVerticalGrid to avoid nested scrolling
         StyleGrid(
             styles = styles,
-            selectedStyle = selectedStyle,
+            selectedStyleId = selectedStyleId,
             onStyleSelected = onStyleSelected
         )
     }
@@ -434,7 +448,7 @@ private fun StylePickerSection(
 @Composable
 private fun StyleGrid(
     styles: List<Style>,
-    selectedStyle: Style?,
+    selectedStyleId: String?,
     onStyleSelected: (String) -> Unit
 ) {
     FlowRow(
@@ -444,13 +458,13 @@ private fun StyleGrid(
     ) {
         styles.forEach { style ->
             StyleCard(
-                style = style,
-                isSelected = style.id == selectedStyle?.id,
+                styleName = resolveStyleName(style.nameKey),
+                isSelected = style.id == selectedStyleId,
                 onClick = { onStyleSelected(style.id) },
                 modifier = Modifier.weight(1f)
             )
         }
-        // Fill remaining slots in last row
+        // Fill remaining slots in last row for even spacing
         val remainder = styles.size % 3
         if (remainder != 0) {
             repeat(3 - remainder) {
@@ -462,23 +476,24 @@ private fun StyleGrid(
 
 @Composable
 private fun StyleCard(
-    style: Style,
+    styleName: String,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
-    val borderWidth = if (isSelected) 2.dp else 0.dp
+    val borderModifier = if (isSelected) {
+        Modifier.border(
+            BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+            RoundedCornerShape(12.dp)
+        )
+    } else {
+        Modifier
+    }
 
     Card(
         modifier = modifier
             .aspectRatio(0.85f)
-            .then(
-                if (isSelected) Modifier.border(
-                    BorderStroke(borderWidth, borderColor),
-                    RoundedCornerShape(12.dp)
-                ) else Modifier
-            )
+            .then(borderModifier)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -503,7 +518,7 @@ private fun StyleCard(
                 )
             }
             Text(
-                text = style.nameKey,
+                text = styleName,
                 style = MaterialTheme.typography.labelSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -532,14 +547,12 @@ private fun OptionsSection(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Shadow toggle
         OptionRow(
             label = stringResource(Res.string.home_shadow),
             checked = shadow,
             onCheckedChange = onShadowToggled
         )
 
-        // Reflection toggle
         OptionRow(
             label = stringResource(Res.string.home_reflection),
             checked = reflection,
@@ -548,7 +561,6 @@ private fun OptionsSection(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Export format picker
         Text(
             text = stringResource(Res.string.home_export_format),
             style = MaterialTheme.typography.bodyMedium,
@@ -559,14 +571,10 @@ private fun OptionsSection(
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(ExportFormat.entries) { format ->
-                FilterChip(
+                StudioSnapFilterChip(
+                    label = exportFormatDisplayName(format),
                     selected = format == exportFormat,
-                    onClick = { onExportFormatSelected(format) },
-                    label = { Text(exportFormatDisplayName(format)) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    onClick = { onExportFormatSelected(format) }
                 )
             }
         }
@@ -591,6 +599,36 @@ private fun OptionRow(
             style = MaterialTheme.typography.bodyLarge
         )
         Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+/**
+ * Resolves style nameKey (e.g. "style_clean_white") to a localised display name.
+ */
+@Composable
+private fun resolveStyleName(nameKey: String): String {
+    return when (nameKey) {
+        "style_clean_white" -> stringResource(Res.string.style_clean_white)
+        "style_warm_linen" -> stringResource(Res.string.style_warm_linen)
+        "style_marble_luxe" -> stringResource(Res.string.style_marble_luxe)
+        "style_morning_kitchen" -> stringResource(Res.string.style_morning_kitchen)
+        "style_botanical_garden" -> stringResource(Res.string.style_botanical_garden)
+        "style_concrete_minimal" -> stringResource(Res.string.style_concrete_minimal)
+        "style_sunset_glow" -> stringResource(Res.string.style_sunset_glow)
+        "style_beach_vibes" -> stringResource(Res.string.style_beach_vibes)
+        "style_dark_moody" -> stringResource(Res.string.style_dark_moody)
+        "style_pastel_dream" -> stringResource(Res.string.style_pastel_dream)
+        "style_rustic_wood" -> stringResource(Res.string.style_rustic_wood)
+        "style_christmas" -> stringResource(Res.string.style_christmas)
+        "style_terrazzo" -> stringResource(Res.string.style_terrazzo)
+        "style_silk_velvet" -> stringResource(Res.string.style_silk_velvet)
+        "style_paper_craft" -> stringResource(Res.string.style_paper_craft)
+        "style_spring_garden" -> stringResource(Res.string.style_spring_garden)
+        "style_gradient_studio" -> stringResource(Res.string.style_gradient_studio)
+        "style_neon_pop" -> stringResource(Res.string.style_neon_pop)
+        // Fallback for any future styles not yet in string resources
+        else -> nameKey.removePrefix("style_").replace("_", " ")
+            .replaceFirstChar { it.uppercase() }
     }
 }
 
@@ -620,3 +658,5 @@ private fun exportFormatDisplayName(format: ExportFormat): String {
         }
     )
 }
+
+private const val FAB_CLEARANCE_DP = 88

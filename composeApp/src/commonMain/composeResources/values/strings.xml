@@ -162,6 +162,44 @@
     <string name="error_processing_failed">Processing failed: %1$s</string>
     <string name="error_image_load_failed">Failed to load image</string>
 
+    <!-- Style Names -->
+    <string name="style_clean_white">Clean White</string>
+    <string name="style_warm_linen">Warm Linen</string>
+    <string name="style_marble_luxe">Marble Luxe</string>
+    <string name="style_morning_kitchen">Morning Kitchen</string>
+    <string name="style_botanical_garden">Botanical Garden</string>
+    <string name="style_concrete_minimal">Concrete Minimal</string>
+    <string name="style_sunset_glow">Sunset Glow</string>
+    <string name="style_beach_vibes">Beach Vibes</string>
+    <string name="style_dark_moody">Dark Moody</string>
+    <string name="style_pastel_dream">Pastel Dream</string>
+    <string name="style_rustic_wood">Rustic Wood</string>
+    <string name="style_christmas">Christmas</string>
+    <string name="style_terrazzo">Terrazzo</string>
+    <string name="style_silk_velvet">Silk Velvet</string>
+    <string name="style_paper_craft">Paper Craft</string>
+    <string name="style_spring_garden">Spring Garden</string>
+    <string name="style_gradient_studio">Gradient Studio</string>
+    <string name="style_neon_pop">Neon Pop</string>
+
+    <!-- Settings (additional) -->
+    <string name="settings_credit_count">%1$d credits</string>
+
+    <!-- Results (additional) -->
+    <string name="results_empty">No results</string>
+    <string name="results_download_success_message">Downloaded successfully</string>
+    <string name="results_download_failed_message">Download failed</string>
+    <string name="results_need_credits">Need %1$d credits to download all</string>
+    <string name="results_product_photo">Product photo result</string>
+
+    <!-- Processing (additional) -->
+    <string name="processing_error_no_config">No generation config found</string>
+    <string name="processing_error_unknown">Generation failed</string>
+
+    <!-- History (additional) -->
+    <string name="history_purchased_badge">Purchased</string>
+    <string name="history_product_photo">Product photo</string>
+
     <!-- Accessibility -->
     <string name="content_close">Close</string>
     <string name="content_back">Back</string>

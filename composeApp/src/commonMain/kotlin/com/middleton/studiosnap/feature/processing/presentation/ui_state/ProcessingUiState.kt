@@ -9,11 +9,7 @@ sealed interface ProcessingUiState {
         val totalPhotos: Int,
         val styleName: String,
         val overallProgress: Float
-    ) : ProcessingUiState {
-        val progressText: String
-            get() = if (totalPhotos == 1) styleName
-            else "Photo ${currentPhotoIndex + 1} of $totalPhotos"
-    }
+    ) : ProcessingUiState
 
     data class Error(val message: String) : ProcessingUiState
 

@@ -7,6 +7,7 @@ import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditQueries
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
+import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.settings.presentation.action.SettingsUiAction
 import com.middleton.studiosnap.feature.settings.presentation.navigation.SettingsNavigationAction
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +25,7 @@ class SettingsViewModelTest : BaseViewModelTest() {
     @Test
     fun `init loads preferred quality`() {
         val vm = createViewModel(preferredQuality = "STANDARD")
-        assertEquals("STANDARD", vm.uiState.value.preferredQuality)
+        assertEquals(GenerationQuality.STANDARD, vm.uiState.value.preferredQuality)
     }
 
     @Test
@@ -48,9 +49,9 @@ class SettingsViewModelTest : BaseViewModelTest() {
         val prefsRepo = FakeUserPreferencesRepository()
         val vm = createViewModel(prefsRepo = prefsRepo)
 
-        vm.handleAction(SettingsUiAction.OnQualityChanged("STANDARD"))
+        vm.handleAction(SettingsUiAction.OnQualityChanged(GenerationQuality.STANDARD))
 
-        assertEquals("STANDARD", vm.uiState.value.preferredQuality)
+        assertEquals(GenerationQuality.STANDARD, vm.uiState.value.preferredQuality)
         assertEquals("STANDARD", prefsRepo.quality)
     }
 
@@ -74,7 +75,7 @@ class SettingsViewModelTest : BaseViewModelTest() {
         vm.handleAction(SettingsUiAction.OnBackClicked)
         assertIs<SettingsNavigationAction.GoBack>(vm.navigationEvent.value)
 
-        vm.onNavigationHandled()
+        vm.handleAction(SettingsUiAction.OnNavigationHandled)
         assertNull(vm.navigationEvent.value)
     }
 

@@ -46,11 +46,8 @@ class ResultsViewModel(
             ResultsUiAction.OnDoneClicked -> _navigationEvent.value = ResultsNavigationAction.GoToHome
             ResultsUiAction.OnBuyCreditsClicked -> _navigationEvent.value = ResultsNavigationAction.GoToCreditStore
             ResultsUiAction.OnSnackbarDismissed -> _uiState.update { it.copy(snackbarMessage = null) }
+            ResultsUiAction.OnNavigationHandled -> _navigationEvent.value = null
         }
-    }
-
-    fun onNavigationHandled() {
-        _navigationEvent.value = null
     }
 
     private fun loadResults() {

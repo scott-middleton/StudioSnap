@@ -1,6 +1,5 @@
 package com.middleton.studiosnap.feature.results.presentation
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,14 +15,12 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -31,8 +28,6 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.results.presentation.action.ResultsUiAction
@@ -57,19 +53,19 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import studiosnap.composeapp.generated.resources.Res
-import studiosnap.composeapp.generated.resources.content_back
 import studiosnap.composeapp.generated.resources.results_back_to_home
 import studiosnap.composeapp.generated.resources.results_download
 import studiosnap.composeapp.generated.resources.results_download_credit
 import studiosnap.composeapp.generated.resources.results_downloading
+import studiosnap.composeapp.generated.resources.results_empty
 import studiosnap.composeapp.generated.resources.results_get_credits
 import studiosnap.composeapp.generated.resources.results_photo_counter
+import studiosnap.composeapp.generated.resources.results_product_photo
 import studiosnap.composeapp.generated.resources.results_purchased
 import studiosnap.composeapp.generated.resources.results_share
 import studiosnap.composeapp.generated.resources.results_title
 import studiosnap.composeapp.generated.resources.results_watermarked
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResultsScreen(
     viewModel: ResultsViewModel = koinViewModel(),
@@ -77,60 +73,64 @@ fun ResultsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val navigationEvent by viewModel.navigationEvent.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(navigationEvent) {
         navigationEvent?.let { action ->
             navigationStrategy.navigate(action)
-            viewModel.onNavigationHandled()
+            viewModel.handleAction(ResultsUiAction.OnNavigationHandled)
         }
     }
 
-    LaunchedEffect(uiState.snackbarMessage) {
-        uiState.snackbarMessage?.let {
+    ResultsScreenContent(
+        state = uiState,
+        onAction = viewModel::handleAction
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ResultsScreenContent(
+    state: ResultsUiState,
+    onAction: (ResultsUiAction) -> Unit
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.snackbarMessage) {
+        state.snackbarMessage?.let {
             snackbarHostState.showSnackbar(it)
-            viewModel.handleAction(ResultsUiAction.OnSnackbarDismissed)
+            onAction(ResultsUiAction.OnSnackbarDismissed)
         }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.results_title), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { viewModel.handleAction(ResultsUiAction.OnBackClicked) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.content_back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+            StudioSnapTopBar(
+                title = stringResource(Res.string.results_title),
+                onBack = { onAction(ResultsUiAction.OnBackClicked) }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) { Snackbar(it) } }
     ) { padding ->
-        if (uiState.results.isEmpty()) {
+        if (state.results.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No results",
+                    text = stringResource(Res.string.results_empty),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
             ResultsPager(
-                state = uiState,
+                results = state.results,
+                creditBalance = state.creditBalance,
                 modifier = Modifier.padding(padding),
-                onDownload = { viewModel.handleAction(ResultsUiAction.OnDownloadClicked(it)) },
-                onShare = { viewModel.handleAction(ResultsUiAction.OnShareClicked(it)) },
-                onBuyCredits = { viewModel.handleAction(ResultsUiAction.OnBuyCreditsClicked) },
-                onDone = { viewModel.handleAction(ResultsUiAction.OnDoneClicked) }
+                onDownload = { onAction(ResultsUiAction.OnDownloadClicked(it)) },
+                onShare = { onAction(ResultsUiAction.OnShareClicked(it)) },
+                onBuyCredits = { onAction(ResultsUiAction.OnBuyCreditsClicked) },
+                onDone = { onAction(ResultsUiAction.OnDoneClicked) }
             )
         }
     }
@@ -138,23 +138,23 @@ fun ResultsScreen(
 
 @Composable
 private fun ResultsPager(
-    state: ResultsUiState,
+    results: List<ResultItem>,
+    creditBalance: Int,
     modifier: Modifier = Modifier,
     onDownload: (String) -> Unit,
     onShare: (String) -> Unit,
     onBuyCredits: () -> Unit,
     onDone: () -> Unit
 ) {
-    val pagerState = rememberPagerState(pageCount = { state.results.size })
+    val pagerState = rememberPagerState(pageCount = { results.size })
 
     Column(modifier = modifier.fillMaxSize()) {
-        // Page counter
-        if (state.results.size > 1) {
+        if (results.size > 1) {
             Text(
                 text = stringResource(
                     Res.string.results_photo_counter,
                     pagerState.currentPage + 1,
-                    state.results.size
+                    results.size
                 ),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -163,21 +163,19 @@ private fun ResultsPager(
             )
         }
 
-        // Horizontal pager
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f)
         ) { page ->
             ResultPage(
-                item = state.results[page],
-                creditBalance = state.creditBalance,
+                item = results[page],
+                creditBalance = creditBalance,
                 onDownload = onDownload,
                 onShare = onShare,
                 onBuyCredits = onBuyCredits
             )
         }
 
-        // Bottom actions
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -208,12 +206,11 @@ private fun ResultPage(
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Result image
         val imageUri = item.fullResLocalUri ?: result.watermarkedPreviewUri
 
         AsyncImage(
             model = imageUri,
-            contentDescription = null,
+            contentDescription = stringResource(Res.string.results_product_photo),
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(
@@ -285,7 +282,6 @@ private fun ResultPage(
             }
         }
 
-        // Share button (always available)
         if (item.isPurchased) {
             OutlinedButton(
                 onClick = { onShare(result.generationId) },

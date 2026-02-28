@@ -44,11 +44,8 @@ class ProcessingViewModel(
             ProcessingUiAction.OnCancelClicked -> {
                 _navigationEvent.value = ProcessingNavigationAction.GoBack
             }
+            ProcessingUiAction.OnNavigationHandled -> _navigationEvent.value = null
         }
-    }
-
-    fun onNavigationHandled() {
-        _navigationEvent.value = null
     }
 
     private fun startProcessing() {

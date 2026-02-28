@@ -16,4 +16,5 @@ sealed interface HomeUiAction {
     data object OnHistoryClicked : HomeUiAction
     data object OnCreditBalanceClicked : HomeUiAction
     data object OnErrorDismissed : HomeUiAction
+    data object OnNavigationHandled : HomeUiAction
 }

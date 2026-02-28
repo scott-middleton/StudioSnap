@@ -12,18 +12,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,7 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
+import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.settings.presentation.action.SettingsUiAction
 import com.middleton.studiosnap.feature.settings.presentation.navigation.SettingsNavigationAction
 import com.middleton.studiosnap.feature.settings.presentation.ui_state.SettingsUiState
@@ -41,8 +38,8 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import studiosnap.composeapp.generated.resources.Res
-import studiosnap.composeapp.generated.resources.content_back
 import studiosnap.composeapp.generated.resources.settings_about
+import studiosnap.composeapp.generated.resources.settings_credit_count
 import studiosnap.composeapp.generated.resources.settings_credits
 import studiosnap.composeapp.generated.resources.settings_get_more_credits
 import studiosnap.composeapp.generated.resources.settings_privacy_policy
@@ -51,7 +48,6 @@ import studiosnap.composeapp.generated.resources.settings_quality_high
 import studiosnap.composeapp.generated.resources.settings_quality_standard
 import studiosnap.composeapp.generated.resources.settings_title
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = koinViewModel(),
@@ -63,25 +59,26 @@ fun SettingsScreen(
     LaunchedEffect(navigationEvent) {
         navigationEvent?.let { action ->
             navigationStrategy.navigate(action)
-            viewModel.onNavigationHandled()
+            viewModel.handleAction(SettingsUiAction.OnNavigationHandled)
         }
     }
 
+    SettingsScreenContent(
+        state = uiState,
+        onAction = viewModel::handleAction
+    )
+}
+
+@Composable
+fun SettingsScreenContent(
+    state: SettingsUiState,
+    onAction: (SettingsUiAction) -> Unit
+) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.settings_title), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { viewModel.handleAction(SettingsUiAction.OnBackClicked) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.content_back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+            StudioSnapTopBar(
+                title = stringResource(Res.string.settings_title),
+                onBack = { onAction(SettingsUiAction.OnBackClicked) }
             )
         }
     ) { padding ->
@@ -95,9 +92,9 @@ fun SettingsScreen(
             SectionHeader(stringResource(Res.string.settings_credits))
 
             SettingsRow(
-                label = "${uiState.creditBalance} credits",
+                label = stringResource(Res.string.settings_credit_count, state.creditBalance),
                 subtitle = stringResource(Res.string.settings_get_more_credits),
-                onClick = { viewModel.handleAction(SettingsUiAction.OnBuyCreditsClicked) }
+                onClick = { onAction(SettingsUiAction.OnBuyCreditsClicked) }
             )
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -107,14 +104,14 @@ fun SettingsScreen(
 
             QualityOption(
                 label = stringResource(Res.string.settings_quality_standard),
-                selected = uiState.preferredQuality == "STANDARD",
-                onClick = { viewModel.handleAction(SettingsUiAction.OnQualityChanged("STANDARD")) }
+                selected = state.preferredQuality == GenerationQuality.STANDARD,
+                onClick = { onAction(SettingsUiAction.OnQualityChanged(GenerationQuality.STANDARD)) }
             )
 
             QualityOption(
                 label = stringResource(Res.string.settings_quality_high),
-                selected = uiState.preferredQuality == "HIGH",
-                onClick = { viewModel.handleAction(SettingsUiAction.OnQualityChanged("HIGH")) }
+                selected = state.preferredQuality == GenerationQuality.HIGH,
+                onClick = { onAction(SettingsUiAction.OnQualityChanged(GenerationQuality.HIGH)) }
             )
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -124,7 +121,7 @@ fun SettingsScreen(
 
             SettingsRow(
                 label = stringResource(Res.string.settings_privacy_policy),
-                onClick = { viewModel.handleAction(SettingsUiAction.OnPrivacyPolicyClicked) }
+                onClick = { onAction(SettingsUiAction.OnPrivacyPolicyClicked) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))

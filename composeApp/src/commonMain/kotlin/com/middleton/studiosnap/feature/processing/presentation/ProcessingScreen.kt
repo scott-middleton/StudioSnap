@@ -1,11 +1,5 @@
 package com.middleton.studiosnap.feature.processing.presentation
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +39,7 @@ import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.processing_cancel
 import studiosnap.composeapp.generated.resources.processing_error_title
 import studiosnap.composeapp.generated.resources.processing_go_back
+import studiosnap.composeapp.generated.resources.processing_photo_progress
 import studiosnap.composeapp.generated.resources.processing_please_wait
 import studiosnap.composeapp.generated.resources.processing_retry
 import studiosnap.composeapp.generated.resources.processing_title
@@ -61,29 +55,42 @@ fun ProcessingScreen(
     LaunchedEffect(navigationEvent) {
         navigationEvent?.let { action ->
             navigationStrategy.navigate(action)
-            viewModel.onNavigationHandled()
+            viewModel.handleAction(ProcessingUiAction.OnNavigationHandled)
         }
     }
 
+    ProcessingScreenContent(
+        state = uiState,
+        onAction = viewModel::handleAction
+    )
+}
+
+@Composable
+fun ProcessingScreenContent(
+    state: ProcessingUiState,
+    onAction: (ProcessingUiAction) -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.Center
     ) {
-        when (val state = uiState) {
+        when (state) {
             ProcessingUiState.Loading -> LoadingContent()
             is ProcessingUiState.Processing -> ProcessingContent(
-                state = state,
-                onCancel = { viewModel.handleAction(ProcessingUiAction.OnCancelClicked) }
+                currentPhotoIndex = state.currentPhotoIndex,
+                totalPhotos = state.totalPhotos,
+                overallProgress = state.overallProgress,
+                onCancel = { onAction(ProcessingUiAction.OnCancelClicked) }
             )
             is ProcessingUiState.Error -> ErrorContent(
                 message = state.message,
-                onRetry = { viewModel.handleAction(ProcessingUiAction.OnRetryClicked) },
-                onGoBack = { viewModel.handleAction(ProcessingUiAction.OnCancelClicked) }
+                onRetry = { onAction(ProcessingUiAction.OnRetryClicked) },
+                onGoBack = { onAction(ProcessingUiAction.OnCancelClicked) }
             )
             ProcessingUiState.Complete -> {
-                // Brief state — navigation fires immediately
+                // Brief transitional state — navigation fires immediately
                 LoadingContent()
             }
         }
@@ -110,18 +117,16 @@ private fun LoadingContent() {
 
 @Composable
 private fun ProcessingContent(
-    state: ProcessingUiState.Processing,
+    currentPhotoIndex: Int,
+    totalPhotos: Int,
+    overallProgress: Float,
     onCancel: () -> Unit
 ) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
+    val progressText = if (totalPhotos == 1) {
+        stringResource(Res.string.processing_title)
+    } else {
+        stringResource(Res.string.processing_photo_progress, currentPhotoIndex + 1, totalPhotos)
+    }
 
     Column(
         modifier = Modifier
@@ -130,7 +135,6 @@ private fun ProcessingContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Pulsing emoji
         Text(
             text = "✨",
             fontSize = MaterialTheme.typography.displayLarge.fontSize,
@@ -146,16 +150,15 @@ private fun ProcessingContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = state.progressText,
+            text = progressText,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Progress bar
         LinearProgressIndicator(
-            progress = { state.overallProgress },
+            progress = { overallProgress },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp)
@@ -167,7 +170,7 @@ private fun ProcessingContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "${(state.overallProgress * 100).toInt()}%",
+            text = "${(overallProgress * 100).toInt()}%",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

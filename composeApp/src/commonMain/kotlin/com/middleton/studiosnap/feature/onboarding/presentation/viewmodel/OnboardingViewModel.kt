@@ -51,11 +51,9 @@ class OnboardingViewModel(
                     _navigationEvent.value = OnboardingNavigationAction.GoToHome
                 }
             }
-        }
-    }
 
-    fun onNavigationHandled() {
-        _navigationEvent.value = null
+            OnboardingUiAction.OnNavigationHandled -> _navigationEvent.value = null
+        }
     }
 
     companion object {

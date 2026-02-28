@@ -8,4 +8,5 @@ sealed interface ResultsUiAction {
     data object OnDoneClicked : ResultsUiAction
     data object OnBuyCreditsClicked : ResultsUiAction
     data object OnSnackbarDismissed : ResultsUiAction
+    data object OnNavigationHandled : ResultsUiAction
 }

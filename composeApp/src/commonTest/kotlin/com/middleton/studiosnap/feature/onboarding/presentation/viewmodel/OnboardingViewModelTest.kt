@@ -69,7 +69,7 @@ class OnboardingViewModelTest : BaseViewModelTest() {
     fun `navigation handled clears event`() {
         val viewModel = createViewModel()
         viewModel.handleAction(OnboardingUiAction.GetStarted)
-        viewModel.onNavigationHandled()
+        viewModel.handleAction(OnboardingUiAction.OnNavigationHandled)
         assertNull(viewModel.navigationEvent.value)
     }
 

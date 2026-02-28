@@ -7,4 +7,5 @@ sealed interface HistoryUiAction {
     data class OnDeleteClicked(val itemId: String) : HistoryUiAction
     data class OnFilterChanged(val filter: HistoryFilter) : HistoryUiAction
     data object OnBackClicked : HistoryUiAction
+    data object OnNavigationHandled : HistoryUiAction
 }

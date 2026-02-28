@@ -4,4 +4,5 @@ sealed interface OnboardingUiAction {
     data object NextPage : OnboardingUiAction
     data class NavigateToPage(val page: Int) : OnboardingUiAction
     data object GetStarted : OnboardingUiAction
+    data object OnNavigationHandled : OnboardingUiAction
 }

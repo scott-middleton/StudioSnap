@@ -139,7 +139,7 @@ class HistoryViewModelTest : BaseViewModelTest() {
         vm.handleAction(HistoryUiAction.OnBackClicked)
         assertIs<HistoryNavigationAction.GoBack>(vm.navigationEvent.value)
 
-        vm.onNavigationHandled()
+        vm.handleAction(HistoryUiAction.OnNavigationHandled)
         assertNull(vm.navigationEvent.value)
     }
 

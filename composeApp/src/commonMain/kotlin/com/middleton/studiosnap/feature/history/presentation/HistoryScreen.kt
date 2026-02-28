@@ -17,23 +17,17 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,6 +44,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
+import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
 import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryNavigationAction
@@ -61,7 +57,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import studiosnap.composeapp.generated.resources.Res
-import studiosnap.composeapp.generated.resources.content_back
 import studiosnap.composeapp.generated.resources.history_delete
 import studiosnap.composeapp.generated.resources.history_delete_cancel
 import studiosnap.composeapp.generated.resources.history_delete_confirm
@@ -72,9 +67,10 @@ import studiosnap.composeapp.generated.resources.history_empty_title
 import studiosnap.composeapp.generated.resources.history_filter_all
 import studiosnap.composeapp.generated.resources.history_filter_previews
 import studiosnap.composeapp.generated.resources.history_filter_purchased
+import studiosnap.composeapp.generated.resources.history_product_photo
+import studiosnap.composeapp.generated.resources.history_purchased_badge
 import studiosnap.composeapp.generated.resources.history_title
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     viewModel: HistoryViewModel = koinViewModel(),
@@ -82,30 +78,32 @@ fun HistoryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val navigationEvent by viewModel.navigationEvent.collectAsState()
-    var deleteDialogItemId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(navigationEvent) {
         navigationEvent?.let { action ->
             navigationStrategy.navigate(action)
-            viewModel.onNavigationHandled()
+            viewModel.handleAction(HistoryUiAction.OnNavigationHandled)
         }
     }
 
+    HistoryScreenContent(
+        state = uiState,
+        onAction = viewModel::handleAction
+    )
+}
+
+@Composable
+fun HistoryScreenContent(
+    state: HistoryUiState,
+    onAction: (HistoryUiAction) -> Unit
+) {
+    var deleteDialogItemId by remember { mutableStateOf<String?>(null) }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.history_title), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { viewModel.handleAction(HistoryUiAction.OnBackClicked) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.content_back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+            StudioSnapTopBar(
+                title = stringResource(Res.string.history_title),
+                onBack = { onAction(HistoryUiAction.OnBackClicked) }
             )
         }
     ) { padding ->
@@ -114,14 +112,13 @@ fun HistoryScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Filter chips
             FilterRow(
-                currentFilter = uiState.filter,
-                onFilterChanged = { viewModel.handleAction(HistoryUiAction.OnFilterChanged(it)) }
+                currentFilter = state.filter,
+                onFilterChanged = { onAction(HistoryUiAction.OnFilterChanged(it)) }
             )
 
             when {
-                uiState.isLoading -> {
+                state.isLoading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -129,13 +126,13 @@ fun HistoryScreen(
                         CircularProgressIndicator()
                     }
                 }
-                uiState.isEmpty -> {
+                state.isEmpty -> {
                     EmptyHistoryContent()
                 }
                 else -> {
                     HistoryGrid(
-                        items = uiState.items,
-                        onItemClicked = { viewModel.handleAction(HistoryUiAction.OnItemClicked(it)) },
+                        items = state.items,
+                        onItemClicked = { onAction(HistoryUiAction.OnItemClicked(it)) },
                         onDeleteClicked = { deleteDialogItemId = it }
                     )
                 }
@@ -151,7 +148,7 @@ fun HistoryScreen(
             text = { Text(stringResource(Res.string.history_delete_message)) },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.handleAction(HistoryUiAction.OnDeleteClicked(itemId))
+                    onAction(HistoryUiAction.OnDeleteClicked(itemId))
                     deleteDialogItemId = null
                 }) {
                     Text(stringResource(Res.string.history_delete_confirm))
@@ -178,22 +175,14 @@ private fun FilterRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         HistoryFilter.entries.forEach { filter ->
-            FilterChip(
-                selected = filter == currentFilter,
-                onClick = { onFilterChanged(filter) },
-                label = {
-                    Text(
-                        when (filter) {
-                            HistoryFilter.ALL -> stringResource(Res.string.history_filter_all)
-                            HistoryFilter.PURCHASED -> stringResource(Res.string.history_filter_purchased)
-                            HistoryFilter.PREVIEWS -> stringResource(Res.string.history_filter_previews)
-                        }
-                    )
+            StudioSnapFilterChip(
+                label = when (filter) {
+                    HistoryFilter.ALL -> stringResource(Res.string.history_filter_all)
+                    HistoryFilter.PURCHASED -> stringResource(Res.string.history_filter_purchased)
+                    HistoryFilter.PREVIEWS -> stringResource(Res.string.history_filter_previews)
                 },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                )
+                selected = filter == currentFilter,
+                onClick = { onFilterChanged(filter) }
             )
         }
     }
@@ -231,14 +220,16 @@ private fun HistoryGrid(
     onDeleteClicked: (String) -> Unit
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+        columns = GridCells.Adaptive(minSize = 150.dp),
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(items, key = { it.id }) { item ->
             HistoryGridItem(
-                item = item,
+                imageUri = item.fullResLocalUri ?: item.watermarkedUri,
+                styleName = item.styleName,
+                isPurchased = item.isPurchased,
                 onClick = { onItemClicked(item.id) },
                 onDelete = { onDeleteClicked(item.id) }
             )
@@ -248,7 +239,9 @@ private fun HistoryGrid(
 
 @Composable
 private fun HistoryGridItem(
-    item: HistoryItem,
+    imageUri: String,
+    styleName: String,
+    isPurchased: Boolean,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -262,10 +255,9 @@ private fun HistoryGridItem(
         )
     ) {
         Column {
-            val imageUri = item.fullResLocalUri ?: item.watermarkedUri
             AsyncImage(
                 model = imageUri,
-                contentDescription = null,
+                contentDescription = stringResource(Res.string.history_product_photo),
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
@@ -281,14 +273,14 @@ private fun HistoryGridItem(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = item.styleName,
+                        text = styleName,
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if (item.isPurchased) {
+                    if (isPurchased) {
                         Text(
-                            text = "✓",
+                            text = stringResource(Res.string.history_purchased_badge),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )

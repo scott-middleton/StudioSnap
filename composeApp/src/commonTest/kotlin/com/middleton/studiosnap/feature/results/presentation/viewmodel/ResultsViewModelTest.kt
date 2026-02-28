@@ -165,7 +165,7 @@ class ResultsViewModelTest : BaseViewModelTest() {
         vm.handleAction(ResultsUiAction.OnDoneClicked)
         assertIs<ResultsNavigationAction.GoToHome>(vm.navigationEvent.value)
 
-        vm.onNavigationHandled()
+        vm.handleAction(ResultsUiAction.OnNavigationHandled)
         assertNull(vm.navigationEvent.value)
     }
 

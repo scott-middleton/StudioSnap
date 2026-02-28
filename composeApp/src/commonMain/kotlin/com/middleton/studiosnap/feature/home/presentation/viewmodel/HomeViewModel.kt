@@ -58,11 +58,8 @@ class HomeViewModel(
             is HomeUiAction.OnHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
             is HomeUiAction.OnCreditBalanceClicked -> navigateTo(HomeNavigationAction.GoToCreditStore)
             is HomeUiAction.OnErrorDismissed -> _uiState.update { it.copy(error = null) }
+            is HomeUiAction.OnNavigationHandled -> _navigationEvent.value = null
         }
-    }
-
-    fun onNavigationHandled() {
-        _navigationEvent.value = null
     }
 
     private fun loadInitialState() {

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditQueries
+import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.settings.presentation.action.SettingsUiAction
 import com.middleton.studiosnap.feature.settings.presentation.navigation.SettingsNavigationAction
 import com.middleton.studiosnap.feature.settings.presentation.ui_state.SettingsUiState
@@ -39,17 +40,16 @@ class SettingsViewModel(
                 _navigationEvent.value = SettingsNavigationAction.GoBack
             SettingsUiAction.OnPrivacyPolicyClicked -> { /* Handled by screen — opens URL */ }
             SettingsUiAction.OnTermsClicked -> { /* Handled by screen — opens URL */ }
+            SettingsUiAction.OnNavigationHandled -> _navigationEvent.value = null
             is SettingsUiAction.OnQualityChanged -> updateQuality(action.quality)
         }
     }
 
-    fun onNavigationHandled() {
-        _navigationEvent.value = null
-    }
-
     private fun loadSettings() {
         viewModelScope.launch {
-            val quality = userPreferencesRepository.getPreferredQuality()
+            val qualityString = userPreferencesRepository.getPreferredQuality()
+            val quality = GenerationQuality.entries.find { it.name == qualityString }
+                ?: GenerationQuality.DEFAULT
             val isSignedIn = authService.isSignedIn.value
             _uiState.update {
                 it.copy(
@@ -68,10 +68,10 @@ class SettingsViewModel(
         }
     }
 
-    private fun updateQuality(quality: String) {
+    private fun updateQuality(quality: GenerationQuality) {
         _uiState.update { it.copy(preferredQuality = quality) }
         viewModelScope.launch {
-            userPreferencesRepository.setPreferredQuality(quality)
+            userPreferencesRepository.setPreferredQuality(quality.name)
         }
     }
 }
