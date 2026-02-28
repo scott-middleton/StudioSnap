@@ -83,6 +83,9 @@ kotlin {
                 // Supabase
                 implementation(libs.bundles.supabase)
 
+                // Okio (used by ImageCacheManager — transitive via Ktor but needed explicitly for metadata compilation)
+                implementation("com.squareup.okio:okio:3.11.0")
+
             }
         }
 
