@@ -57,6 +57,7 @@ class PaywallViewModel(
     init {
         loadOfferings()
         observeSignInState()
+        loadTrialState()
         analyticsService.logEvent(AnalyticsEvents.CREDIT_STORE_VIEWED)
     }
 
@@ -208,6 +209,19 @@ class PaywallViewModel(
                     }
                 }
             )
+        }
+    }
+
+    /**
+     * Determines if user has exhausted their free trial (1 free full-res download).
+     * When true, PaywallScreen shows the trial-ended headline instead of the default.
+     */
+    private fun loadTrialState() {
+        viewModelScope.launch {
+            val freeDownloadsUsed = userPreferencesRepository.getFreeDownloadsUsed()
+            val hasPurchased = userPreferencesRepository.hasPurchasedCredits()
+            // Post-trial = used free download but hasn't purchased yet
+            _uiState.update { it.copy(isPostTrial = freeDownloadsUsed >= 1 && !hasPurchased) }
         }
     }
 

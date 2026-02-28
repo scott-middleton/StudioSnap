@@ -3,6 +3,7 @@ package com.middleton.studiosnap.feature.settings.presentation.viewmodel
 import com.middleton.studiosnap.core.domain.model.AuthUser
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
+import com.middleton.studiosnap.core.domain.service.FakeAnalyticsService
 import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditQueries
@@ -90,7 +91,8 @@ class SettingsViewModelTest : BaseViewModelTest() {
         return SettingsViewModel(
             creditQueries = FakeCreditQueries(creditsFlow),
             authService = FakeAuthService(isSignedIn),
-            userPreferencesRepository = prefsRepo
+            userPreferencesRepository = prefsRepo,
+            analyticsService = FakeAnalyticsService()
         )
     }
 

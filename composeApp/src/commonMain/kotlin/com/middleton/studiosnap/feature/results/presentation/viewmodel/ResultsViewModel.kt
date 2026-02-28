@@ -3,6 +3,7 @@ package com.middleton.studiosnap.feature.results.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
+import com.middleton.studiosnap.core.domain.service.AnalyticsParams
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.CreditQueries
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
@@ -82,6 +83,10 @@ class ResultsViewModel(
                 }
                 .onFailure { throwable ->
                     setDownloading(generationId, false)
+                    analyticsService.logEvent(
+                        AnalyticsEvents.DOWNLOAD_FAILED,
+                        mapOf(AnalyticsParams.ERROR_TYPE to (throwable.message ?: "unknown"))
+                    )
                     val message = when (throwable) {
                         is InsufficientCreditsException -> "Not enough credits"
                         else -> "Download failed"

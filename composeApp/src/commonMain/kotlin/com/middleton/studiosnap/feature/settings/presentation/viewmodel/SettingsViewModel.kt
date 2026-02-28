@@ -3,6 +3,8 @@ package com.middleton.studiosnap.feature.settings.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
+import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
+import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditQueries
 import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
@@ -18,7 +20,8 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
     private val creditQueries: CreditQueries,
     private val authService: AuthService,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val analyticsService: AnalyticsService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -30,6 +33,7 @@ class SettingsViewModel(
     init {
         loadSettings()
         observeCredits()
+        analyticsService.logEvent(AnalyticsEvents.SETTINGS_VIEWED)
     }
 
     fun handleAction(action: SettingsUiAction) {

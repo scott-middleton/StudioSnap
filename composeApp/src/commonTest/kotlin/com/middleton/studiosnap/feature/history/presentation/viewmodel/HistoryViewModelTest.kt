@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.history.presentation.viewmodel
 
+import com.middleton.studiosnap.core.domain.service.FakeAnalyticsService
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
@@ -107,7 +108,7 @@ class HistoryViewModelTest : BaseViewModelTest() {
     fun `delete removes item from repository`() {
         val repo = FakeHistoryRepository()
         repo.items.value = listOf(makeResult("gen_1"), makeResult("gen_2"))
-        val vm = HistoryViewModel(historyRepository = repo)
+        val vm = HistoryViewModel(historyRepository = repo, analyticsService = FakeAnalyticsService())
 
         vm.handleAction(HistoryUiAction.OnDeleteClicked("gen_1"))
 
@@ -147,7 +148,7 @@ class HistoryViewModelTest : BaseViewModelTest() {
     fun `reactive updates when repository emits new data`() {
         val repo = FakeHistoryRepository()
         repo.items.value = listOf(makeResult("gen_1"))
-        val vm = HistoryViewModel(historyRepository = repo)
+        val vm = HistoryViewModel(historyRepository = repo, analyticsService = FakeAnalyticsService())
 
         assertEquals(1, vm.uiState.value.items.size)
 
@@ -163,7 +164,7 @@ class HistoryViewModelTest : BaseViewModelTest() {
     ): HistoryViewModel {
         val repo = FakeHistoryRepository()
         repo.items.value = results
-        return HistoryViewModel(historyRepository = repo)
+        return HistoryViewModel(historyRepository = repo, analyticsService = FakeAnalyticsService())
     }
 
     // --- Fakes ---

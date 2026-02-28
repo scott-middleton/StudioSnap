@@ -2,6 +2,8 @@ package com.middleton.studiosnap.feature.history.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
+import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
 import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryNavigationAction
@@ -15,7 +17,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class HistoryViewModel(
-    private val historyRepository: HistoryRepository
+    private val historyRepository: HistoryRepository,
+    private val analyticsService: AnalyticsService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HistoryUiState())
@@ -28,6 +31,7 @@ class HistoryViewModel(
 
     init {
         observeHistory()
+        analyticsService.logEvent(AnalyticsEvents.HISTORY_VIEWED)
     }
 
     fun handleAction(action: HistoryUiAction) {
