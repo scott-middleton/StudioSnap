@@ -57,6 +57,6 @@ class OnboardingViewModel(
     }
 
     companion object {
-        const val TOTAL_PAGES = 3
+        const val TOTAL_PAGES = 4
     }
 }

@@ -11,11 +11,20 @@
     <!-- Onboarding Screens -->
     <string name="onboarding_hero_headline">Product Photos That Sell</string>
     <string name="onboarding_hero_subheadline">AI-powered product photography in seconds</string>
-    <string name="onboarding_demo_headline">See the difference</string>
-    <string name="onboarding_demo_tagline">See what AI styling can do for your products</string>
-    <string name="onboarding_value_headline">Powered by cutting-edge AI</string>
+    <string name="onboarding_before_after_headline">Instant Studio Quality</string>
+    <string name="onboarding_before_after_subheadline">Drag the slider to see the transformation</string>
+    <string name="onboarding_before_label">Original</string>
+    <string name="onboarding_after_label">Styled</string>
+    <string name="onboarding_showcase_headline">One Photo, Endless Possibilities</string>
+    <string name="onboarding_showcase_subheadline">18 curated styles for every product</string>
+    <string name="onboarding_value_headline">No Subscription. Pay Per Photo.</string>
+    <string name="onboarding_value_subheadline">Try your first photo free</string>
     <string name="get_started_button">Get Started</string>
     <string name="next_button">Next</string>
+    <string name="onboarding_style_warm">Warm Linen</string>
+    <string name="onboarding_style_dark">Dark Moody</string>
+    <string name="onboarding_style_outdoor">Outdoor</string>
+    <string name="onboarding_style_minimal">Minimal Grey</string>
 
     <!-- Benefits -->
     <string name="benefit_no_subscriptions_title">No subscriptions, ever</string>
@@ -23,9 +32,11 @@
     <string name="benefit_ai_title">AI-powered styling</string>
     <string name="benefit_ai_subtitle">Professional backgrounds in one tap</string>
     <string name="benefit_batch_title">Batch processing</string>
-    <string name="benefit_batch_subtitle">Style up to 10 photos at once</string>
+    <string name="benefit_batch_subtitle">Style multiple photos at once</string>
     <string name="benefit_export_title">Marketplace-ready</string>
     <string name="benefit_export_subtitle">Optimised sizes for Etsy, eBay, Vinted</string>
+    <string name="benefit_free_trial_title">Try before you buy</string>
+    <string name="benefit_free_trial_subtitle">Your first photo is completely free</string>
 
     <!-- Home Screen -->
     <string name="home_title">StudioSnap</string>
