@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "185259932981",
-    "project_id": "imagecloneai-790f3",
-    "storage_bucket": "imagecloneai-790f3.firebasestorage.app"
+    "project_number": "193571090503",
+    "project_id": "studiosnap-83615",
+    "storage_bucket": "studiosnap-83615.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:185259932981:android:0d6d037d8fe69c1d21607c",
+        "mobilesdk_app_id": "1:193571090503:android:777922e42ecb050ac58162",
         "android_client_info": {
           "package_name": "com.middleton.studiosnap"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyChT6JrWvzmKlzrtE2XXRk9OsUCLlSQgoY"
+          "current_key": "AIzaSyCNXgP8eEWCjSGVNmHGPLNR-FDZVOZLofA"
         }
       ],
       "services": {
