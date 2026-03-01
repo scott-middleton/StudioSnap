@@ -7,11 +7,11 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 object StudioSnapColors {
-    val RestoreBlue = Color(0xFF2563EB)
-    val EnhanceGold = Color(0xFFF59E0B)
+    val StudioTeal = Color(0xFF0D9488)
+    val AccentAmber = Color(0xFFF59E0B)
     val PhotoSilver = Color(0xFF64748B)
     val SuccessGreen = Color(0xFF10B981)
-    val ProcessingPurple = Color(0xFF8B5CF6)
+    val ProcessingIndigo = Color(0xFF4F46E5)
     val ErrorRed = Color(0xFFEF4444)
 
     val White = Color.White
@@ -40,16 +40,16 @@ data class ExtendedColorScheme(
 
 val extendedLight = ExtendedColorScheme(
     restore = ColorFamily(
-        color = StudioSnapColors.RestoreBlue,
+        color = StudioSnapColors.StudioTeal,
         onColor = Color.White,
-        colorContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.1f),
-        onColorContainer = StudioSnapColors.RestoreBlue
+        colorContainer = StudioSnapColors.StudioTeal.copy(alpha = 0.1f),
+        onColorContainer = StudioSnapColors.StudioTeal
     ),
     enhance = ColorFamily(
-        color = StudioSnapColors.EnhanceGold,
+        color = StudioSnapColors.AccentAmber,
         onColor = Color.White,
-        colorContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.1f),
-        onColorContainer = StudioSnapColors.EnhanceGold
+        colorContainer = StudioSnapColors.AccentAmber.copy(alpha = 0.1f),
+        onColorContainer = StudioSnapColors.AccentAmber
     ),
     photo = ColorFamily(
         color = StudioSnapColors.PhotoSilver,
@@ -64,10 +64,10 @@ val extendedLight = ExtendedColorScheme(
         onColorContainer = StudioSnapColors.SuccessGreen
     ),
     processing = ColorFamily(
-        color = StudioSnapColors.ProcessingPurple,
+        color = StudioSnapColors.ProcessingIndigo,
         onColor = Color.White,
-        colorContainer = StudioSnapColors.ProcessingPurple.copy(alpha = 0.1f),
-        onColorContainer = StudioSnapColors.ProcessingPurple
+        colorContainer = StudioSnapColors.ProcessingIndigo.copy(alpha = 0.1f),
+        onColorContainer = StudioSnapColors.ProcessingIndigo
     ),
     surfaceVariant = StudioSnapColors.SoftGray,
     onSurfaceVariant = StudioSnapColors.PhotoSilver
@@ -75,16 +75,16 @@ val extendedLight = ExtendedColorScheme(
 
 val extendedDark = ExtendedColorScheme(
     restore = ColorFamily(
-        color = StudioSnapColors.RestoreBlue.copy(alpha = 0.8f),
+        color = StudioSnapColors.StudioTeal.copy(alpha = 0.8f),
         onColor = Color.Black,
-        colorContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.2f),
-        onColorContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.9f)
+        colorContainer = StudioSnapColors.StudioTeal.copy(alpha = 0.2f),
+        onColorContainer = StudioSnapColors.StudioTeal.copy(alpha = 0.9f)
     ),
     enhance = ColorFamily(
-        color = StudioSnapColors.EnhanceGold.copy(alpha = 0.8f),
+        color = StudioSnapColors.AccentAmber.copy(alpha = 0.8f),
         onColor = Color.Black,
-        colorContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.2f),
-        onColorContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.9f)
+        colorContainer = StudioSnapColors.AccentAmber.copy(alpha = 0.2f),
+        onColorContainer = StudioSnapColors.AccentAmber.copy(alpha = 0.9f)
     ),
     photo = ColorFamily(
         color = StudioSnapColors.PhotoSilver.copy(alpha = 0.8f),
@@ -99,25 +99,25 @@ val extendedDark = ExtendedColorScheme(
         onColorContainer = StudioSnapColors.SuccessGreen.copy(alpha = 0.9f)
     ),
     processing = ColorFamily(
-        color = StudioSnapColors.ProcessingPurple.copy(alpha = 0.8f),
+        color = StudioSnapColors.ProcessingIndigo.copy(alpha = 0.8f),
         onColor = Color.Black,
-        colorContainer = StudioSnapColors.ProcessingPurple.copy(alpha = 0.2f),
-        onColorContainer = StudioSnapColors.ProcessingPurple.copy(alpha = 0.9f)
+        colorContainer = StudioSnapColors.ProcessingIndigo.copy(alpha = 0.2f),
+        onColorContainer = StudioSnapColors.ProcessingIndigo.copy(alpha = 0.9f)
     ),
     surfaceVariant = StudioSnapColors.DarkGray,
     onSurfaceVariant = StudioSnapColors.PhotoSilver.copy(alpha = 0.8f)
 )
 
 val lightScheme = lightColorScheme(
-    primary = StudioSnapColors.RestoreBlue,
+    primary = StudioSnapColors.StudioTeal,
     onPrimary = Color.White,
-    primaryContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.1f),
-    onPrimaryContainer = StudioSnapColors.RestoreBlue,
-    secondary = StudioSnapColors.EnhanceGold,
+    primaryContainer = StudioSnapColors.StudioTeal.copy(alpha = 0.1f),
+    onPrimaryContainer = StudioSnapColors.StudioTeal,
+    secondary = StudioSnapColors.AccentAmber,
     onSecondary = Color.White,
-    secondaryContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.1f),
-    onSecondaryContainer = StudioSnapColors.EnhanceGold,
-    tertiary = StudioSnapColors.ProcessingPurple,
+    secondaryContainer = StudioSnapColors.AccentAmber.copy(alpha = 0.1f),
+    onSecondaryContainer = StudioSnapColors.AccentAmber,
+    tertiary = StudioSnapColors.ProcessingIndigo,
     onTertiary = Color.White,
     error = StudioSnapColors.ErrorRed,
     surface = StudioSnapColors.White,
@@ -127,15 +127,15 @@ val lightScheme = lightColorScheme(
 )
 
 val darkScheme = darkColorScheme(
-    primary = StudioSnapColors.RestoreBlue.copy(alpha = 0.8f),
+    primary = StudioSnapColors.StudioTeal.copy(alpha = 0.8f),
     onPrimary = Color.Black,
-    primaryContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.2f),
-    onPrimaryContainer = StudioSnapColors.RestoreBlue.copy(alpha = 0.9f),
-    secondary = StudioSnapColors.EnhanceGold.copy(alpha = 0.8f),
+    primaryContainer = StudioSnapColors.StudioTeal.copy(alpha = 0.2f),
+    onPrimaryContainer = StudioSnapColors.StudioTeal.copy(alpha = 0.9f),
+    secondary = StudioSnapColors.AccentAmber.copy(alpha = 0.8f),
     onSecondary = Color.Black,
-    secondaryContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.2f),
-    onSecondaryContainer = StudioSnapColors.EnhanceGold.copy(alpha = 0.9f),
-    tertiary = StudioSnapColors.ProcessingPurple.copy(alpha = 0.8f),
+    secondaryContainer = StudioSnapColors.AccentAmber.copy(alpha = 0.2f),
+    onSecondaryContainer = StudioSnapColors.AccentAmber.copy(alpha = 0.9f),
+    tertiary = StudioSnapColors.ProcessingIndigo.copy(alpha = 0.8f),
     onTertiary = Color.Black,
     error = StudioSnapColors.ErrorRed.copy(alpha = 0.8f),
     surface = StudioSnapColors.DarkGray,

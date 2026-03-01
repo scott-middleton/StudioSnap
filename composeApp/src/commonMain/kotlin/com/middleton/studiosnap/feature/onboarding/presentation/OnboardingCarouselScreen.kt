@@ -14,9 +14,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import com.middleton.studiosnap.core.presentation.theme.LocalExtendedColorScheme
+import com.middleton.studiosnap.core.presentation.navigation.NavigationHandler
 import com.middleton.studiosnap.feature.onboarding.presentation.action.OnboardingUiAction
 import com.middleton.studiosnap.feature.onboarding.presentation.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -27,13 +29,24 @@ import org.koin.compose.viewmodel.koinViewModel
 fun OnboardingCarouselScreen() {
     val extendedColors = LocalExtendedColorScheme.current
     val viewModel: OnboardingViewModel = koinViewModel()
+    val navigationHandler: NavigationHandler = koinInject()
     val uiState by viewModel.uiState.collectAsState()
+    val navigationEvent by viewModel.navigationEvent.collectAsState()
 
     val pagerState = rememberPagerState(
         initialPage = uiState.currentPage,
         pageCount = { OnboardingViewModel.TOTAL_PAGES }
     )
 
+    // Handle navigation events (Get Started → Home)
+    LaunchedEffect(navigationEvent) {
+        navigationEvent?.let { action ->
+            navigationHandler.handleNavigation(action.navigationCommand)
+            viewModel.handleAction(OnboardingUiAction.OnNavigationHandled)
+        }
+    }
+
+    // Sync swipe → ViewModel
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }
             .distinctUntilChanged()
@@ -42,6 +55,13 @@ fun OnboardingCarouselScreen() {
                     viewModel.handleAction(OnboardingUiAction.NavigateToPage(page))
                 }
             }
+    }
+
+    // Sync ViewModel → pager (button presses)
+    LaunchedEffect(uiState.currentPage) {
+        if (pagerState.currentPage != uiState.currentPage) {
+            pagerState.animateScrollToPage(uiState.currentPage)
+        }
     }
 
     val backgroundBrush = remember(extendedColors) {
