@@ -7,6 +7,7 @@ import com.middleton.studiosnap.feature.home.domain.model.Style
 data class HomeUiState(
     val photos: List<ProductPhoto> = emptyList(),
     val selectedStyle: Style? = null,
+    val showGalleryPicker: Boolean = false,
     val shadow: Boolean = false,
     val reflection: Boolean = false,
     val exportFormat: ExportFormat = ExportFormat.DEFAULT,

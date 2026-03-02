@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
+import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
@@ -132,6 +133,16 @@ fun HomeScreenContent(
     val errorTooMany = stringResource(Res.string.home_error_too_many_photos, HomeUiState.MAX_PHOTOS)
     val errorGenFailed = stringResource(Res.string.home_error_generation_failed)
 
+    if (state.showGalleryPicker) {
+        ImagePickerLauncher(
+            onImageSelected = { result ->
+                onAction(HomeUiAction.OnPhotoPickerResult(result.uri))
+            },
+            onError = { onAction(HomeUiAction.OnPhotoPickerCancelled) },
+            onDismiss = { onAction(HomeUiAction.OnPhotoPickerCancelled) }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -193,7 +204,7 @@ fun HomeScreenContent(
         ) {
             PhotoSection(
                 photos = state.photos,
-                onAddPhotos = { /* TODO: Launch gallery picker — wired in platform integration phase */ },
+                onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) },
                 onRemovePhoto = { onAction(HomeUiAction.OnPhotoRemoved(it)) }
             )
 

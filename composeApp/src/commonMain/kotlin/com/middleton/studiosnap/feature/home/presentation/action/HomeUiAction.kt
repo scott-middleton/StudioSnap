@@ -3,6 +3,9 @@ package com.middleton.studiosnap.feature.home.presentation.action
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 
 sealed interface HomeUiAction {
+    data object OnAddPhotosClicked : HomeUiAction
+    data class OnPhotoPickerResult(val uri: String) : HomeUiAction
+    data object OnPhotoPickerCancelled : HomeUiAction
     data class OnPhotosSelected(val uris: List<String>) : HomeUiAction
     data class OnPhotoRemoved(val photoId: String) : HomeUiAction
     data class OnStyleSelected(val styleId: String) : HomeUiAction

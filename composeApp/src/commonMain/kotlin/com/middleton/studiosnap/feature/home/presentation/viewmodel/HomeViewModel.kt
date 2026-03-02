@@ -14,6 +14,7 @@ import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigH
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
+import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeError
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +44,9 @@ class HomeViewModel(
 
     fun handleAction(action: HomeUiAction) {
         when (action) {
+            is HomeUiAction.OnAddPhotosClicked -> showGalleryPicker()
+            is HomeUiAction.OnPhotoPickerResult -> onPhotoPickerResult(action.uri)
+            is HomeUiAction.OnPhotoPickerCancelled -> dismissGalleryPicker()
             is HomeUiAction.OnPhotosSelected -> addPhotos(action.uris)
             is HomeUiAction.OnPhotoRemoved -> removePhoto(action.photoId)
             is HomeUiAction.OnStyleSelected -> selectStyle(action.styleId)
@@ -75,6 +79,24 @@ class HomeViewModel(
                 _uiState.update { it.copy(creditBalance = credits.amount) }
             }
         }
+    }
+
+    private fun showGalleryPicker() {
+        val currentPhotos = _uiState.value.photos
+        if (currentPhotos.size >= HomeUiState.MAX_PHOTOS) {
+            _uiState.update { it.copy(error = HomeError.TooManyPhotos) }
+            return
+        }
+        _uiState.update { it.copy(showGalleryPicker = true) }
+    }
+
+    private fun dismissGalleryPicker() {
+        _uiState.update { it.copy(showGalleryPicker = false) }
+    }
+
+    private fun onPhotoPickerResult(uri: String) {
+        _uiState.update { it.copy(showGalleryPicker = false) }
+        addPhotos(listOf(uri))
     }
 
     private fun addPhotos(uris: List<String>) {
