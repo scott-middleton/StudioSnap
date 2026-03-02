@@ -2,14 +2,12 @@ package com.middleton.studiosnap.feature.home.presentation
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -17,9 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
@@ -105,65 +106,49 @@ internal fun StylePickerScreenContent(
             )
         }
     ) { padding ->
-        Column(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            // Category filter chips as full-width header
+            item(span = { GridItemSpan(3) }) {
+                Column {
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                StyleCategory.entries.forEach { category ->
-                    StudioSnapFilterChip(
-                        label = categoryDisplayName(category),
-                        selected = category == selectedCategory,
-                        onClick = { onCategorySelected(category) }
-                    )
+                    Row(
+                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        StyleCategory.entries.forEach { category ->
+                            StudioSnapFilterChip(
+                                label = categoryDisplayName(category),
+                                selected = category == selectedCategory,
+                                onClick = { onCategorySelected(category) }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Style cards in 3-column grid
+            items(styles, key = { it.id }) { style ->
+                StylePickerCard(
+                    styleName = resolveStyleName(style.nameKey),
+                    isSelected = style.id == selectedStyleId,
+                    onClick = { onStyleSelected(style.id) }
+                )
+            }
 
-            StylePickerGrid(
-                styles = styles,
-                selectedStyleId = selectedStyleId,
-                onStyleSelected = onStyleSelected
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun StylePickerGrid(
-    styles: List<Style>,
-    selectedStyleId: String?,
-    onStyleSelected: (String) -> Unit
-) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        maxItemsInEachRow = 3
-    ) {
-        styles.forEach { style ->
-            StylePickerCard(
-                styleName = resolveStyleName(style.nameKey),
-                isSelected = style.id == selectedStyleId,
-                onClick = { onStyleSelected(style.id) },
-                modifier = Modifier.weight(1f)
-            )
-        }
-        val remainder = styles.size % 3
-        if (remainder != 0) {
-            repeat(3 - remainder) {
-                Spacer(modifier = Modifier.weight(1f))
+            // Bottom padding
+            item(span = { GridItemSpan(3) }) {
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
