@@ -3,13 +3,10 @@ package com.middleton.studiosnap.feature.home.presentation.ui_state
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
-import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
 
 data class HomeUiState(
     val photos: List<ProductPhoto> = emptyList(),
-    val styles: List<Style> = emptyList(),
     val selectedStyle: Style? = null,
-    val selectedCategory: StyleCategory = StyleCategory.ALL,
     val shadow: Boolean = false,
     val reflection: Boolean = false,
     val exportFormat: ExportFormat = ExportFormat.DEFAULT,

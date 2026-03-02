@@ -211,6 +211,15 @@
     <string name="history_purchased_badge">Purchased</string>
     <string name="history_product_photo">Product photo</string>
 
+    <!-- Style Picker -->
+    <string name="style_picker_title">Choose Style</string>
+
+    <!-- Home - Style Section -->
+    <string name="home_background_style">Background Style</string>
+    <string name="home_style_tap_to_change">Tap to change</string>
+    <string name="home_style_choose">Choose a style</string>
+    <string name="home_style_choose_hint">Select a background for your product photos</string>
+
     <!-- Accessibility -->
     <string name="content_close">Close</string>
     <string name="content_back">Back</string>

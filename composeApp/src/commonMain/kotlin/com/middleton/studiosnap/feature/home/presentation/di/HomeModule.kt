@@ -11,6 +11,7 @@ import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import com.middleton.studiosnap.feature.home.domain.usecase.BuildKontextPromptUseCase
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
 import com.middleton.studiosnap.feature.home.presentation.viewmodel.HomeViewModel
+import com.middleton.studiosnap.feature.home.presentation.viewmodel.StylePickerViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -37,4 +38,5 @@ val homeModule = module {
     }
 
     viewModelOf(::HomeViewModel)
+    viewModelOf(::StylePickerViewModel)
 }

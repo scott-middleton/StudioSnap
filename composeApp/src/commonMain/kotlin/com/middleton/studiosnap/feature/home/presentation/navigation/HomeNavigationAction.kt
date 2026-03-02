@@ -23,4 +23,14 @@ sealed class HomeNavigationAction : NavigationAction {
     data object GoToCreditStore : HomeNavigationAction() {
         override val navigationCommand = NavigationCommand.Navigate(Route.CreditStore)
     }
+
+    data class GoToStylePicker(val currentStyleId: String?) : HomeNavigationAction() {
+        override val navigationCommand = NavigationCommand.Navigate(
+            Route.StylePicker(currentStyleId)
+        )
+    }
+
+    companion object {
+        const val STYLE_PICKER_RESULT_KEY = "selected_style_id"
+    }
 }

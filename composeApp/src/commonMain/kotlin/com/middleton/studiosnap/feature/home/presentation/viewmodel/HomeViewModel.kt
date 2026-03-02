@@ -2,7 +2,6 @@ package com.middleton.studiosnap.feature.home.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
@@ -11,7 +10,6 @@ import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
-import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
@@ -28,7 +26,6 @@ class HomeViewModel(
     private val styleRepository: StyleRepository,
     private val creditQueries: CreditQueries,
     private val authService: AuthService,
-    private val userPreferencesRepository: UserPreferencesRepository,
     private val generationConfigHolder: GenerationConfigHolder,
     private val analyticsService: AnalyticsService
 ) : ViewModel() {
@@ -49,10 +46,12 @@ class HomeViewModel(
             is HomeUiAction.OnPhotosSelected -> addPhotos(action.uris)
             is HomeUiAction.OnPhotoRemoved -> removePhoto(action.photoId)
             is HomeUiAction.OnStyleSelected -> selectStyle(action.styleId)
-            is HomeUiAction.OnCategorySelected -> selectCategory(action.category)
             is HomeUiAction.OnShadowToggled -> toggleShadow(action.enabled)
             is HomeUiAction.OnReflectionToggled -> toggleReflection(action.enabled)
             is HomeUiAction.OnExportFormatSelected -> selectExportFormat(action.format)
+            is HomeUiAction.OnStylePickerClicked -> navigateTo(
+                HomeNavigationAction.GoToStylePicker(_uiState.value.selectedStyle?.id)
+            )
             is HomeUiAction.OnGenerateClicked -> onGenerate()
             is HomeUiAction.OnSettingsClicked -> navigateTo(HomeNavigationAction.GoToSettings)
             is HomeUiAction.OnHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
@@ -64,19 +63,8 @@ class HomeViewModel(
 
     private fun loadInitialState() {
         viewModelScope.launch {
-            val lastCategory = userPreferencesRepository.getLastUsedCategoryFilter()
-            val category = StyleCategory.entries.find { it.name == lastCategory } ?: StyleCategory.ALL
-            val styles = if (category == StyleCategory.ALL) {
-                styleRepository.getAllStyles()
-            } else {
-                styleRepository.getStylesByCategory(category)
-            }
             _uiState.update {
-                it.copy(
-                    styles = styles,
-                    selectedCategory = category,
-                    isSignedIn = authService.isSignedIn.value
-                )
+                it.copy(isSignedIn = authService.isSignedIn.value)
             }
         }
     }
@@ -119,19 +107,6 @@ class HomeViewModel(
                 AnalyticsEvents.STYLE_SELECTED,
                 mapOf("style_id" to styleId, "category" to style.categories.first().name)
             )
-        }
-    }
-
-    private fun selectCategory(category: StyleCategory) {
-        val styles = if (category == StyleCategory.ALL) {
-            styleRepository.getAllStyles()
-        } else {
-            styleRepository.getStylesByCategory(category)
-        }
-        _uiState.update { it.copy(selectedCategory = category, styles = styles) }
-
-        viewModelScope.launch {
-            userPreferencesRepository.setLastUsedCategoryFilter(category.name)
         }
     }
 

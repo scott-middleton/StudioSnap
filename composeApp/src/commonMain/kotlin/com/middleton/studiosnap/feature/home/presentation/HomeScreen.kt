@@ -3,24 +3,20 @@ package com.middleton.studiosnap.feature.home.presentation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -38,6 +34,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,7 +58,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -70,7 +66,6 @@ import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
-import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeError
@@ -80,13 +75,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import studiosnap.composeapp.generated.resources.Res
-import studiosnap.composeapp.generated.resources.category_all
-import studiosnap.composeapp.generated.resources.category_clothing
-import studiosnap.composeapp.generated.resources.category_cosmetics
-import studiosnap.composeapp.generated.resources.category_food
-import studiosnap.composeapp.generated.resources.category_homeware
-import studiosnap.composeapp.generated.resources.category_jewellery
-import studiosnap.composeapp.generated.resources.category_other
 import studiosnap.composeapp.generated.resources.content_credits
 import studiosnap.composeapp.generated.resources.content_history
 import studiosnap.composeapp.generated.resources.content_settings
@@ -106,26 +94,11 @@ import studiosnap.composeapp.generated.resources.home_photos_count
 import studiosnap.composeapp.generated.resources.home_reflection
 import studiosnap.composeapp.generated.resources.home_remove_photo
 import studiosnap.composeapp.generated.resources.home_shadow
-import studiosnap.composeapp.generated.resources.home_styles_title
+import studiosnap.composeapp.generated.resources.home_background_style
+import studiosnap.composeapp.generated.resources.home_style_choose
+import studiosnap.composeapp.generated.resources.home_style_choose_hint
+import studiosnap.composeapp.generated.resources.home_style_tap_to_change
 import studiosnap.composeapp.generated.resources.home_title
-import studiosnap.composeapp.generated.resources.style_beach_vibes
-import studiosnap.composeapp.generated.resources.style_botanical_garden
-import studiosnap.composeapp.generated.resources.style_christmas
-import studiosnap.composeapp.generated.resources.style_clean_white
-import studiosnap.composeapp.generated.resources.style_concrete_minimal
-import studiosnap.composeapp.generated.resources.style_dark_moody
-import studiosnap.composeapp.generated.resources.style_gradient_studio
-import studiosnap.composeapp.generated.resources.style_marble_luxe
-import studiosnap.composeapp.generated.resources.style_morning_kitchen
-import studiosnap.composeapp.generated.resources.style_neon_pop
-import studiosnap.composeapp.generated.resources.style_paper_craft
-import studiosnap.composeapp.generated.resources.style_pastel_dream
-import studiosnap.composeapp.generated.resources.style_rustic_wood
-import studiosnap.composeapp.generated.resources.style_silk_velvet
-import studiosnap.composeapp.generated.resources.style_spring_garden
-import studiosnap.composeapp.generated.resources.style_sunset_glow
-import studiosnap.composeapp.generated.resources.style_terrazzo
-import studiosnap.composeapp.generated.resources.style_warm_linen
 
 @Composable
 fun HomeScreen(
@@ -156,7 +129,6 @@ fun HomeScreenContent(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Resolve error messages to strings in the composable
     val errorTooMany = stringResource(Res.string.home_error_too_many_photos, HomeUiState.MAX_PHOTOS)
     val errorGenFailed = stringResource(Res.string.home_error_generation_failed)
 
@@ -225,17 +197,14 @@ fun HomeScreenContent(
                 onRemovePhoto = { onAction(HomeUiAction.OnPhotoRemoved(it)) }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            SectionDivider()
 
-            StylePickerSection(
-                styles = state.styles,
-                selectedStyleId = state.selectedStyle?.id,
-                selectedCategory = state.selectedCategory,
-                onStyleSelected = { onAction(HomeUiAction.OnStyleSelected(it)) },
-                onCategorySelected = { onAction(HomeUiAction.OnCategorySelected(it)) }
+            SelectedStyleSection(
+                selectedStyle = state.selectedStyle,
+                onChangeStyle = { onAction(HomeUiAction.OnStylePickerClicked) }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            SectionDivider()
 
             OptionsSection(
                 shadow = state.shadow,
@@ -262,6 +231,14 @@ fun HomeScreenContent(
             onAction(HomeUiAction.OnErrorDismissed)
         }
     }
+}
+
+@Composable
+private fun SectionDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+        color = MaterialTheme.colorScheme.outlineVariant
+    )
 }
 
 @Composable
@@ -408,123 +385,98 @@ private fun PhotoChip(
 }
 
 @Composable
-private fun StylePickerSection(
-    styles: List<Style>,
-    selectedStyleId: String?,
-    selectedCategory: StyleCategory,
-    onStyleSelected: (String) -> Unit,
-    onCategorySelected: (StyleCategory) -> Unit
+private fun SelectedStyleSection(
+    selectedStyle: Style?,
+    onChangeStyle: () -> Unit
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = stringResource(Res.string.home_styles_title),
+            text = stringResource(Res.string.home_background_style),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(StyleCategory.entries) { category ->
-                StudioSnapFilterChip(
-                    label = categoryDisplayName(category),
-                    selected = category == selectedCategory,
-                    onClick = { onCategorySelected(category) }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        StyleGrid(
-            styles = styles,
-            selectedStyleId = selectedStyleId,
-            onStyleSelected = onStyleSelected
-        )
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun StyleGrid(
-    styles: List<Style>,
-    selectedStyleId: String?,
-    onStyleSelected: (String) -> Unit
-) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        maxItemsInEachRow = 3
-    ) {
-        styles.forEach { style ->
-            StyleCard(
-                styleName = resolveStyleName(style.nameKey),
-                isSelected = style.id == selectedStyleId,
-                onClick = { onStyleSelected(style.id) },
-                modifier = Modifier.weight(1f)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onChangeStyle),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = if (selectedStyle != null) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                }
             )
-        }
-        // Fill remaining slots in last row for even spacing
-        val remainder = styles.size % 3
-        if (remainder != 0) {
-            repeat(3 - remainder) {
-                Spacer(modifier = Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-@Composable
-private fun StyleCard(
-    styleName: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val borderModifier = if (isSelected) {
-        Modifier.border(
-            BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-            RoundedCornerShape(12.dp)
-        )
-    } else {
-        Modifier
-    }
-
-    Card(
-        modifier = modifier
-            .aspectRatio(0.85f)
-            .then(borderModifier)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // TODO: Load style thumbnail from thumbnailResName when assets are ready
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "🎨",
-                    fontSize = 28.sp
+                // Thumbnail placeholder
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(
+                            if (selectedStyle != null) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (selectedStyle != null) "🎨" else "➕",
+                        fontSize = 24.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    if (selectedStyle != null) {
+                        Text(
+                            text = resolveStyleName(selectedStyle.nameKey),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = stringResource(Res.string.home_style_tap_to_change),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(Res.string.home_style_choose),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = stringResource(Res.string.home_style_choose_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = if (selectedStyle != null) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    modifier = Modifier.size(20.dp)
                 )
             }
-            Text(
-                text = styleName,
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
-                textAlign = TextAlign.Center
-            )
         }
     }
 }
@@ -600,51 +552,6 @@ private fun OptionRow(
         )
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
-}
-
-/**
- * Resolves style nameKey (e.g. "style_clean_white") to a localised display name.
- */
-@Composable
-private fun resolveStyleName(nameKey: String): String {
-    return when (nameKey) {
-        "style_clean_white" -> stringResource(Res.string.style_clean_white)
-        "style_warm_linen" -> stringResource(Res.string.style_warm_linen)
-        "style_marble_luxe" -> stringResource(Res.string.style_marble_luxe)
-        "style_morning_kitchen" -> stringResource(Res.string.style_morning_kitchen)
-        "style_botanical_garden" -> stringResource(Res.string.style_botanical_garden)
-        "style_concrete_minimal" -> stringResource(Res.string.style_concrete_minimal)
-        "style_sunset_glow" -> stringResource(Res.string.style_sunset_glow)
-        "style_beach_vibes" -> stringResource(Res.string.style_beach_vibes)
-        "style_dark_moody" -> stringResource(Res.string.style_dark_moody)
-        "style_pastel_dream" -> stringResource(Res.string.style_pastel_dream)
-        "style_rustic_wood" -> stringResource(Res.string.style_rustic_wood)
-        "style_christmas" -> stringResource(Res.string.style_christmas)
-        "style_terrazzo" -> stringResource(Res.string.style_terrazzo)
-        "style_silk_velvet" -> stringResource(Res.string.style_silk_velvet)
-        "style_paper_craft" -> stringResource(Res.string.style_paper_craft)
-        "style_spring_garden" -> stringResource(Res.string.style_spring_garden)
-        "style_gradient_studio" -> stringResource(Res.string.style_gradient_studio)
-        "style_neon_pop" -> stringResource(Res.string.style_neon_pop)
-        // Fallback for any future styles not yet in string resources
-        else -> nameKey.removePrefix("style_").replace("_", " ")
-            .replaceFirstChar { it.uppercase() }
-    }
-}
-
-@Composable
-private fun categoryDisplayName(category: StyleCategory): String {
-    return stringResource(
-        when (category) {
-            StyleCategory.ALL -> Res.string.category_all
-            StyleCategory.CLOTHING -> Res.string.category_clothing
-            StyleCategory.JEWELLERY -> Res.string.category_jewellery
-            StyleCategory.HOMEWARE -> Res.string.category_homeware
-            StyleCategory.COSMETICS -> Res.string.category_cosmetics
-            StyleCategory.FOOD -> Res.string.category_food
-            StyleCategory.OTHER -> Res.string.category_other
-        }
-    )
 }
 
 @Composable

@@ -1,8 +1,6 @@
 package com.middleton.studiosnap.feature.home.presentation.viewmodel
 
 import com.middleton.studiosnap.core.domain.model.UserCredits
-import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
-import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditQueries
@@ -56,35 +54,15 @@ class HomeViewModelTest : BaseViewModelTest() {
     private fun createViewModel(
         styles: List<Style> = testStyles,
         creditBalance: Int = 10,
-        isSignedIn: Boolean = false,
-        lastCategory: String = "ALL"
+        isSignedIn: Boolean = false
     ): HomeViewModel {
         return HomeViewModel(
             styleRepository = FakeStyleRepository(styles),
             creditQueries = FakeCreditQueries(creditBalance),
             authService = FakeAuthService(isSignedIn),
-            userPreferencesRepository = FakeUserPreferencesRepository(lastCategory = lastCategory),
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService()
         )
-    }
-
-    @Test
-    fun `initial state loads all styles`() {
-        val viewModel = createViewModel()
-        val state = viewModel.uiState.value
-        assertEquals(3, state.styles.size)
-        assertEquals(StyleCategory.ALL, state.selectedCategory)
-    }
-
-    @Test
-    fun `selecting category filters styles`() {
-        val viewModel = createViewModel()
-        viewModel.handleAction(HomeUiAction.OnCategorySelected(StyleCategory.FOOD))
-        val state = viewModel.uiState.value
-        assertEquals(StyleCategory.FOOD, state.selectedCategory)
-        assertEquals(1, state.styles.size)
-        assertEquals("morning_kitchen", state.styles.first().id)
     }
 
     @Test
@@ -216,6 +194,26 @@ class HomeViewModelTest : BaseViewModelTest() {
         assertEquals(42, viewModel.uiState.value.creditBalance)
     }
 
+    @Test
+    fun `style picker click navigates with null style id when none selected`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(HomeUiAction.OnStylePickerClicked)
+        val nav = viewModel.navigationEvent.value
+        assertTrue(nav is HomeNavigationAction.GoToStylePicker)
+        assertNull((nav as HomeNavigationAction.GoToStylePicker).currentStyleId)
+    }
+
+    @Test
+    fun `style picker click navigates with current style id when style selected`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("warm_linen"))
+        viewModel.handleAction(HomeUiAction.OnNavigationHandled)
+        viewModel.handleAction(HomeUiAction.OnStylePickerClicked)
+        val nav = viewModel.navigationEvent.value
+        assertTrue(nav is HomeNavigationAction.GoToStylePicker)
+        assertEquals("warm_linen", (nav as HomeNavigationAction.GoToStylePicker).currentStyleId)
+    }
+
     // --- Fakes ---
 
     private class FakeStyleRepository(private val styles: List<Style>) : StyleRepository {
@@ -239,33 +237,6 @@ class HomeViewModelTest : BaseViewModelTest() {
         override suspend fun signIn(): Result<AuthUser> = Result.failure(Exception("Not implemented"))
         override suspend fun signOut(): Result<Unit> = Result.success(Unit)
         override suspend fun getCurrentUser(): AuthUser? = null
-    }
-
-    private class FakeUserPreferencesRepository(
-        private val onboardingCompleted: Boolean = true,
-        private val lastCategory: String = "ALL"
-    ) : UserPreferencesRepository {
-        override suspend fun hasCompletedOnboarding() = onboardingCompleted
-        override suspend fun setHasCompletedOnboarding() {}
-        override suspend fun hasPurchasedCredits() = false
-        override suspend fun setHasPurchasedCredits() {}
-        override suspend fun getFreeDownloadsUsed() = 0
-        override suspend fun incrementFreeDownloads() {}
-        override suspend fun incrementAndGetPaidDownloads() = 0
-        override suspend fun getPreferredQuality() = "HIGH"
-        override suspend fun setPreferredQuality(quality: String) {}
-        override suspend fun getLastUsedCategoryFilter() = lastCategory
-        override suspend fun setLastUsedCategoryFilter(category: String) {}
-        override fun observePreferences(): Flow<UserPreferencesSnapshot> = flowOf(
-            UserPreferencesSnapshot(
-                hasCompletedOnboarding = onboardingCompleted,
-                hasPurchasedCredits = false,
-                freeDownloadsUsed = 0,
-                totalPaidDownloads = 0,
-                preferredQuality = "HIGH",
-                lastUsedCategoryFilter = lastCategory
-            )
-        )
     }
 
     private class FakeAnalyticsService : AnalyticsService {
