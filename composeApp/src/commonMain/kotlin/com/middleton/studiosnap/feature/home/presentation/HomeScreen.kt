@@ -60,8 +60,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
+import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
@@ -89,6 +91,11 @@ import studiosnap.composeapp.generated.resources.home_style_choose
 import studiosnap.composeapp.generated.resources.home_style_choose_hint
 import studiosnap.composeapp.generated.resources.home_style_tap_to_change
 import studiosnap.composeapp.generated.resources.home_title
+import studiosnap.composeapp.generated.resources.home_export_format
+import studiosnap.composeapp.generated.resources.home_export_etsy
+import studiosnap.composeapp.generated.resources.home_export_ebay
+import studiosnap.composeapp.generated.resources.home_export_vinted
+import studiosnap.composeapp.generated.resources.home_export_original
 
 @Composable
 fun HomeScreen(
@@ -204,6 +211,13 @@ fun HomeScreenContent(
             SelectedStyleSection(
                 selectedStyle = state.selectedStyle,
                 onChangeStyle = { onAction(HomeUiAction.OnStylePickerClicked) }
+            )
+
+            SectionDivider()
+
+            ExportFormatSection(
+                exportFormat = state.exportFormat,
+                onExportFormatSelected = { onAction(HomeUiAction.OnExportFormatSelected(it)) }
             )
 
             // Bottom spacing to clear FAB
@@ -477,6 +491,44 @@ private fun SelectedStyleSection(
             }
         }
     }
+}
+
+@Composable
+private fun ExportFormatSection(
+    exportFormat: ExportFormat,
+    onExportFormatSelected: (ExportFormat) -> Unit
+) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            text = stringResource(Res.string.home_export_format),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(ExportFormat.entries) { format ->
+                StudioSnapFilterChip(
+                    label = exportFormatDisplayName(format),
+                    selected = format == exportFormat,
+                    onClick = { onExportFormatSelected(format) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun exportFormatDisplayName(format: ExportFormat): String {
+    return stringResource(
+        when (format) {
+            ExportFormat.ETSY_SQUARE -> Res.string.home_export_etsy
+            ExportFormat.EBAY_LANDSCAPE -> Res.string.home_export_ebay
+            ExportFormat.VINTED_PORTRAIT -> Res.string.home_export_vinted
+            ExportFormat.ORIGINAL -> Res.string.home_export_original
+        }
+    )
 }
 
 private const val FAB_CLEARANCE_DP = 88
