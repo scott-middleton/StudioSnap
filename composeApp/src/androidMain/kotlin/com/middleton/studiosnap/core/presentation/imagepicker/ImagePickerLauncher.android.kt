@@ -21,16 +21,16 @@ actual fun ImagePickerLauncher(
 ) {
     val context = LocalContext.current
 
+    // Always use unlimited multi-select and truncate client-side.
+    // This avoids stale contract issues since rememberLauncherForActivityResult
+    // doesn't recompose when the contract changes.
     val launcher = rememberLauncherForActivityResult(
-        contract = if (maxSelection > 1) {
-            ActivityResultContracts.PickMultipleVisualMedia(maxItems = maxSelection)
-        } else {
-            ActivityResultContracts.PickMultipleVisualMedia()
-        }
+        contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris: List<Uri> ->
         if (uris.isNotEmpty()) {
             try {
-                val results = uris.mapNotNull { uri ->
+                val limitedUris = if (maxSelection > 0) uris.take(maxSelection) else uris
+                val results = limitedUris.mapNotNull { uri ->
                     try {
                         val options = BitmapFactory.Options().apply {
                             inJustDecodeBounds = true

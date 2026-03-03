@@ -29,7 +29,6 @@ import platform.UniformTypeIdentifiers.UTTypeImage
 import platform.darwin.NSObject
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
-import kotlin.concurrent.AtomicInt
 
 @Composable
 actual fun ImagePickerLauncher(
@@ -47,6 +46,9 @@ actual fun ImagePickerLauncher(
     }
 
     DisposableEffect(Unit) {
+        // Clear stale cache from previous picker sessions to prevent unbounded memory growth
+        IosImageCache.clear()
+
         val configuration = PHPickerConfiguration().apply {
             filter = PHPickerFilter.imagesFilter
             selectionLimit = maxSelection.toLong()
@@ -84,46 +86,57 @@ private class PHPickerDelegate(
             return
         }
 
+        // All list mutations happen on main queue — no synchronization needed (Kotlin/Native safe)
         val imageResults = mutableListOf<ImagePickerResult>()
-        val remaining = AtomicInt(results.size)
+        var completedCount = 0
         var hasError = false
+        val totalCount = results.size
 
-        results.forEach { result ->
+        results.forEachIndexed { index, result ->
             val itemProvider = result.itemProvider
 
             if (itemProvider.hasItemConformingToTypeIdentifier(UTTypeImage.identifier)) {
                 itemProvider.loadDataRepresentationForTypeIdentifier(
                     typeIdentifier = UTTypeImage.identifier
                 ) { data, error ->
-                    if (error != null || data == null) {
-                        hasError = true
+                    // Process image data on background thread, then collect on main
+                    val processedResult = if (error != null || data == null) {
+                        null
                     } else {
                         val uiImage = UIImage(data = data)
-                        val imageUri = result.assetIdentifier ?: "selected_image_${currentTimeMillis()}"
+                        val imageUri = result.assetIdentifier ?: "selected_image_${currentTimeMillis()}_$index"
 
                         val (imgWidth, imgHeight) = uiImage.size.useContents {
                             Pair(width.toInt(), height.toInt())
                         }
 
-                        val imageResult = ImagePickerResult(
-                            uri = imageUri,
-                            width = imgWidth,
-                            height = imgHeight,
-                            fileName = null,
-                            fileSize = null,
-                            mimeType = "image/jpeg"
-                        )
-
                         val normalizedImage = normalizeOrientation(uiImage)
-                        IosImageCache.cacheImage(imageUri, normalizedImage)
 
-                        synchronized(imageResults) {
-                            imageResults.add(imageResult)
-                        }
+                        Triple(
+                            ImagePickerResult(
+                                uri = imageUri,
+                                width = imgWidth,
+                                height = imgHeight,
+                                fileName = null,
+                                fileSize = null,
+                                mimeType = "image/jpeg"
+                            ),
+                            imageUri,
+                            normalizedImage
+                        )
                     }
 
-                    if (remaining.decrementAndGet() == 0) {
-                        dispatch_async(dispatch_get_main_queue()) {
+                    dispatch_async(dispatch_get_main_queue()) {
+                        if (processedResult != null) {
+                            val (imageResult, uri, normalized) = processedResult
+                            IosImageCache.cacheImage(uri, normalized)
+                            imageResults.add(imageResult)
+                        } else {
+                            hasError = true
+                        }
+
+                        completedCount++
+                        if (completedCount == totalCount) {
                             if (imageResults.isNotEmpty()) {
                                 onImagesSelected(imageResults.toList())
                             } else if (hasError) {
@@ -135,8 +148,9 @@ private class PHPickerDelegate(
                     }
                 }
             } else {
-                if (remaining.decrementAndGet() == 0) {
-                    dispatch_async(dispatch_get_main_queue()) {
+                dispatch_async(dispatch_get_main_queue()) {
+                    completedCount++
+                    if (completedCount == totalCount) {
                         if (imageResults.isNotEmpty()) {
                             onImagesSelected(imageResults.toList())
                         } else {

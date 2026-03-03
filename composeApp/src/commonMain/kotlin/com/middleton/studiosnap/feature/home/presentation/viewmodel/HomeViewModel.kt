@@ -45,7 +45,6 @@ class HomeViewModel(
     fun handleAction(action: HomeUiAction) {
         when (action) {
             is HomeUiAction.OnAddPhotosClicked -> showGalleryPicker()
-            is HomeUiAction.OnPhotoPickerResult -> onPhotoPickerResult(action.uri)
             is HomeUiAction.OnPhotoPickerCancelled -> dismissGalleryPicker()
             is HomeUiAction.OnPhotosSelected -> {
                 dismissGalleryPicker()
@@ -95,11 +94,6 @@ class HomeViewModel(
 
     private fun dismissGalleryPicker() {
         _uiState.update { it.copy(showGalleryPicker = false) }
-    }
-
-    private fun onPhotoPickerResult(uri: String) {
-        _uiState.update { it.copy(showGalleryPicker = false) }
-        addPhotos(listOf(uri))
     }
 
     private fun addPhotos(uris: List<String>) {
