@@ -134,9 +134,11 @@ fun HomeScreenContent(
     val errorGenFailed = stringResource(Res.string.home_error_generation_failed)
 
     if (state.showGalleryPicker) {
+        val remainingSlots = HomeUiState.MAX_PHOTOS - state.photos.size
         ImagePickerLauncher(
-            onImageSelected = { result ->
-                onAction(HomeUiAction.OnPhotoPickerResult(result.uri))
+            maxSelection = remainingSlots,
+            onImagesSelected = { results ->
+                onAction(HomeUiAction.OnPhotosSelected(results.map { it.uri }))
             },
             onError = { onAction(HomeUiAction.OnPhotoPickerCancelled) },
             onDismiss = { onAction(HomeUiAction.OnPhotoPickerCancelled) }

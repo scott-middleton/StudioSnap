@@ -14,50 +14,63 @@ import androidx.core.net.toUri
 
 @Composable
 actual fun ImagePickerLauncher(
-    onImageSelected: (ImagePickerResult) -> Unit,
+    maxSelection: Int,
+    onImagesSelected: (List<ImagePickerResult>) -> Unit,
     onError: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri: Uri? ->
-        if (uri != null) {
+        contract = if (maxSelection > 1) {
+            ActivityResultContracts.PickMultipleVisualMedia(maxItems = maxSelection)
+        } else {
+            ActivityResultContracts.PickMultipleVisualMedia()
+        }
+    ) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
             try {
-                // Get image dimensions
-                val options = BitmapFactory.Options().apply {
-                    inJustDecodeBounds = true
-                }
-                context.contentResolver.openInputStream(uri)?.use { stream ->
-                    BitmapFactory.decodeStream(stream, null, options)
-                }
+                val results = uris.mapNotNull { uri ->
+                    try {
+                        val options = BitmapFactory.Options().apply {
+                            inJustDecodeBounds = true
+                        }
+                        context.contentResolver.openInputStream(uri)?.use { stream ->
+                            BitmapFactory.decodeStream(stream, null, options)
+                        }
 
-                // Get file info
-                val cursor = context.contentResolver.query(uri, null, null, null, null)
-                var fileName: String? = null
-                var fileSize: Long? = null
-                cursor?.use {
-                    if (it.moveToFirst()) {
-                        val nameIndex = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
-                        val sizeIndex = it.getColumnIndex(android.provider.OpenableColumns.SIZE)
-                        if (nameIndex >= 0) fileName = it.getString(nameIndex)
-                        if (sizeIndex >= 0) fileSize = it.getLong(sizeIndex)
+                        val cursor = context.contentResolver.query(uri, null, null, null, null)
+                        var fileName: String? = null
+                        var fileSize: Long? = null
+                        cursor?.use {
+                            if (it.moveToFirst()) {
+                                val nameIndex = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                                val sizeIndex = it.getColumnIndex(android.provider.OpenableColumns.SIZE)
+                                if (nameIndex >= 0) fileName = it.getString(nameIndex)
+                                if (sizeIndex >= 0) fileSize = it.getLong(sizeIndex)
+                            }
+                        }
+
+                        val mimeType = context.contentResolver.getType(uri)
+
+                        ImagePickerResult(
+                            uri = uri.toString(),
+                            width = options.outWidth.takeIf { it > 0 },
+                            height = options.outHeight.takeIf { it > 0 },
+                            fileName = fileName,
+                            fileSize = fileSize,
+                            mimeType = mimeType
+                        )
+                    } catch (_: Exception) {
+                        null
                     }
                 }
 
-                val mimeType = context.contentResolver.getType(uri)
-
-                val result = ImagePickerResult(
-                    uri = uri.toString(),
-                    width = options.outWidth.takeIf { it > 0 },
-                    height = options.outHeight.takeIf { it > 0 },
-                    fileName = fileName,
-                    fileSize = fileSize,
-                    mimeType = mimeType
-                )
-
-                onImageSelected(result)
+                if (results.isNotEmpty()) {
+                    onImagesSelected(results)
+                } else {
+                    onError()
+                }
             } catch (_: Exception) {
                 onError()
             }

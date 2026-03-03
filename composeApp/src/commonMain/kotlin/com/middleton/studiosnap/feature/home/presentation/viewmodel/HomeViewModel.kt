@@ -47,7 +47,10 @@ class HomeViewModel(
             is HomeUiAction.OnAddPhotosClicked -> showGalleryPicker()
             is HomeUiAction.OnPhotoPickerResult -> onPhotoPickerResult(action.uri)
             is HomeUiAction.OnPhotoPickerCancelled -> dismissGalleryPicker()
-            is HomeUiAction.OnPhotosSelected -> addPhotos(action.uris)
+            is HomeUiAction.OnPhotosSelected -> {
+                dismissGalleryPicker()
+                addPhotos(action.uris)
+            }
             is HomeUiAction.OnPhotoRemoved -> removePhoto(action.photoId)
             is HomeUiAction.OnStyleSelected -> selectStyle(action.styleId)
             is HomeUiAction.OnShadowToggled -> toggleShadow(action.enabled)

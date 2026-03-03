@@ -27,16 +27,20 @@ import platform.UIKit.UIImageOrientation
 import platform.UIKit.UIWindowScene
 import platform.UniformTypeIdentifiers.UTTypeImage
 import platform.darwin.NSObject
+import platform.darwin.dispatch_async
+import platform.darwin.dispatch_get_main_queue
+import kotlin.concurrent.AtomicInt
 
 @Composable
 actual fun ImagePickerLauncher(
-    onImageSelected: (ImagePickerResult) -> Unit,
+    maxSelection: Int,
+    onImagesSelected: (List<ImagePickerResult>) -> Unit,
     onError: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val delegate = remember {
         PHPickerDelegate(
-            onImageSelected = onImageSelected,
+            onImagesSelected = onImagesSelected,
             onError = onError,
             onDismiss = onDismiss
         )
@@ -45,7 +49,7 @@ actual fun ImagePickerLauncher(
     DisposableEffect(Unit) {
         val configuration = PHPickerConfiguration().apply {
             filter = PHPickerFilter.imagesFilter
-            selectionLimit = 1
+            selectionLimit = maxSelection.toLong()
         }
 
         val picker = PHPickerViewController(configuration = configuration).apply {
@@ -65,7 +69,7 @@ private fun getRootViewController() = UIApplication.sharedApplication.connectedS
     ?.rootViewController
 
 private class PHPickerDelegate(
-    private val onImageSelected: (ImagePickerResult) -> Unit,
+    private val onImagesSelected: (List<ImagePickerResult>) -> Unit,
     private val onError: () -> Unit,
     private val onDismiss: () -> Unit
 ) : NSObject(), PHPickerViewControllerDelegateProtocol {
@@ -80,40 +84,67 @@ private class PHPickerDelegate(
             return
         }
 
-        val result = results.first()
-        val itemProvider = result.itemProvider
+        val imageResults = mutableListOf<ImagePickerResult>()
+        val remaining = AtomicInt(results.size)
+        var hasError = false
 
-        if (itemProvider.hasItemConformingToTypeIdentifier(UTTypeImage.identifier)) {
-            itemProvider.loadDataRepresentationForTypeIdentifier(
-                typeIdentifier = UTTypeImage.identifier
-            ) { data, error ->
-                if (error != null || data == null) {
-                    onError()
-                    return@loadDataRepresentationForTypeIdentifier
+        results.forEach { result ->
+            val itemProvider = result.itemProvider
+
+            if (itemProvider.hasItemConformingToTypeIdentifier(UTTypeImage.identifier)) {
+                itemProvider.loadDataRepresentationForTypeIdentifier(
+                    typeIdentifier = UTTypeImage.identifier
+                ) { data, error ->
+                    if (error != null || data == null) {
+                        hasError = true
+                    } else {
+                        val uiImage = UIImage(data = data)
+                        val imageUri = result.assetIdentifier ?: "selected_image_${currentTimeMillis()}"
+
+                        val (imgWidth, imgHeight) = uiImage.size.useContents {
+                            Pair(width.toInt(), height.toInt())
+                        }
+
+                        val imageResult = ImagePickerResult(
+                            uri = imageUri,
+                            width = imgWidth,
+                            height = imgHeight,
+                            fileName = null,
+                            fileSize = null,
+                            mimeType = "image/jpeg"
+                        )
+
+                        val normalizedImage = normalizeOrientation(uiImage)
+                        IosImageCache.cacheImage(imageUri, normalizedImage)
+
+                        synchronized(imageResults) {
+                            imageResults.add(imageResult)
+                        }
+                    }
+
+                    if (remaining.decrementAndGet() == 0) {
+                        dispatch_async(dispatch_get_main_queue()) {
+                            if (imageResults.isNotEmpty()) {
+                                onImagesSelected(imageResults.toList())
+                            } else if (hasError) {
+                                onError()
+                            } else {
+                                onDismiss()
+                            }
+                        }
+                    }
                 }
-
-                val uiImage = UIImage(data = data)
-                val imageUri = result.assetIdentifier ?: "selected_image_${currentTimeMillis()}"
-
-                val (imgWidth, imgHeight) = uiImage.size.useContents {
-                    Pair(width.toInt(), height.toInt())
+            } else {
+                if (remaining.decrementAndGet() == 0) {
+                    dispatch_async(dispatch_get_main_queue()) {
+                        if (imageResults.isNotEmpty()) {
+                            onImagesSelected(imageResults.toList())
+                        } else {
+                            onError()
+                        }
+                    }
                 }
-
-                val imageResult = ImagePickerResult(
-                    uri = imageUri,
-                    width = imgWidth,
-                    height = imgHeight,
-                    fileName = null,
-                    fileSize = null,
-                    mimeType = "image/jpeg"
-                )
-
-                val normalizedImage = normalizeOrientation(uiImage)
-                IosImageCache.cacheImage(imageUri, normalizedImage)
-                onImageSelected(imageResult)
             }
-        } else {
-            onError()
         }
     }
 }
@@ -137,7 +168,6 @@ internal object IosImageCache {
     private val cache = mutableMapOf<String, UIImage>()
 
     fun cacheImage(uri: String, image: UIImage) {
-        cache.clear()
         cache[uri] = image
     }
 
