@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,10 +21,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
@@ -42,7 +42,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -61,10 +60,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
-import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
@@ -84,17 +81,9 @@ import studiosnap.composeapp.generated.resources.home_empty_subtitle
 import studiosnap.composeapp.generated.resources.home_empty_title
 import studiosnap.composeapp.generated.resources.home_error_generation_failed
 import studiosnap.composeapp.generated.resources.home_error_too_many_photos
-import studiosnap.composeapp.generated.resources.home_export_ebay
-import studiosnap.composeapp.generated.resources.home_export_etsy
-import studiosnap.composeapp.generated.resources.home_export_format
-import studiosnap.composeapp.generated.resources.home_export_original
-import studiosnap.composeapp.generated.resources.home_export_vinted
 import studiosnap.composeapp.generated.resources.home_generate_preview
-import studiosnap.composeapp.generated.resources.home_options_title
 import studiosnap.composeapp.generated.resources.home_photos_count
-import studiosnap.composeapp.generated.resources.home_reflection
 import studiosnap.composeapp.generated.resources.home_remove_photo
-import studiosnap.composeapp.generated.resources.home_shadow
 import studiosnap.composeapp.generated.resources.home_background_style
 import studiosnap.composeapp.generated.resources.home_style_choose
 import studiosnap.composeapp.generated.resources.home_style_choose_hint
@@ -202,12 +191,12 @@ fun HomeScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
         ) {
             PhotoSection(
                 photos = state.photos,
                 onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) },
-                onRemovePhoto = { onAction(HomeUiAction.OnPhotoRemoved(it)) }
+                onRemovePhoto = { onAction(HomeUiAction.OnPhotoRemoved(it)) },
+                modifier = Modifier.weight(1f)
             )
 
             SectionDivider()
@@ -215,17 +204,6 @@ fun HomeScreenContent(
             SelectedStyleSection(
                 selectedStyle = state.selectedStyle,
                 onChangeStyle = { onAction(HomeUiAction.OnStylePickerClicked) }
-            )
-
-            SectionDivider()
-
-            OptionsSection(
-                shadow = state.shadow,
-                reflection = state.reflection,
-                exportFormat = state.exportFormat,
-                onShadowToggled = { onAction(HomeUiAction.OnShadowToggled(it)) },
-                onReflectionToggled = { onAction(HomeUiAction.OnReflectionToggled(it)) },
-                onExportFormatSelected = { onAction(HomeUiAction.OnExportFormatSelected(it)) }
             )
 
             // Bottom spacing to clear FAB
@@ -283,11 +261,12 @@ private fun CreditBalancePill(
 private fun PhotoSection(
     photos: List<ProductPhoto>,
     onAddPhotos: () -> Unit,
-    onRemovePhoto: (String) -> Unit
+    onRemovePhoto: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     if (photos.isEmpty()) {
         Card(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .clickable(onClick = onAddPhotos),
@@ -324,7 +303,7 @@ private fun PhotoSection(
             }
         }
     } else {
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Column(modifier = modifier.padding(horizontal = 16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -347,17 +326,19 @@ private fun PhotoSection(
                     }
                 )
             }
-        }
 
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(photos, key = { it.id }) { photo ->
-                PhotoChip(
-                    photoUri = photo.localUri,
-                    onRemove = { onRemovePhoto(photo.id) }
-                )
+            LazyRow(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items(photos, key = { it.id }) { photo ->
+                    PhotoChip(
+                        photoUri = photo.localUri,
+                        onRemove = { onRemovePhoto(photo.id) }
+                    )
+                }
             }
         }
     }
@@ -368,7 +349,11 @@ private fun PhotoChip(
     photoUri: String,
     onRemove: () -> Unit
 ) {
-    Box(modifier = Modifier.size(80.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxHeight()
+            .aspectRatio(1f)
+    ) {
         AsyncImage(
             model = photoUri,
             contentDescription = stringResource(Res.string.home_remove_photo),
@@ -492,91 +477,6 @@ private fun SelectedStyleSection(
             }
         }
     }
-}
-
-@Composable
-private fun OptionsSection(
-    shadow: Boolean,
-    reflection: Boolean,
-    exportFormat: ExportFormat,
-    onShadowToggled: (Boolean) -> Unit,
-    onReflectionToggled: (Boolean) -> Unit,
-    onExportFormatSelected: (ExportFormat) -> Unit
-) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Text(
-            text = stringResource(Res.string.home_options_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OptionRow(
-            label = stringResource(Res.string.home_shadow),
-            checked = shadow,
-            onCheckedChange = onShadowToggled
-        )
-
-        OptionRow(
-            label = stringResource(Res.string.home_reflection),
-            checked = reflection,
-            onCheckedChange = onReflectionToggled
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = stringResource(Res.string.home_export_format),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(ExportFormat.entries) { format ->
-                StudioSnapFilterChip(
-                    label = exportFormatDisplayName(format),
-                    selected = format == exportFormat,
-                    onClick = { onExportFormatSelected(format) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun OptionRow(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
-
-@Composable
-private fun exportFormatDisplayName(format: ExportFormat): String {
-    return stringResource(
-        when (format) {
-            ExportFormat.ETSY_SQUARE -> Res.string.home_export_etsy
-            ExportFormat.EBAY_LANDSCAPE -> Res.string.home_export_ebay
-            ExportFormat.VINTED_PORTRAIT -> Res.string.home_export_vinted
-            ExportFormat.ORIGINAL -> Res.string.home_export_original
-        }
-    )
 }
 
 private const val FAB_CLEARANCE_DP = 88
