@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AssistChip
@@ -279,41 +284,78 @@ private fun PhotoSection(
     modifier: Modifier = Modifier
 ) {
     if (photos.isEmpty()) {
+        val dashedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+        val dashedPathEffect = remember {
+            PathEffect.dashPathEffect(floatArrayOf(20f, 12f), 0f)
+        }
+
         Card(
+            onClick = onAddPhotos,
             modifier = modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .clickable(onClick = onAddPhotos),
+                .padding(horizontal = 20.dp)
+                .drawBehind {
+                    drawRoundRect(
+                        color = dashedBorderColor,
+                        cornerRadius = CornerRadius(24.dp.toPx()),
+                        style = Stroke(
+                            width = 2.dp.toPx(),
+                            pathEffect = dashedPathEffect
+                        )
+                    )
+                },
+            shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             ),
-            shape = RoundedCornerShape(16.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = stringResource(Res.string.home_empty_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = stringResource(Res.string.home_empty_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.padding(32.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AddPhotoAlternate,
+                            contentDescription = null,
+                            modifier = Modifier.size(36.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = stringResource(Res.string.home_empty_title),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = stringResource(Res.string.home_empty_subtitle),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     } else {
@@ -367,6 +409,7 @@ private fun PhotoChip(
         modifier = Modifier
             .fillMaxHeight()
             .aspectRatio(1f)
+            .padding(4.dp) // Inset so delete button isn't clipped
     ) {
         AsyncImage(
             model = photoUri,
