@@ -1,8 +1,5 @@
 package com.middleton.studiosnap.feature.home.presentation
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,8 +35,7 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -65,7 +61,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
@@ -152,7 +150,8 @@ fun HomeScreenContent(
                 title = {
                     Text(
                         text = stringResource(Res.string.home_title),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp // Larger title as per spec
                     )
                 },
                 actions = {
@@ -178,21 +177,6 @@ fun HomeScreenContent(
                 )
             )
         },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = state.canGenerate,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                ExtendedFloatingActionButton(
-                    onClick = { onAction(HomeUiAction.OnGenerateClicked) },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ) {
-                    Text(stringResource(Res.string.home_generate_preview))
-                }
-            }
-        },
         snackbarHost = {
             SnackbarHost(snackbarHostState) { data ->
                 Snackbar(snackbarData = data)
@@ -203,6 +187,8 @@ fun HomeScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .padding(horizontal = 20.dp), // New standard padding
+            verticalArrangement = Arrangement.spacedBy(24.dp) // Section gaps
         ) {
             PhotoSection(
                 photos = state.photos,
@@ -211,22 +197,21 @@ fun HomeScreenContent(
                 modifier = Modifier.weight(1f)
             )
 
-            SectionDivider()
-
             SelectedStyleSection(
                 selectedStyle = state.selectedStyle,
                 onChangeStyle = { onAction(HomeUiAction.OnStylePickerClicked) }
             )
-
-            SectionDivider()
 
             ExportFormatSection(
                 exportFormat = state.exportFormat,
                 onExportFormatSelected = { onAction(HomeUiAction.OnExportFormatSelected(it)) }
             )
 
-            // Bottom spacing to clear FAB
-            Spacer(modifier = Modifier.height(FAB_CLEARANCE_DP.dp))
+            // Generate button at bottom (not FAB)
+            GenerateButton(
+                canGenerate = state.canGenerate,
+                onGenerate = { onAction(HomeUiAction.OnGenerateClicked) }
+            )
         }
     }
 
@@ -244,11 +229,34 @@ fun HomeScreenContent(
 }
 
 @Composable
-private fun SectionDivider() {
-    HorizontalDivider(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-        color = MaterialTheme.colorScheme.outlineVariant
-    )
+private fun GenerateButton(
+    canGenerate: Boolean,
+    onGenerate: () -> Unit
+) {
+    Button(
+        onClick = onGenerate,
+        enabled = canGenerate,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp), // Standard button height
+        shape = RoundedCornerShape(16.dp), // Rounded corners as per spec
+        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        )
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add, // Using Add as placeholder for magic wand
+            contentDescription = null,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = stringResource(Res.string.home_generate_preview),
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 16.sp
+        )
+    }
 }
 
 @Composable
@@ -268,9 +276,10 @@ private fun CreditBalancePill(
         leadingIcon = {
             Text("💎", fontSize = 14.sp)
         },
+        shape = RoundedCornerShape(20.dp), // Rounded pill
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            labelColor = MaterialTheme.colorScheme.onPrimaryContainer
+            containerColor = MaterialTheme.colorScheme.primary, // Filled blue
+            labelColor = MaterialTheme.colorScheme.onPrimary // White text
         ),
         border = null
     )
@@ -284,82 +293,74 @@ private fun PhotoSection(
     modifier: Modifier = Modifier
 ) {
     if (photos.isEmpty()) {
-        val dashedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-        val dashedPathEffect = remember {
-            PathEffect.dashPathEffect(floatArrayOf(20f, 12f), 0f)
-        }
-
-        Card(
-            onClick = onAddPhotos,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .drawBehind {
-                    drawRoundRect(
-                        color = dashedBorderColor,
-                        cornerRadius = CornerRadius(24.dp.toPx()),
-                        style = Stroke(
-                            width = 2.dp.toPx(),
-                            pathEffect = dashedPathEffect
-                        )
-                    )
-                },
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Smaller hero illustration area  
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(
+                        color = extendedColorScheme().primaryTint,
+                        shape = RoundedCornerShape(16.dp)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(32.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(72.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AddPhotoAlternate,
-                            contentDescription = null,
-                            modifier = Modifier.size(36.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                Icon(
+                    imageVector = Icons.Default.AddPhotoAlternate,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            
+            // Title and subtitle
+            Text(
+                text = "Transform your product photos",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp
+                ),
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
+            )
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = stringResource(Res.string.home_empty_title),
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Text(
-                        text = stringResource(Res.string.home_empty_subtitle),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+            Text(
+                text = "Transform your product photos with AI-powered backgrounds",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            
+            // Prominent CTA button
+            Button(
+                onClick = onAddPhotos,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AddPhotoAlternate,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(Res.string.home_add_photos),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
             }
         }
     } else {
-        Column(modifier = modifier.padding(horizontal = 16.dp)) {
+        Column(modifier = modifier) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -367,8 +368,10 @@ private fun PhotoSection(
             ) {
                 Text(
                     text = stringResource(Res.string.home_photos_count, photos.size, HomeUiState.MAX_PHOTOS),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp // Section header size
+                    )
                 )
                 AssistChip(
                     onClick = onAddPhotos,
@@ -383,10 +386,12 @@ private fun PhotoSection(
                 )
             }
 
+            Spacer(modifier = Modifier.height(12.dp))
+
             LazyRow(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp), // Better spacing
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 items(photos, key = { it.id }) { photo ->
@@ -405,36 +410,41 @@ private fun PhotoChip(
     photoUri: String,
     onRemove: () -> Unit
 ) {
-    Box(
+    StudioSnapCard(
         modifier = Modifier
             .fillMaxHeight()
             .aspectRatio(1f)
-            .padding(4.dp) // Inset so delete button isn't clipped
     ) {
-        AsyncImage(
-            model = photoUri,
-            contentDescription = stringResource(Res.string.home_remove_photo),
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
-        )
-        IconButton(
-            onClick = onRemove,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(24.dp)
-                .background(
-                    color = Color.Black.copy(alpha = 0.6f),
-                    shape = CircleShape
-                )
+                .padding(4.dp) // Inset so delete button isn't clipped
         ) {
-            Icon(
-                imageVector = Icons.Default.Close,
+            AsyncImage(
+                model = photoUri,
                 contentDescription = stringResource(Res.string.home_remove_photo),
-                tint = Color.White,
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
             )
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(24.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.6f),
+                        shape = CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(Res.string.home_remove_photo),
+                    tint = Color.White,
+                    modifier = Modifier.size(14.dp)
+                )
+            }
         }
     }
 }
@@ -444,27 +454,25 @@ private fun SelectedStyleSection(
     selectedStyle: Style?,
     onChangeStyle: () -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column {
         Text(
             text = stringResource(Res.string.home_background_style),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp // Section header size
+            )
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onChangeStyle),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = if (selectedStyle != null) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                }
-            )
+        StudioSnapCard(
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = if (selectedStyle != null) {
+                MaterialTheme.colorScheme.surface
+            } else {
+                extendedColorScheme().primaryTint // Blue tint for unselected
+            },
+            onClick = onChangeStyle
         ) {
             Row(
                 modifier = Modifier
@@ -481,7 +489,7 @@ private fun SelectedStyleSection(
                             if (selectedStyle != null) {
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                             } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                             }
                         ),
                     contentAlignment = Alignment.Center
@@ -500,21 +508,22 @@ private fun SelectedStyleSection(
                             text = resolveStyleName(selectedStyle.nameKey),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = stringResource(Res.string.home_style_tap_to_change),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
                         Text(
                             text = stringResource(Res.string.home_style_choose),
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = stringResource(Res.string.home_style_choose_hint),
+                            text = "Browse 18 professional backgrounds",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -524,11 +533,7 @@ private fun SelectedStyleSection(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
-                    tint = if (selectedStyle != null) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -541,14 +546,16 @@ private fun ExportFormatSection(
     exportFormat: ExportFormat,
     onExportFormatSelected: (ExportFormat) -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column {
         Text(
             text = stringResource(Res.string.home_export_format),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp // Section header size
+            )
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(ExportFormat.entries) { format ->
@@ -573,5 +580,3 @@ private fun exportFormatDisplayName(format: ExportFormat): String {
         }
     )
 }
-
-private const val FAB_CLEARANCE_DP = 88

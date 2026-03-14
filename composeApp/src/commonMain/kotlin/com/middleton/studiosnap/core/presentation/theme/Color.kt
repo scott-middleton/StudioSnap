@@ -16,47 +16,70 @@ object AppColors {
     val WarningDark = Color(0xFFFDCB6E) // Dark mode warning
     val Error = Color(0xFFE74C3C)
     
-    // Light Mode
-    val LightBackground = Color(0xFFFFFFFF)
-    val LightSurface = Color(0xFFF5F5F5)
+    // Light Mode - Premium polish colors
+    val LightBackground = Color(0xFFFAFAFA) // Warmer background
+    val LightSurface = Color(0xFFFFFFFF) // Cards float on the warmer background
     val LightSurfaceElevated = Color(0xFFFFFFFF)
-    val LightTextPrimary = Color(0xFF1A1A1A)
-    val LightTextSecondary = Color(0xFF666666)
-    val LightTextTertiary = Color(0xFF999999)
-    val LightBorder = Color.Black.copy(alpha = 0.08f)
+    val LightTextPrimary = Color(0xFF111111) // Softer black
+    val LightTextSecondary = Color(0xFF6B7280) // Better contrast
+    val LightTextTertiary = Color(0xFF9CA3AF)
+    val LightBorder = Color(0xFFE5E7EB)
+    val LightDivider = Color(0xFFE5E7EB)
     
-    // Dark Mode
-    val DarkBackground = Color(0xFF1A1A1A)
-    val DarkSurface = Color(0xFF242424)
+    // Dark Mode - Brighter blue for dark backgrounds
+    val DarkPrimaryBlue = Color(0xFF3B82F6) // Brighter blue for dark backgrounds
+    val DarkBackground = Color(0xFF111111)
+    val DarkSurface = Color(0xFF1E1E1E)
     val DarkSurfaceElevated = Color(0xFF2E2E2E)
-    val DarkTextPrimary = Color(0xFFFFFFFF)
-    val DarkTextSecondary = Color(0xFFA0A0A0)
-    val DarkTextTertiary = Color(0xFF666666)
-    val DarkBorder = Color.White.copy(alpha = 0.1f)
+    val DarkTextPrimary = Color(0xFFF9FAFB)
+    val DarkTextSecondary = Color(0xFF9CA3AF)
+    val DarkTextTertiary = Color(0xFF6B7280)
+    val DarkBorder = Color.White.copy(alpha = 0.08f)
+    val DarkDivider = Color.White.copy(alpha = 0.08f)
+    
+    // Special tints and shadows
+    val PrimaryTint = PrimaryBlue.copy(alpha = 0.08f) // For card backgrounds
+    val CardShadow = Color.Black.copy(alpha = 0.08f) // For shadows
+    
+    // Export chip colors
+    val LightUnselectedChip = Color(0xFFF0F0F0)
+    val DarkUnselectedChip = Color(0xFF2E2E2E)
 }
 
 data class ExtendedColorScheme(
     val success: Color,
     val warning: Color,
-    val border: Color
+    val border: Color,
+    val divider: Color,
+    val primaryTint: Color,
+    val cardShadow: Color,
+    val unselectedChip: Color
 )
 
 val extendedLight = ExtendedColorScheme(
     success = AppColors.Success,
     warning = AppColors.Warning,
-    border = AppColors.LightBorder
+    border = AppColors.LightBorder,
+    divider = AppColors.LightDivider,
+    primaryTint = AppColors.PrimaryTint,
+    cardShadow = AppColors.CardShadow,
+    unselectedChip = AppColors.LightUnselectedChip
 )
 
 val extendedDark = ExtendedColorScheme(
     success = AppColors.Success,
     warning = AppColors.WarningDark,
-    border = AppColors.DarkBorder
+    border = AppColors.DarkBorder,
+    divider = AppColors.DarkDivider,
+    primaryTint = AppColors.DarkPrimaryBlue.copy(alpha = 0.08f),
+    cardShadow = Color.Transparent, // No shadows in dark mode
+    unselectedChip = AppColors.DarkUnselectedChip
 )
 
 val lightScheme = lightColorScheme(
     primary = AppColors.PrimaryBlue,
     onPrimary = Color.White,
-    primaryContainer = AppColors.PrimaryBlue.copy(alpha = 0.1f),
+    primaryContainer = AppColors.PrimaryTint,
     onPrimaryContainer = AppColors.PrimaryBlue,
     secondary = AppColors.PrimaryBlue,
     onSecondary = Color.White,
@@ -72,19 +95,20 @@ val lightScheme = lightColorScheme(
     onSurface = AppColors.LightTextPrimary,
     surfaceVariant = AppColors.LightSurface,
     onSurfaceVariant = AppColors.LightTextSecondary,
-    outline = AppColors.LightBorder
+    outline = AppColors.LightBorder,
+    outlineVariant = AppColors.LightDivider
 )
 
 val darkScheme = darkColorScheme(
-    primary = AppColors.PrimaryBlue,
+    primary = AppColors.DarkPrimaryBlue,
     onPrimary = Color.White,
-    primaryContainer = AppColors.PrimaryBlue.copy(alpha = 0.2f),
-    onPrimaryContainer = AppColors.PrimaryBlue.copy(alpha = 0.9f),
-    secondary = AppColors.PrimaryBlue,
+    primaryContainer = AppColors.DarkPrimaryBlue.copy(alpha = 0.2f),
+    onPrimaryContainer = AppColors.DarkPrimaryBlue.copy(alpha = 0.9f),
+    secondary = AppColors.DarkPrimaryBlue,
     onSecondary = Color.White,
-    secondaryContainer = AppColors.PrimaryBlue.copy(alpha = 0.2f),
-    onSecondaryContainer = AppColors.PrimaryBlue.copy(alpha = 0.9f),
-    tertiary = AppColors.PrimaryBlue,
+    secondaryContainer = AppColors.DarkPrimaryBlue.copy(alpha = 0.2f),
+    onSecondaryContainer = AppColors.DarkPrimaryBlue.copy(alpha = 0.9f),
+    tertiary = AppColors.DarkPrimaryBlue,
     onTertiary = Color.White,
     error = AppColors.Error,
     onError = Color.White,
@@ -94,7 +118,8 @@ val darkScheme = darkColorScheme(
     onSurface = AppColors.DarkTextPrimary,
     surfaceVariant = AppColors.DarkSurfaceElevated,
     onSurfaceVariant = AppColors.DarkTextSecondary,
-    outline = AppColors.DarkBorder
+    outline = AppColors.DarkBorder,
+    outlineVariant = AppColors.DarkDivider
 )
 
 val LocalExtendedColorScheme = staticCompositionLocalOf { extendedLight }

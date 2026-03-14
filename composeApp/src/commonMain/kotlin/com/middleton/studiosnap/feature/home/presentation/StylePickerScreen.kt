@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
@@ -164,25 +165,22 @@ private fun StylePickerCard(
     val borderModifier = if (isSelected) {
         Modifier.border(
             BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-            RoundedCornerShape(12.dp)
+            RoundedCornerShape(16.dp) // Updated corner radius
         )
     } else {
         Modifier
     }
 
-    Card(
+    StudioSnapCard(
         modifier = modifier
             .aspectRatio(0.85f)
-            .then(borderModifier)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            }
-        )
+            .then(borderModifier),
+        backgroundColor = if (isSelected) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surface
+        },
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
