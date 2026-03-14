@@ -13,7 +13,7 @@ fun GenerationEntity.toDomainModel(styleRepository: StyleRepository): Generation
     val style = styleRepository.getStyleById(styleId) ?: run {
         // Style was removed or renamed since this generation was saved.
         // Create a minimal placeholder so history entries remain visible.
-        println("WARNING: Style '$styleId' not found in repository, using placeholder")
+        // Style was removed or renamed — use placeholder so history stays visible
         Style(
             id = styleId,
             nameKey = styleName,
