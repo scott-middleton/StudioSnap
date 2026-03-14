@@ -165,11 +165,10 @@ buildkonfig {
     packageName = "com.middleton.studiosnap.composeapp"
 
     defaultConfigs {
-        buildConfigField(
-            BOOLEAN,
-            "IS_DEBUG",
-            "true" // Set to false for release builds
-        )
+        val isDebug = gradle.startParameter.taskNames.any {
+            it.contains("debug", ignoreCase = true)
+        }
+        buildConfigField(BOOLEAN, "IS_DEBUG", isDebug.toString())
 
         buildConfigField(
             STRING,
