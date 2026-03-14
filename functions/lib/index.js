@@ -4,7 +4,7 @@ exports.addCredits = exports.deductCredits = exports.fetchUserCredits = exports.
 const https_1 = require("firebase-functions/v2/https");
 const REPLICATE_BASE_URL = "https://api.replicate.com/v1";
 const REVENUECAT_BASE_URL = "https://api.revenuecat.com/v2";
-const REVENUECAT_PROJECT_ID = "proj8cf940c3";
+const REVENUECAT_PROJECT_ID = "proj30aee59a";
 const CURRENCY_CODE = "credits";
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 1000;
