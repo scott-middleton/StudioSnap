@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.core.data.di
 
+import com.middleton.studiosnap.core.data.auth.NativeAuthProvider
 import com.middleton.studiosnap.core.data.database.AppDatabase
 import com.middleton.studiosnap.core.data.database.getDatabaseBuilder
 import com.middleton.studiosnap.core.data.repository.IosGalleryRepository
@@ -18,6 +19,7 @@ actual fun platformModule(): Module = module {
     single<AppDatabase> {
         getDatabaseBuilder()
             .setDriver(BundledSQLiteDriver())
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
 
@@ -27,5 +29,9 @@ actual fun platformModule(): Module = module {
 
     single<RatingService> {
         IosRatingService()
+    }
+
+    single<NativeAuthProvider> {
+        NativeAuthProvider()
     }
 }

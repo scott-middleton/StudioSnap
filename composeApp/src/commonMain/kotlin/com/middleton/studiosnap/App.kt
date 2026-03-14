@@ -16,8 +16,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.middleton.studiosnap.core.data.di.coreDataModule
+import com.middleton.studiosnap.core.data.di.firebaseAuthModule
 import com.middleton.studiosnap.core.data.di.platformModule
-import com.middleton.studiosnap.core.data.di.supabaseModule
 import com.middleton.studiosnap.core.presentation.di.coreNavigationModule
 import com.middleton.studiosnap.core.presentation.navigation.Route
 import com.middleton.studiosnap.core.presentation.theme.StudioSnapTheme
@@ -56,7 +56,7 @@ fun App() {
     KoinApplication(application = {
         modules(
             platformModule(),
-            supabaseModule,
+            firebaseAuthModule,
             coreDataModule,
             coreNavigationModule(navController),
             authModule,

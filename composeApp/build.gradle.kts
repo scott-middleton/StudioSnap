@@ -64,6 +64,7 @@ kotlin {
 
                 // Firebase
                 implementation(libs.firebase.analytics)
+                implementation(libs.firebase.auth)
                 implementation(libs.firebase.crashlytics)
 
                 // Ktor
@@ -79,9 +80,6 @@ kotlin {
                 // Room
                 implementation(libs.room.runtime)
                 implementation(libs.sqlite.bundled)
-
-                // Supabase
-                implementation(libs.bundles.supabase)
 
                 // Okio (used by ImageCacheManager — transitive via Ktor but needed explicitly for metadata compilation)
                 implementation("com.squareup.okio:okio:3.11.0")
@@ -99,8 +97,7 @@ kotlin {
 
                 // Authentication
                 implementation(libs.androidx.exifinterface)
-                implementation(libs.androidx.credentials)
-                implementation(libs.androidx.credentials.play.services)
+                implementation(libs.bundles.google.id.android)
                 implementation(libs.google.play.services.auth)
                 implementation(libs.androidx.security.crypto)
 
@@ -202,19 +199,6 @@ buildkonfig {
             STRING,
             "SCHEME",
             "com.middleton.studiosnap"
-        )
-
-        // Supabase
-        buildConfigField(
-            STRING,
-            "SUPABASE_URL",
-            "TODO_SUPABASE_URL"
-        )
-
-        buildConfigField(
-            STRING,
-            "SUPABASE_ANON_KEY",
-            "TODO_SUPABASE_ANON_KEY"
         )
 
         buildConfigField(

@@ -13,20 +13,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.middleton.studiosnap.PlatformType
+import com.middleton.studiosnap.core.data.auth.NativeAuthProvider
 import com.middleton.studiosnap.feature.auth.domain.usecase.SignInUseCase
 import com.middleton.studiosnap.getPlatform
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
 import studiosnap.composeapp.generated.resources.Res
-import studiosnap.composeapp.generated.resources.error_network
 import studiosnap.composeapp.generated.resources.error_signin_failed
 import studiosnap.composeapp.generated.resources.signin_apple
-import studiosnap.composeapp.generated.resources.signin_apple_unavailable
 import studiosnap.composeapp.generated.resources.signin_google
-import studiosnap.composeapp.generated.resources.signin_google_unavailable
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
-import io.github.jan.supabase.compose.auth.composable.rememberSignInWithApple
-import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
-import io.github.jan.supabase.compose.auth.composeAuth
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -48,17 +43,26 @@ fun PlatformSignInButton(
     onSignInError: (String) -> Unit = {},
     onLoading: (Boolean) -> Unit = {}
 ) {
-    val supabaseClient: SupabaseClient = koinInject()
+    val nativeAuthProvider: NativeAuthProvider = koinInject()
     val signInUseCase: SignInUseCase = koinInject()
     val scope = rememberCoroutineScope()
-    val networkErrorMessage = stringResource(Res.string.error_network)
     val signInFailedMessage = stringResource(Res.string.error_signin_failed)
 
-    val handleResult: (NativeSignInResult) -> Unit = { result ->
-        when (result) {
-            is NativeSignInResult.Success -> {
-                onLoading(true)
-                scope.launch {
+    val platformType = getPlatform().type
+    val buttonText = if (platformType == PlatformType.IOS) {
+        stringResource(Res.string.signin_apple)
+    } else {
+        stringResource(Res.string.signin_google)
+    }
+
+    NativeSignInButtonContent(
+        text = buttonText,
+        onClick = {
+            onLoading(true)
+            scope.launch {
+                try {
+                    val credential = nativeAuthProvider.getCredential()
+                    Firebase.auth.signInWithCredential(credential)
                     signInUseCase.execute().fold(
                         onSuccess = {
                             onLoading(false)
@@ -69,42 +73,17 @@ fun PlatformSignInButton(
                             onSignInError(error.message ?: signInFailedMessage)
                         }
                     )
+                } catch (e: Exception) {
+                    onLoading(false)
+                    val isCancellation = e.message?.contains("cancelled", ignoreCase = true) == true
+                    if (!isCancellation) {
+                        onSignInError(e.message ?: signInFailedMessage)
+                    }
                 }
             }
-            is NativeSignInResult.Error -> onSignInError(result.message)
-            is NativeSignInResult.NetworkError -> onSignInError(networkErrorMessage)
-            is NativeSignInResult.ClosedByUser -> onLoading(false)
-        }
-    }
-
-    val platformType = getPlatform().type
-
-    when (platformType) {
-        PlatformType.IOS -> {
-            val unavailableMessage = stringResource(Res.string.signin_apple_unavailable)
-            val signIn = supabaseClient.composeAuth.rememberSignInWithApple(
-                onResult = handleResult,
-                fallback = { handleResult(NativeSignInResult.Error(unavailableMessage)) }
-            )
-            NativeSignInButtonContent(
-                text = stringResource(Res.string.signin_apple),
-                onClick = { signIn.startFlow() },
-                modifier = modifier
-            )
-        }
-        else -> {
-            val unavailableMessage = stringResource(Res.string.signin_google_unavailable)
-            val signIn = supabaseClient.composeAuth.rememberSignInWithGoogle(
-                onResult = handleResult,
-                fallback = { handleResult(NativeSignInResult.Error(unavailableMessage)) }
-            )
-            NativeSignInButtonContent(
-                text = stringResource(Res.string.signin_google),
-                onClick = { signIn.startFlow() },
-                modifier = modifier
-            )
-        }
-    }
+        },
+        modifier = modifier
+    )
 }
 
 @Composable

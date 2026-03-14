@@ -2,13 +2,9 @@ package com.middleton.studiosnap.core.presentation.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import com.middleton.studiosnap.PlatformType
-import com.middleton.studiosnap.getPlatform
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
-import io.github.jan.supabase.compose.auth.composable.rememberSignInWithApple
-import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
-import io.github.jan.supabase.compose.auth.composeAuth
+import com.middleton.studiosnap.core.data.auth.NativeAuthProvider
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
 import org.koin.compose.koinInject
 
 /**
@@ -23,28 +19,17 @@ fun NativeSignInEffect(
     showSignIn: Boolean,
     onResult: (success: Boolean) -> Unit
 ) {
-    val supabaseClient: SupabaseClient = koinInject()
-
-    val onSignInResult: (NativeSignInResult) -> Unit = { result ->
-        onResult(result is NativeSignInResult.Success)
-    }
-
-    val platformType = getPlatform().type
-    val signInAction = if (platformType == PlatformType.IOS) {
-        supabaseClient.composeAuth.rememberSignInWithApple(
-            onResult = onSignInResult,
-            fallback = { onSignInResult(NativeSignInResult.Error("Sign in unavailable")) }
-        )
-    } else {
-        supabaseClient.composeAuth.rememberSignInWithGoogle(
-            onResult = onSignInResult,
-            fallback = { onSignInResult(NativeSignInResult.Error("Sign in unavailable")) }
-        )
-    }
+    val nativeAuthProvider: NativeAuthProvider = koinInject()
 
     LaunchedEffect(showSignIn) {
         if (showSignIn) {
-            signInAction.startFlow()
+            try {
+                val credential = nativeAuthProvider.getCredential()
+                Firebase.auth.signInWithCredential(credential)
+                onResult(true)
+            } catch (e: Exception) {
+                onResult(false)
+            }
         }
     }
 }

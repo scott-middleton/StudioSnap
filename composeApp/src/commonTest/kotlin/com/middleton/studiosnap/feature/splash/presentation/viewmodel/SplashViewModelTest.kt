@@ -92,6 +92,7 @@ class SplashViewModelTest {
         override suspend fun awaitInitialized(): Boolean = signedIn
         override suspend fun signIn(): Result<AuthUser> = Result.failure(Exception())
         override suspend fun signOut(): Result<Unit> = Result.success(Unit)
+        override suspend fun deleteAccount(): Result<Unit> = Result.success(Unit)
         override suspend fun getCurrentUser(): AuthUser? =
             if (signedIn) AuthUser(id = "user1", email = "test@test.com", displayName = null, provider = AuthProvider.GOOGLE) else null
     }
@@ -128,7 +129,8 @@ class SplashViewModelTest {
     }
 
     private class FakePurchasesIdentifier : PurchasesIdentifier {
-        override suspend fun identifyUser(userId: String) {}
+        override suspend fun identifyUser(userId: String): Result<Unit> = Result.success(Unit)
+        override fun clearIdentity() {}
     }
 
     private class FakeAnalyticsService : AnalyticsService {

@@ -18,5 +18,6 @@ interface AuthService {
 
     suspend fun signIn(): Result<AuthUser>
     suspend fun signOut(): Result<Unit>
+    suspend fun deleteAccount(): Result<Unit>
     suspend fun getCurrentUser(): AuthUser?
 }

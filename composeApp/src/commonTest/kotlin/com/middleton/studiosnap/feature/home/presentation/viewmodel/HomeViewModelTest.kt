@@ -236,6 +236,7 @@ class HomeViewModelTest : BaseViewModelTest() {
         override suspend fun awaitInitialized(): Boolean = signedIn
         override suspend fun signIn(): Result<AuthUser> = Result.failure(Exception("Not implemented"))
         override suspend fun signOut(): Result<Unit> = Result.success(Unit)
+        override suspend fun deleteAccount(): Result<Unit> = Result.success(Unit)
         override suspend fun getCurrentUser(): AuthUser? = null
     }
 

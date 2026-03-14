@@ -111,6 +111,7 @@ class SettingsViewModelTest : BaseViewModelTest() {
         override suspend fun awaitInitialized() = isSignedIn.value
         override suspend fun signIn() = Result.success(AuthUser(id = "user_1", email = null, displayName = null, provider = com.middleton.studiosnap.core.domain.model.AuthProvider.GOOGLE))
         override suspend fun signOut() = Result.success(Unit)
+        override suspend fun deleteAccount() = Result.success(Unit)
         override suspend fun getCurrentUser() = if (isSignedIn.value) AuthUser(id = "user_1", email = null, displayName = null, provider = com.middleton.studiosnap.core.domain.model.AuthProvider.GOOGLE) else null
     }
 

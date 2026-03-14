@@ -7,7 +7,7 @@ import com.revenuecat.purchases.kmp.models.StoreProduct
 
 object PurchasesManager {
     fun configure() {
-        Purchases.logLevel = LogLevel.DEBUG
+        Purchases.logLevel = if (com.middleton.studiosnap.composeapp.BuildKonfig.IS_DEBUG) LogLevel.DEBUG else LogLevel.WARN
         Purchases.configure(
             apiKey = getPlatformApiKey(),
         )
@@ -29,6 +29,13 @@ object PurchasesManager {
                     onSuccess(emptyList())
                 }
             }
+        )
+    }
+
+    fun logOut() {
+        Purchases.sharedInstance.logOut(
+            onError = { /* Best-effort, sign-out proceeds regardless */ },
+            onSuccess = { /* RevenueCat reset to anonymous */ }
         )
     }
 
