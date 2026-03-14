@@ -253,7 +253,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
                 GenerationResult.Success(
                     generationId = "gen_$index",
                     inputPhoto = photo,
-                    watermarkedPreviewUri = "preview_$index.jpg",
+                    previewUri = "preview_$index.jpg",
                     style = style,
                     createdAt = 1000L * index
                 )

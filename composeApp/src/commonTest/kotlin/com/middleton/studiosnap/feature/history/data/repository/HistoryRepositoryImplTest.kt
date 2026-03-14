@@ -144,7 +144,7 @@ class HistoryRepositoryImplTest {
     ) = GenerationResult.Success(
         generationId = id,
         inputPhoto = ProductPhoto(id = "photo-1", localUri = "/path/to/photo.jpg"),
-        watermarkedPreviewUri = "/path/to/watermarked.jpg",
+        previewUri = "/path/to/preview.jpg",
         fullResUrl = "https://replicate.com/output.jpg",
         fullResUri = fullResUri,
         style = fakeStyleRepository.getStyleById(styleId) ?: Style(

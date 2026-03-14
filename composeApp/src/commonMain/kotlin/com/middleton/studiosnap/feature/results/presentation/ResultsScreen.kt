@@ -206,7 +206,7 @@ private fun ResultPage(
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val imageUri = item.fullResLocalUri ?: result.watermarkedPreviewUri
+        val imageUri = item.fullResLocalUri ?: result.previewUri
 
         AsyncImage(
             model = imageUri,

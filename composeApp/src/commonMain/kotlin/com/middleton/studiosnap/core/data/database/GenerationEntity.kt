@@ -9,7 +9,7 @@ data class GenerationEntity(
     val inputPhotoUri: String,
     val styleId: String,
     val styleName: String,
-    val watermarkedUri: String,
+    val previewUri: String,
     val fullResUrl: String? = null,
     val fullResLocalUri: String? = null,
     val isPurchased: Boolean = false,

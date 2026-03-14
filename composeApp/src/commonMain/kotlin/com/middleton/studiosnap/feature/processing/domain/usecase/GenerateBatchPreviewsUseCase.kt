@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 /**
- * Sequentially generates watermarked previews for all photos in a batch.
+ * Sequentially generates styled images for all photos in a batch.
  * Emits progress after each image completes. Does NOT run in parallel —
  * Replicate has rate limits and sequential is simpler for error handling.
  */

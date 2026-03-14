@@ -8,64 +8,42 @@ import androidx.compose.ui.layout.ContentScale
 import coil3.compose.SubcomposeAsyncImage
 
 /**
- * Displays a restoration image, handling both gallery URIs and local file paths.
- * For watermarked (free trial) restorations stored as file paths, uses Coil directly.
- * For paid restorations stored as gallery URIs, delegates to platform-specific GalleryImage.
+ * Displays a generated image from a local file path using Coil.
  *
- * @param imagePath The stored image path (gallery URI or file path)
- * @param isWatermarked Whether this is a watermarked (file-based) restoration
+ * @param imagePath The local file path to the generated image
  * @param fallbackPath Optional fallback path if primary fails (e.g. originalImagePath)
  */
 @Composable
 fun RestorationImage(
     imagePath: String,
-    isWatermarked: Boolean,
     contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
-    knownAspectRatio: Float? = null,
-    fillContainer: Boolean = false,
-    targetSizePx: Int? = null,
     fallbackPath: String? = null,
     loading: @Composable (() -> Unit)? = null,
     error: @Composable (() -> Unit)? = null
 ) {
-    if (isWatermarked) {
-        // Watermarked images are stored as local file paths — use Coil directly
-        SubcomposeAsyncImage(
-            model = imagePath,
-            contentDescription = contentDescription,
-            modifier = modifier,
-            contentScale = contentScale,
-            loading = { loading?.invoke() ?: Box(Modifier.fillMaxSize()) },
-            error = {
-                // Fallback to original image path if watermarked file is missing
-                if (fallbackPath != null) {
-                    SubcomposeAsyncImage(
-                        model = fallbackPath,
-                        contentDescription = contentDescription,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = contentScale,
-                        loading = { loading?.invoke() ?: Box(Modifier.fillMaxSize()) },
-                        error = { error?.invoke() ?: Box(Modifier.fillMaxSize()) }
-                    )
-                } else {
-                    error?.invoke() ?: Box(Modifier.fillMaxSize())
-                }
+    // All generated images are stored as local file paths — use Coil directly
+    SubcomposeAsyncImage(
+        model = imagePath,
+        contentDescription = contentDescription,
+        modifier = modifier,
+        contentScale = contentScale,
+        loading = { loading?.invoke() ?: Box(Modifier.fillMaxSize()) },
+        error = {
+            // Fallback to original image path if file is missing
+            if (fallbackPath != null) {
+                SubcomposeAsyncImage(
+                    model = fallbackPath,
+                    contentDescription = contentDescription,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = contentScale,
+                    loading = { loading?.invoke() ?: Box(Modifier.fillMaxSize()) },
+                    error = { error?.invoke() ?: Box(Modifier.fillMaxSize()) }
+                )
+            } else {
+                error?.invoke() ?: Box(Modifier.fillMaxSize())
             }
-        )
-    } else {
-        // Paid images are in the gallery — use platform-specific loader
-        GalleryImage(
-            galleryUri = imagePath,
-            contentDescription = contentDescription,
-            modifier = modifier,
-            contentScale = contentScale,
-            knownAspectRatio = knownAspectRatio,
-            fillContainer = fillContainer,
-            targetSizePx = targetSizePx,
-            loading = loading,
-            error = error
-        )
-    }
+        }
+    )
 }

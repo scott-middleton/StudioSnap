@@ -10,8 +10,8 @@ import com.middleton.studiosnap.feature.home.domain.repository.GenerationReposit
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 
 /**
- * Generates a watermarked preview for a single photo.
- * Previews are free — no credits deducted. Results saved to history.
+ * Generates a styled image for a single photo.
+ * Results are saved to history.
  */
 class GeneratePreviewUseCase(
     private val generationRepository: GenerationRepository,

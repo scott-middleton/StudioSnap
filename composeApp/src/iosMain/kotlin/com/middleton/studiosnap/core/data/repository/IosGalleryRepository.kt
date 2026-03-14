@@ -55,7 +55,7 @@ class IosGalleryRepository : GalleryRepository {
     }
 
     override suspend fun deleteImage(galleryUri: String): Result<Unit> {
-        // File paths (watermarked persistent files) — delete directly via NSFileManager
+        // File paths (generated image files) — delete directly via NSFileManager
         if (galleryUri.startsWith("/")) {
             return try {
                 NSFileManager.defaultManager().removeItemAtPath(galleryUri, null)
@@ -101,7 +101,7 @@ class IosGalleryRepository : GalleryRepository {
     }
 
     override suspend fun imageExists(galleryUri: String): Boolean {
-        // File paths (watermarked persistent files) — check via NSFileManager
+        // File paths (generated image files) — check via NSFileManager
         if (galleryUri.startsWith("/")) {
             return NSFileManager.defaultManager().fileExistsAtPath(galleryUri)
         }

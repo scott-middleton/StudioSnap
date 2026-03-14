@@ -35,7 +35,7 @@ class HistoryViewModelTest : BaseViewModelTest() {
     ) = GenerationResult.Success(
         generationId = id,
         inputPhoto = testPhoto,
-        watermarkedPreviewUri = "preview_$id.jpg",
+        previewUri = "preview_$id.jpg",
         fullResUri = if (purchased) "/path/full_$id.jpg" else null,
         style = testStyle,
         createdAt = 1000L,

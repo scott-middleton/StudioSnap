@@ -26,7 +26,7 @@ fun GenerationEntity.toDomainModel(styleRepository: StyleRepository): Generation
     return GenerationResult.Success(
         generationId = id,
         inputPhoto = ProductPhoto(id = id, localUri = inputPhotoUri),
-        watermarkedPreviewUri = watermarkedUri,
+        previewUri = previewUri,
         fullResUrl = fullResUrl,
         fullResUri = fullResLocalUri,
         style = style,
@@ -51,7 +51,7 @@ fun GenerationResult.Success.toEntity(): GenerationEntity {
         inputPhotoUri = inputPhoto.localUri,
         styleId = style.id,
         styleName = style.nameKey,
-        watermarkedUri = watermarkedPreviewUri,
+        previewUri = previewUri,
         fullResUrl = fullResUrl,
         fullResLocalUri = fullResUri,
         isPurchased = fullResUri != null,

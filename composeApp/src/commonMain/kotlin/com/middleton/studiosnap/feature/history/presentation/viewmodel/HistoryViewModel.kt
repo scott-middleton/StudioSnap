@@ -53,7 +53,7 @@ class HistoryViewModel(
                     HistoryItem(
                         id = result.generationId,
                         inputPhotoUri = result.inputPhoto.localUri,
-                        watermarkedUri = result.watermarkedPreviewUri,
+                        previewUri = result.previewUri,
                         fullResLocalUri = result.fullResUri,
                         styleName = result.styleName,
                         isPurchased = result.fullResUri != null,

@@ -90,7 +90,7 @@
     <string name="results_generate_more">Generate More Like This</string>
     <string name="results_back_to_home">New Session</string>
     <string name="results_share">Share</string>
-    <string name="results_watermarked">Watermarked Preview</string>
+    <string name="results_watermarked">Free Generation</string>
     <string name="results_purchased">Full Quality ✓</string>
     <string name="results_photo_counter">%1$d of %2$d</string>
     <string name="results_insufficient_credits">Not enough credits</string>

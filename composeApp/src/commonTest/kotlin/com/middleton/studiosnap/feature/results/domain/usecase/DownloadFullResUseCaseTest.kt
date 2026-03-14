@@ -81,7 +81,7 @@ class DownloadFullResUseCaseTest {
         ) = Result.success(
             GenerationResult.Success(
                 generationId = "gen_1", inputPhoto = photo,
-                watermarkedPreviewUri = "preview.jpg", style = style, createdAt = 0L
+                previewUri = "preview.jpg", style = style, createdAt = 0L
             )
         )
         override suspend fun downloadFullRes(generationId: String) = downloadResult

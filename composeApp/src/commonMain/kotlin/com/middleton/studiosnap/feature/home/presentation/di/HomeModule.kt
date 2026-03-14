@@ -26,7 +26,6 @@ val homeModule = module {
             kontextDataSource = get(),
             imageCacheManager = get(),
             buildKontextPromptUseCase = get(),
-            watermarkService = get(),
             generationDao = get()
         )
     }

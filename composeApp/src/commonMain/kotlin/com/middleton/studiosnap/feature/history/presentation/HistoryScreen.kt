@@ -227,7 +227,7 @@ private fun HistoryGrid(
     ) {
         items(items, key = { it.id }) { item ->
             HistoryGridItem(
-                imageUri = item.fullResLocalUri ?: item.watermarkedUri,
+                imageUri = item.fullResLocalUri ?: item.previewUri,
                 styleName = item.styleName,
                 isPurchased = item.isPurchased,
                 onClick = { onItemClicked(item.id) },

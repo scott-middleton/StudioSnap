@@ -11,7 +11,7 @@ data class HistoryUiState(
 data class HistoryItem(
     val id: String,
     val inputPhotoUri: String,
-    val watermarkedUri: String,
+    val previewUri: String,
     val fullResLocalUri: String?,
     val styleName: String,
     val isPurchased: Boolean,

@@ -10,7 +10,7 @@ sealed interface GenerationResult {
     data class Success(
         val generationId: String,
         override val inputPhoto: ProductPhoto,
-        val watermarkedPreviewUri: String,
+        val previewUri: String,
         val fullResUrl: String? = null,
         val fullResUri: String? = null,
         val style: Style,

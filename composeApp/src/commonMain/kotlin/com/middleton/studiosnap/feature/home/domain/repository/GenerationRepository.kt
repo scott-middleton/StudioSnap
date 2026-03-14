@@ -13,7 +13,7 @@ interface GenerationRepository {
 
     /**
      * Generates a single styled product photo via Flux Kontext.
-     * Returns a watermarked preview (free) or full-res (if credits available).
+     * Returns a full-quality image.
      */
     suspend fun generateImage(
         photo: ProductPhoto,
@@ -26,7 +26,7 @@ interface GenerationRepository {
 
     /**
      * Downloads the full-resolution version of a previously generated image.
-     * Called after the user pays credits for a watermarked preview.
+     * Called after the user pays credits for a generated image.
      */
     suspend fun downloadFullRes(generationId: String): Result<String>
 }

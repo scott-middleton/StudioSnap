@@ -42,7 +42,7 @@ class ResultsViewModelTest : BaseViewModelTest() {
     private val successResult = GenerationResult.Success(
         generationId = "gen_1",
         inputPhoto = testPhoto,
-        watermarkedPreviewUri = "preview.jpg",
+        previewUri = "preview.jpg",
         style = testStyle,
         createdAt = 1000L
     )
@@ -215,7 +215,7 @@ class ResultsViewModelTest : BaseViewModelTest() {
         ) = Result.success(
             GenerationResult.Success(
                 generationId = "gen_1", inputPhoto = photo,
-                watermarkedPreviewUri = "preview.jpg", style = style, createdAt = 0L
+                previewUri = "preview.jpg", style = style, createdAt = 0L
             )
         )
         override suspend fun downloadFullRes(generationId: String): Result<String> {

@@ -32,7 +32,6 @@ import com.middleton.studiosnap.core.presentation.util.LockLandscapeOrientation
 fun FullScreenImageOverlay(
     imagePath: String,
     imageAspectRatio: Float? = null,
-    isWatermarked: Boolean = false,
     onDismiss: () -> Unit
 ) {
     val isLandscapeImage = imageAspectRatio != null && imageAspectRatio > 1f
@@ -77,7 +76,6 @@ fun FullScreenImageOverlay(
     ) {
         RestorationImage(
             imagePath = imagePath,
-            isWatermarked = isWatermarked,
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()

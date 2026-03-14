@@ -11,7 +11,6 @@ import com.middleton.studiosnap.core.data.model.ReplicatePredictionResponse
 import com.middleton.studiosnap.core.data.util.getImageDimensions
 import com.middleton.studiosnap.core.data.util.resizeImage
 import com.middleton.studiosnap.core.data.util.toBase64DataUri
-import com.middleton.studiosnap.core.domain.service.WatermarkService
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
@@ -27,7 +26,6 @@ class GenerationRepositoryImpl(
     private val kontextDataSource: KontextRemoteDataSource,
     private val imageCacheManager: ImageCacheManager,
     private val buildKontextPromptUseCase: BuildKontextPromptUseCase,
-    private val watermarkService: WatermarkService,
     private val generationDao: GenerationDao
 ) : GenerationRepository {
 
@@ -82,14 +80,10 @@ class GenerationRepositoryImpl(
         val downloadedBytes = imageCacheManager.readImageFromCache(filePath)
         val dimensions = downloadedBytes?.getImageDimensions()
 
-        // 8. Apply watermark for preview
-        val watermarkedPath = filePath.replace(".jpg", "_watermarked.jpg")
-        watermarkService.apply(filePath, watermarkedPath)
-
         GenerationResult.Success(
             generationId = createResponse.id,
             inputPhoto = photo,
-            watermarkedPreviewUri = watermarkedPath,
+            previewUri = filePath,
             fullResUrl = outputUrl,
             fullResUri = null,
             style = style,
