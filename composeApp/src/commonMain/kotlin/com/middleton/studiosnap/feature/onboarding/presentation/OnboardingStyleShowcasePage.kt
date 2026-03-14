@@ -106,7 +106,7 @@ fun OnboardingStyleShowcasePage(
 
             Text(
                 text = stringResource(Res.string.onboarding_showcase_headline),
-                style = studioSnapTextStyles.onboardingHeadline,
+                style = studioSnapTextStyles().onboardingHeadline,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
@@ -115,7 +115,7 @@ fun OnboardingStyleShowcasePage(
 
             Text(
                 text = stringResource(Res.string.onboarding_showcase_subheadline),
-                style = studioSnapTextStyles.onboardingSubheadline,
+                style = studioSnapTextStyles().onboardingSubheadline,
                 color = Color.White.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
             )
@@ -160,7 +160,7 @@ fun OnboardingStyleShowcasePage(
         ) {
             Text(
                 text = stringResource(Res.string.next_button),
-                style = studioSnapTextStyles.buttonText.copy(
+                style = studioSnapTextStyles().buttonText.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
@@ -219,7 +219,7 @@ private fun AnimatedStyleCard(
             )
             Text(
                 text = label,
-                style = studioSnapTextStyles.captionText.copy(
+                style = studioSnapTextStyles().captionText.copy(
                     fontWeight = FontWeight.Medium
                 ),
                 color = Color.White,

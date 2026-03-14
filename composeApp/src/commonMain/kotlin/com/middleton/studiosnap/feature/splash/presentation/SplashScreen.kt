@@ -36,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -50,7 +49,6 @@ import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.navigation.NavigationHandler
 import androidx.compose.material3.MaterialTheme
 import com.middleton.studiosnap.core.presentation.theme.AppColors
-import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import com.middleton.studiosnap.feature.splash.presentation.viewmodel.SplashViewModel
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.app_logo

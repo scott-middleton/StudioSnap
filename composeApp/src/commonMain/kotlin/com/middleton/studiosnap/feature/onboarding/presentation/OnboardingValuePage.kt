@@ -115,7 +115,7 @@ fun OnboardingValuePage(
         ) {
             Text(
                 text = stringResource(Res.string.onboarding_value_headline),
-                style = studioSnapTextStyles.onboardingHeadline,
+                style = studioSnapTextStyles().onboardingHeadline,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
@@ -124,7 +124,7 @@ fun OnboardingValuePage(
 
             Text(
                 text = stringResource(Res.string.onboarding_value_subheadline),
-                style = studioSnapTextStyles.onboardingSubheadline,
+                style = studioSnapTextStyles().onboardingSubheadline,
                 color = Color.White.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
             )
@@ -165,7 +165,7 @@ fun OnboardingValuePage(
         ) {
             Text(
                 text = stringResource(Res.string.get_started_button),
-                style = studioSnapTextStyles.buttonText.copy(
+                style = studioSnapTextStyles().buttonText.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
@@ -241,7 +241,7 @@ private fun AnimatedBenefitItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = studioSnapTextStyles.benefitText.copy(
+                style = studioSnapTextStyles().benefitText.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 ),
@@ -249,7 +249,7 @@ private fun AnimatedBenefitItem(
             )
             Text(
                 text = subtitle,
-                style = studioSnapTextStyles.benefitText.copy(
+                style = studioSnapTextStyles().benefitText.copy(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal
                 ),

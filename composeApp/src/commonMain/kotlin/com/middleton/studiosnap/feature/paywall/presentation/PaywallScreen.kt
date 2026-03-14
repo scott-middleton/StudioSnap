@@ -78,7 +78,7 @@ import com.middleton.studiosnap.core.presentation.util.SystemBarsAppearance
 import org.koin.compose.viewmodel.koinViewModel
 
 // Pre-allocated
-private val BackgroundColor = Color(0xFF0A0A0F)
+private val BackgroundColor = AppColors.DarkBackground
 private val CardShape = RoundedCornerShape(16.dp)
 private val BadgeShape = RoundedCornerShape(8.dp)
 private val ButtonShape = RoundedCornerShape(28.dp)
@@ -380,7 +380,7 @@ private fun PackCard(
                 if (pack.isMostPopular) Res.string.paywall_most_popular
                 else Res.string.paywall_best_value
             )
-            val badgeColor = if (pack.isMostPopular) accentColor else Color(0xFFFF9800)
+            val badgeColor = if (pack.isMostPopular) accentColor else AppColors.Warning
 
             Text(
                 text = badgeText,

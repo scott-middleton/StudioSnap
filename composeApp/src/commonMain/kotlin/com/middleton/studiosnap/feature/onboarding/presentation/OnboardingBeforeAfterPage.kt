@@ -80,7 +80,7 @@ fun OnboardingBeforeAfterPage(
 
             Text(
                 text = stringResource(Res.string.onboarding_before_after_headline),
-                style = studioSnapTextStyles.onboardingHeadline,
+                style = studioSnapTextStyles().onboardingHeadline,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
@@ -89,7 +89,7 @@ fun OnboardingBeforeAfterPage(
 
             Text(
                 text = stringResource(Res.string.onboarding_before_after_subheadline),
-                style = studioSnapTextStyles.onboardingSubheadline,
+                style = studioSnapTextStyles().onboardingSubheadline,
                 color = Color.White.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
             )
@@ -130,7 +130,7 @@ fun OnboardingBeforeAfterPage(
         ) {
             Text(
                 text = stringResource(Res.string.next_button),
-                style = studioSnapTextStyles.buttonText.copy(
+                style = studioSnapTextStyles().buttonText.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
