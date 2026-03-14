@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.middleton.studiosnap.core.data.service.initializeAppCheck
 import com.middleton.studiosnap.core.presentation.imagepicker.AndroidContextHolder
 import com.middleton.studiosnap.purchases.PurchasesManager
 
@@ -13,6 +14,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        initializeAppCheck()
 
         // Initialize context holder for image picker and rating prompt
         AndroidContextHolder.context = applicationContext

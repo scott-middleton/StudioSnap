@@ -96,6 +96,10 @@ kotlin {
                 implementation(libs.ktor.client.cio)
                 implementation(libs.bundles.compose)
 
+                // Firebase App Check
+                implementation(libs.firebase.appcheck.playintegrity)
+                implementation(libs.firebase.appcheck.debug)
+
                 // Authentication
                 implementation(libs.androidx.exifinterface)
                 implementation(libs.bundles.google.id.android)
