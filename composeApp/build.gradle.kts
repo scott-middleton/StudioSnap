@@ -23,7 +23,7 @@ if (file("google-services.json").exists()) {
 kotlin {
     androidTarget {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
@@ -66,6 +66,7 @@ kotlin {
                 implementation(libs.firebase.analytics)
                 implementation(libs.firebase.auth)
                 implementation(libs.firebase.crashlytics)
+                implementation(libs.firebase.functions)
 
                 // Ktor
                 implementation(libs.ktor.client.core)
@@ -156,8 +157,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
@@ -184,18 +185,6 @@ buildkonfig {
 
         buildConfigField(
             STRING,
-            "REVENUE_CAT_SECRET_KEY",
-            "TODO_REVENUE_CAT_SECRET_KEY"
-        )
-
-        buildConfigField(
-            STRING,
-            "REVENUE_CAT_PROJECT_ID",
-            "TODO_REVENUE_CAT_PROJECT_ID"
-        )
-
-        buildConfigField(
-            STRING,
             "SCHEME",
             "com.middleton.studiosnap"
         )
@@ -204,12 +193,6 @@ buildkonfig {
             STRING,
             "GOOGLE_SERVER_CLIENT_ID",
             "TODO_GOOGLE_SERVER_CLIENT_ID"
-        )
-
-        buildConfigField(
-            STRING,
-            "REPLICATE_API_TOKEN",
-            "TODO_REPLICATE_API_TOKEN"
         )
     }
 }

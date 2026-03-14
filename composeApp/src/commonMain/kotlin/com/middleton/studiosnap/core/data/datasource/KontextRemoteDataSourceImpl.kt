@@ -1,32 +1,27 @@
 package com.middleton.studiosnap.core.data.datasource
 
-import com.middleton.studiosnap.composeapp.BuildKonfig
 import com.middleton.studiosnap.core.data.cache.ImageCacheManager
 import com.middleton.studiosnap.core.data.model.KontextPredictionRequest
 import com.middleton.studiosnap.core.data.model.ReplicatePredictionResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.post
 import io.ktor.client.request.prepareGet
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.http.isSuccess
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
 import kotlinx.datetime.Clock
 import kotlinx.io.readByteArray
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 class KontextRemoteDataSourceImpl(
     private val httpClient: HttpClient,
-    private val imageCacheManager: ImageCacheManager
+    private val imageCacheManager: ImageCacheManager,
+    private val cloudFunctions: CloudFunctionDataSource
 ) : KontextRemoteDataSource {
-
-    private val baseUrl = "https://api.replicate.com/v1"
-    private val apiToken = BuildKonfig.REPLICATE_API_TOKEN
 
     companion object {
         private const val BUFFER_SIZE = 8192L
@@ -35,33 +30,24 @@ class KontextRemoteDataSourceImpl(
     override suspend fun createPrediction(
         request: KontextPredictionRequest
     ): Result<ReplicatePredictionResponse> = runCatching {
-        val response = httpClient.post("$baseUrl/predictions") {
-            header("Authorization", "Token $apiToken")
-            contentType(ContentType.Application.Json)
-            setBody(request)
+        val input = buildMap<String, Any?> {
+            put("prompt", request.input.prompt)
+            put("input_image", request.input.inputImage)
+            put("output_format", request.input.outputFormat)
+            put("aspect_ratio", request.input.aspectRatio)
+            put("guidance", request.input.guidance)
+            put("num_inference_steps", request.input.numInferenceSteps)
         }
 
-        if (!response.status.isSuccess()) {
-            val errorBody = response.bodyAsText()
-            throw ReplicateApiException(response.status.value, errorBody)
-        }
-
-        response.body()
+        val responseMap = cloudFunctions.createVersionPrediction(request.version, input)
+        mapToReplicateResponse(responseMap)
     }
 
     override suspend fun getPrediction(
         predictionId: String
     ): Result<ReplicatePredictionResponse> = runCatching {
-        val response = httpClient.get("$baseUrl/predictions/$predictionId") {
-            header("Authorization", "Token $apiToken")
-        }
-
-        if (!response.status.isSuccess()) {
-            val errorBody = response.bodyAsText()
-            throw ReplicateApiException(response.status.value, errorBody)
-        }
-
-        response.body()
+        val responseMap = cloudFunctions.getPrediction(predictionId)
+        mapToReplicateResponse(responseMap)
     }
 
     override suspend fun downloadImage(url: String): Result<ByteArray> = runCatching {
@@ -87,19 +73,35 @@ class KontextRemoteDataSourceImpl(
             }
         }
     }
-}
 
-class ReplicateApiException(
-    val statusCode: Int,
-    val responseBody: String
-) : Exception("Replicate API error $statusCode: $responseBody") {
+    private fun mapToReplicateResponse(map: Map<String, Any?>): ReplicatePredictionResponse {
+        val id = map["id"] as? String
+            ?: throw IllegalStateException("Missing 'id' in prediction response")
+        val status = map["status"] as? String
+            ?: throw IllegalStateException("Missing 'status' in prediction response")
 
-    val isRateLimited: Boolean get() = statusCode == 429
+        return ReplicatePredictionResponse(
+            id = id,
+            status = status,
+            output = map["output"]?.toJsonElement(),
+            error = map["error"] as? String,
+            createdAt = map["created_at"] as? String,
+            startedAt = map["started_at"] as? String,
+            completedAt = map["completed_at"] as? String
+        )
+    }
 
-    val retryAfterSeconds: Int?
-        get() {
-            if (!isRateLimited) return null
-            val regex = """"retry_after"\s*:\s*(\d+)""".toRegex()
-            return regex.find(responseBody)?.groupValues?.get(1)?.toIntOrNull()
+    private fun Any?.toJsonElement(): JsonElement? {
+        return when (this) {
+            null -> JsonNull
+            is String -> JsonPrimitive(this)
+            is Number -> JsonPrimitive(this)
+            is Boolean -> JsonPrimitive(this)
+            is List<*> -> JsonArray(this.map { it.toJsonElement() ?: JsonNull })
+            is Map<*, *> -> JsonObject(
+                this.entries.associate { (k, v) -> k.toString() to (v.toJsonElement() ?: JsonNull) }
+            )
+            else -> JsonPrimitive(this.toString())
         }
+    }
 }

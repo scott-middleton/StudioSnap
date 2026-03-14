@@ -84,6 +84,7 @@ supabase-compose-auth = { module = "io.github.jan-tennert.supabase:compose-auth"
 firebase-analytics = { module = "dev.gitlive:firebase-analytics", version.ref = "firebase-gitlive" }
 firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebase-gitlive" }
 firebase-crashlytics = { module = "dev.gitlive:firebase-crashlytics", version.ref = "firebase-gitlive" }
+firebase-functions = { module = "dev.gitlive:firebase-functions", version.ref = "firebase-gitlive" }
 
 # Google ID
 google-id = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }

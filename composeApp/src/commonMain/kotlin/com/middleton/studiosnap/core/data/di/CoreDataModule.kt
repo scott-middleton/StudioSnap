@@ -6,6 +6,8 @@ import com.middleton.studiosnap.core.data.cache.ImageCacheManager
 import com.middleton.studiosnap.core.data.database.AppDatabase
 import com.middleton.studiosnap.core.data.database.GenerationDao
 import com.middleton.studiosnap.core.data.database.UserPreferencesDao
+import com.middleton.studiosnap.core.data.datasource.CloudFunctionDataSource
+import com.middleton.studiosnap.core.data.datasource.FirebaseCloudFunctionDataSource
 import com.middleton.studiosnap.core.data.datasource.KontextRemoteDataSource
 import com.middleton.studiosnap.core.data.datasource.KontextRemoteDataSourceImpl
 import com.middleton.studiosnap.core.data.datasource.VirtualCurrencyRemoteDataSource
@@ -45,6 +47,10 @@ val coreDataModule = module {
 
     single { ImageCacheManager() }
 
+    single<CloudFunctionDataSource> {
+        FirebaseCloudFunctionDataSource()
+    }
+
     single<GenerationDao> {
         get<AppDatabase>().generationDao()
     }
@@ -60,7 +66,8 @@ val coreDataModule = module {
     single<KontextRemoteDataSource> {
         KontextRemoteDataSourceImpl(
             httpClient = get(),
-            imageCacheManager = get()
+            imageCacheManager = get(),
+            cloudFunctions = get()
         )
     }
 
@@ -70,7 +77,8 @@ val coreDataModule = module {
 
     factory<VirtualCurrencyRemoteDataSource> {
         VirtualCurrencyRemoteDataSourceImpl(
-            authService = get()
+            authService = get(),
+            cloudFunctions = get()
         )
     }
 

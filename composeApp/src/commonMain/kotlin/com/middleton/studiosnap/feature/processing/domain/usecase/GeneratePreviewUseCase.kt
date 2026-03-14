@@ -1,6 +1,6 @@
 package com.middleton.studiosnap.feature.processing.domain.usecase
 
-import com.middleton.studiosnap.core.data.datasource.ReplicateApiException
+import dev.gitlive.firebase.functions.FirebaseFunctionsException
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
 import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationError
@@ -49,9 +49,9 @@ class GeneratePreviewUseCase(
 
     private fun mapError(throwable: Throwable): GenerationError {
         return when (throwable) {
-            is ReplicateApiException -> when {
-                throwable.isRateLimited -> GenerationError.API_ERROR
-                throwable.statusCode in 400..499 -> GenerationError.CONTENT_FILTERED
+            is FirebaseFunctionsException -> when (throwable.code.name) {
+                "RESOURCE_EXHAUSTED", "resource-exhausted" -> GenerationError.API_ERROR
+                "INVALID_ARGUMENT", "invalid-argument" -> GenerationError.CONTENT_FILTERED
                 else -> GenerationError.API_ERROR
             }
             is kotlinx.coroutines.TimeoutCancellationException -> GenerationError.TIMEOUT
