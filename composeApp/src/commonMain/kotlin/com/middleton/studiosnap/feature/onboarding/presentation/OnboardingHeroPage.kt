@@ -25,14 +25,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.middleton.studiosnap.core.presentation.theme.LocalExtendedColorScheme
-import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
+import com.middleton.studiosnap.core.presentation.theme.AppColors
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.app_logo
 import studiosnap.composeapp.generated.resources.logo
@@ -50,26 +49,6 @@ private val ButtonShape = RoundedCornerShape(20.dp)
 fun OnboardingHeroPage(
     onNext: () -> Unit
 ) {
-    val extendedColors = LocalExtendedColorScheme.current
-
-    // Pre-remember gradient brush
-    val gradientBrush = remember(extendedColors) {
-        Brush.horizontalGradient(
-            colors = listOf(
-                extendedColors.restore.color,
-                extendedColors.processing.color
-            )
-        )
-    }
-
-    val logoBgBrush = remember {
-        Brush.linearGradient(
-            colors = listOf(
-                Color.Gray.copy(alpha = 0.3f),
-                Color.White.copy(alpha = 0.2f)
-            )
-        )
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Static content — Column instead of LazyColumn (no scrolling needed)
@@ -84,7 +63,7 @@ fun OnboardingHeroPage(
                 modifier = Modifier
                     .size(200.dp)
                     .clip(LogoShape)
-                    .background(logoBgBrush),
+                    .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -98,8 +77,10 @@ fun OnboardingHeroPage(
 
             Text(
                 text = stringResource(Res.string.onboarding_hero_headline),
-                style = studioSnapTextStyles.onboardingHeadline,
-                color = Color.White,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = AppColors.DarkTextPrimary,
                 textAlign = TextAlign.Center
             )
 
@@ -107,8 +88,8 @@ fun OnboardingHeroPage(
 
             Text(
                 text = stringResource(Res.string.onboarding_hero_subheadline),
-                style = studioSnapTextStyles.onboardingSubheadline,
-                color = Color.White.copy(alpha = 0.8f),
+                style = MaterialTheme.typography.bodyLarge,
+                color = AppColors.DarkTextSecondary,
                 textAlign = TextAlign.Center
             )
         }
@@ -124,18 +105,16 @@ fun OnboardingHeroPage(
                 .height(44.dp),
             shape = ButtonShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White
-            ),
-            contentPadding = PaddingValues(),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                containerColor = AppColors.PrimaryBlue
+            )
         ) {
             Text(
                 text = stringResource(Res.string.next_button),
-                style = studioSnapTextStyles.buttonText.copy(
+                style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
-                color = extendedColors.restore.color
+                color = Color.White
             )
         }
     }

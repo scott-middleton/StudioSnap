@@ -44,7 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.zIndex
-import androidx.compose.ui.graphics.Brush
+import com.middleton.studiosnap.core.presentation.theme.AppColors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
@@ -128,21 +128,10 @@ private fun PaywallScreenContent(
         }
     }
 
-    val backgroundBrush = remember(extendedColors) {
-        Brush.verticalGradient(
-            colors = listOf(
-                extendedColors.restore.color.copy(alpha = 0.15f),
-                BackgroundColor,
-                BackgroundColor
-            )
-        )
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundColor)
-            .background(backgroundBrush)
+            .background(AppColors.DarkBackground)
     ) {
         Column(
             modifier = Modifier
@@ -219,7 +208,7 @@ private fun PaywallScreenContent(
             // Pack cards
             if (uiState.isLoading && uiState.tokenPacks.isEmpty()) {
                 CircularProgressIndicator(
-                    color = extendedColors.restore.color,
+                    color = AppColors.PrimaryBlue,
                     modifier = Modifier.size(32.dp)
                 )
             } else {
@@ -233,7 +222,7 @@ private fun PaywallScreenContent(
                         PackCard(
                             pack = pack,
                             isSelected = pack == uiState.selectedPack,
-                            accentColor = extendedColors.restore.color,
+                            accentColor = AppColors.PrimaryBlue,
                             onSelect = { onAction(PaywallUiAction.SelectPack(pack)) }
                         )
                     }
@@ -251,14 +240,6 @@ private fun PaywallScreenContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val hasSelection = uiState.selectedPack != null
-                val ctaGradient = remember(extendedColors) {
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            extendedColors.restore.color,
-                            extendedColors.processing.color
-                        )
-                    )
-                }
 
                 val isBusy = uiState.isPurchasing || uiState.isSigningIn
                 Button(
@@ -269,43 +250,31 @@ private fun PaywallScreenContent(
                         .height(52.dp),
                     shape = ButtonShape,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent
-                    ),
-                    contentPadding = PaddingValues()
+                        containerColor = AppColors.PrimaryBlue,
+                        disabledContainerColor = AppColors.PrimaryBlue.copy(alpha = 0.4f)
+                    )
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                brush = ctaGradient,
-                                shape = ButtonShape,
-                                alpha = if (hasSelection && !isBusy) 1f else 0.4f
+                    if (isBusy) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.5.dp
+                        )
+                    } else {
+                        Text(
+                            text = if (hasSelection) {
+                                stringResource(
+                                    Res.string.paywall_continue,
+                                    uiState.selectedPack!!.storeProduct.price.formatted
+                                )
+                            } else {
+                                stringResource(Res.string.paywall_select_pack)
+                            },
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
                             ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isBusy) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = Color.White,
-                                strokeWidth = 2.5.dp
-                            )
-                        } else {
-                            Text(
-                                text = if (hasSelection) {
-                                    stringResource(
-                                        Res.string.paywall_continue,
-                                        uiState.selectedPack!!.storeProduct.price.formatted
-                                    )
-                                } else {
-                                    stringResource(Res.string.paywall_select_pack)
-                                },
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                color = Color.White
-                            )
-                        }
+                            color = Color.White
+                        )
                     }
                 }
 

@@ -26,11 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.middleton.studiosnap.core.presentation.navigation.NavigationHandler
-import com.middleton.studiosnap.core.presentation.theme.LocalExtendedColorScheme
+import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.feature.onboarding.presentation.action.OnboardingUiAction
 import com.middleton.studiosnap.feature.onboarding.presentation.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -39,7 +38,6 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun OnboardingCarouselScreen() {
-    val extendedColors = LocalExtendedColorScheme.current
     val viewModel: OnboardingViewModel = koinViewModel()
     val navigationHandler: NavigationHandler = koinInject()
     val uiState by viewModel.uiState.collectAsState()
@@ -76,19 +74,10 @@ fun OnboardingCarouselScreen() {
         }
     }
 
-    val backgroundBrush = remember(extendedColors) {
-        Brush.verticalGradient(
-            colors = listOf(
-                extendedColors.restore.color,
-                extendedColors.processing.color
-            )
-        )
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(backgroundBrush)
+            .background(AppColors.DarkBackground)
     ) {
         HorizontalPager(
             state = pagerState,
@@ -138,7 +127,10 @@ fun OnboardingCarouselScreen() {
                         .scale(dotScale)
                         .alpha(dotAlpha)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(
+                            if (isSelected) AppColors.PrimaryBlue 
+                            else AppColors.DarkTextTertiary
+                        )
                 )
             }
         }

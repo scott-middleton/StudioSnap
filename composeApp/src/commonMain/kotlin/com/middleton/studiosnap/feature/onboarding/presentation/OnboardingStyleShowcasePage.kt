@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.core.presentation.theme.LocalExtendedColorScheme
 import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import kotlinx.coroutines.delay
@@ -163,7 +164,7 @@ fun OnboardingStyleShowcasePage(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
-                color = extendedColors.restore.color
+                color = AppColors.PrimaryBlue
             )
         }
     }

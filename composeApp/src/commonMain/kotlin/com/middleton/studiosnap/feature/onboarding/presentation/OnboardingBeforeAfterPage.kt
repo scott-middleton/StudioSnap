@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.presentation.components.SharedBeforeAfterSlider
 import com.middleton.studiosnap.core.presentation.theme.LocalExtendedColorScheme
-import com.middleton.studiosnap.core.presentation.theme.StudioSnapColors
+import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import org.jetbrains.compose.resources.stringResource
 import studiosnap.composeapp.generated.resources.Res
@@ -100,8 +100,8 @@ fun OnboardingBeforeAfterPage(
                 sliderPosition = sliderAnimatable.value,
                 beforeLabel = UiText.StringResource(Res.string.onboarding_before_label),
                 afterLabel = UiText.StringResource(Res.string.onboarding_after_label),
-                beforeColor = StudioSnapColors.PhotoSilver,
-                afterColor = StudioSnapColors.StudioTeal,
+                beforeColor = AppColors.DarkTextTertiary,
+                afterColor = AppColors.PrimaryBlue,
                 beforeImage = Res.drawable.onboarding_before,
                 afterImage = Res.drawable.onboarding_after_studio,
                 modifier = Modifier
@@ -134,7 +134,7 @@ fun OnboardingBeforeAfterPage(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
-                color = extendedColors.restore.color
+                color = AppColors.PrimaryBlue
             )
         }
     }
