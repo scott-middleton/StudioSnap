@@ -2,7 +2,7 @@ import {onCall, HttpsError} from "firebase-functions/v2/https";
 
 const REPLICATE_BASE_URL = "https://api.replicate.com/v1";
 const REVENUECAT_BASE_URL = "https://api.revenuecat.com/v2";
-const REVENUECAT_PROJECT_ID = "TODO_STUDIOSNAP_REVENUECAT_PROJECT_ID";
+const REVENUECAT_PROJECT_ID = "proj30aee59a";
 
 const CURRENCY_CODE = "credits";
 
