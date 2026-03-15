@@ -877,13 +877,11 @@ private fun SectionHeaderWithIcon(
 
 // endregion
 
-private companion object {
-    const val CONTENT_HORIZONTAL_PADDING = 20
-    const val CONTENT_TOP_PADDING = 16
-    const val CONTENT_BOTTOM_PADDING = 32
-    const val SECTION_SPACING = 28
-    const val HERO_IMAGE_SIZE = 120
-    const val GRID_COLUMNS = 3
-    const val PHOTO_CELL_SIZE = 110
-    const val GRID_SPACING = 10
-}
+private const val CONTENT_HORIZONTAL_PADDING = 20
+private const val CONTENT_TOP_PADDING = 16
+private const val CONTENT_BOTTOM_PADDING = 32
+private const val SECTION_SPACING = 28
+private const val HERO_IMAGE_SIZE = 120
+private const val GRID_COLUMNS = 3
+private const val PHOTO_CELL_SIZE = 110
+private const val GRID_SPACING = 10
