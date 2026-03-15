@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
     alias(libs.plugins.google.services) apply false
+    alias(libs.plugins.paparazzi)
 }
 
 // Only apply google-services if the config file exists (allows VPS compilation without it)

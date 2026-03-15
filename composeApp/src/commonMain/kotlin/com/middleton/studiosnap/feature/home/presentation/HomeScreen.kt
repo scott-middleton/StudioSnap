@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,9 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -116,6 +112,12 @@ import studiosnap.composeapp.generated.resources.swatch_botanical
 import studiosnap.composeapp.generated.resources.swatch_dark
 import studiosnap.composeapp.generated.resources.swatch_marble
 import studiosnap.composeapp.generated.resources.swatch_wood
+import studiosnap.composeapp.generated.resources.home_add_label
+import studiosnap.composeapp.generated.resources.ic_bolt
+import studiosnap.composeapp.generated.resources.ic_diamond
+import studiosnap.composeapp.generated.resources.ic_chevron_right
+import studiosnap.composeapp.generated.resources.ic_aspect_ratio
+import studiosnap.composeapp.generated.resources.ic_palette
 
 @Composable
 fun HomeScreen(
@@ -185,7 +187,7 @@ fun HomeScreenContent(
                                 imageVector = Icons.Default.History,
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
-                                tint = Color(0xFF555555)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         NavIconButton(
@@ -196,7 +198,7 @@ fun HomeScreenContent(
                                 imageVector = Icons.Default.Settings,
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
-                                tint = Color(0xFF555555)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     },
@@ -237,7 +239,7 @@ fun HomeScreenContent(
             if (state.photos.isEmpty()) {
                 EmptyStateHero(onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) })
             } else {
-                PhotosGrid(
+                PhotosRow(
                     photos = state.photos,
                     onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) },
                     onRemovePhoto = { onAction(HomeUiAction.OnPhotoRemoved(it)) }
@@ -281,7 +283,7 @@ private fun NavIconButton(
         onClick = onClick,
         modifier = Modifier.size(40.dp),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 1.dp
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -308,7 +310,12 @@ private fun CreditBalancePill(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text("💎", fontSize = 14.sp)
+            Icon(
+                painter = painterResource(Res.drawable.ic_diamond),
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = Color.White
+            )
             Text(
                 text = "$balance",
                 color = Color.White,
@@ -325,7 +332,7 @@ private fun CreditBalancePill(
 
 @Composable
 private fun EmptyStateHero(onAddPhotos: () -> Unit) {
-    val dashedBorderColor = Color(0xFFD1D5DB)
+    val dashedBorderColor = MaterialTheme.colorScheme.outline
     val dashedPathEffect = remember {
         PathEffect.dashPathEffect(floatArrayOf(20f, 12f), 0f)
     }
@@ -343,7 +350,7 @@ private fun EmptyStateHero(onAddPhotos: () -> Unit) {
                     )
                 )
             }
-            .background(Color.White, RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp)
@@ -356,7 +363,7 @@ private fun EmptyStateHero(onAddPhotos: () -> Unit) {
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = (-0.3).sp,
-            color = Color(0xFF111111),
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
 
@@ -401,7 +408,7 @@ private fun BeforeAfterShowcase() {
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(RoundedCornerShape(16.dp))
-                    .border(2.dp, Color(0xFFE5E7EB), RoundedCornerShape(16.dp)),
+                    .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)),
                 contentScale = ContentScale.Crop,
                 alpha = 0.85f
             )
@@ -424,7 +431,12 @@ private fun BeforeAfterShowcase() {
                 .shadow(4.dp, CircleShape, ambientColor = AppColors.PrimaryGreen),
             contentAlignment = Alignment.Center
         ) {
-            Text("⚡", fontSize = 14.sp)
+            Icon(
+                painter = painterResource(Res.drawable.ic_bolt),
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = Color.White
+            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -471,10 +483,10 @@ private fun ImageLabel(
 
 // endregion
 
-// region — Photos Grid (selected state)
+// region — Photos Row (horizontal scroller)
 
 @Composable
-private fun PhotosGrid(
+private fun PhotosRow(
     photos: List<ProductPhoto>,
     onAddPhotos: () -> Unit,
     onRemovePhoto: (String) -> Unit
@@ -493,44 +505,38 @@ private fun PhotosGrid(
                     HomeUiState.MAX_PHOTOS
                 )
             )
-            Surface(
-                onClick = onAddPhotos,
-                shape = RoundedCornerShape(8.dp),
-                color = AppColors.PrimaryGreenTint
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+            if (photos.size < HomeUiState.MAX_PHOTOS) {
+                Surface(
+                    onClick = onAddPhotos,
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = AppColors.PrimaryGreen
-                    )
-                    Text(
-                        text = stringResource(Res.string.home_add_more_photos),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = AppColors.PrimaryGreen
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = AppColors.PrimaryGreen
+                        )
+                        Text(
+                            text = stringResource(Res.string.home_add_more_photos),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppColors.PrimaryGreen
+                        )
+                    }
                 }
             }
         }
 
-        // Grid - fixed height based on rows needed
-        val rows = (photos.size + 1 + GRID_COLUMNS - 1) / GRID_COLUMNS // +1 for add cell
-        val gridHeight = (rows * PHOTO_CELL_SIZE + (rows - 1) * GRID_SPACING).dp
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(GRID_COLUMNS),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(gridHeight),
-            horizontalArrangement = Arrangement.spacedBy(GRID_SPACING.dp),
-            verticalArrangement = Arrangement.spacedBy(GRID_SPACING.dp),
-            userScrollEnabled = false
+        // Horizontal scrolling row
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(end = 4.dp)
         ) {
             items(photos, key = { it.id }) { photo ->
                 PhotoCell(
@@ -554,8 +560,9 @@ private fun PhotoCell(
 ) {
     Box(
         modifier = Modifier
-            .aspectRatio(1f)
+            .size(PHOTO_CELL_SIZE.dp)
             .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         AsyncImage(
             model = photoUri,
@@ -563,22 +570,23 @@ private fun PhotoCell(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        IconButton(
-            onClick = onRemove,
+        Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(6.dp)
-                .size(24.dp)
+                .padding(4.dp)
+                .size(20.dp)
                 .background(
-                    color = Color.Black.copy(alpha = 0.45f),
-                    shape = RoundedCornerShape(6.dp)
+                    color = Color.Black.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(5.dp)
                 )
+                .clickable(onClick = onRemove),
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = stringResource(Res.string.home_remove_photo),
                 tint = Color.White,
-                modifier = Modifier.size(12.dp)
+                modifier = Modifier.size(10.dp)
             )
         }
     }
@@ -586,14 +594,14 @@ private fun PhotoCell(
 
 @Composable
 private fun AddPhotoCell(onClick: () -> Unit) {
-    val dashedColor = Color(0xFFD1D5DB)
+    val dashedColor = MaterialTheme.colorScheme.outline
     val pathEffect = remember {
         PathEffect.dashPathEffect(floatArrayOf(16f, 10f), 0f)
     }
 
     Box(
         modifier = Modifier
-            .aspectRatio(1f)
+            .size(PHOTO_CELL_SIZE.dp)
             .drawBehind {
                 drawRoundRect(
                     color = dashedColor,
@@ -604,7 +612,7 @@ private fun AddPhotoCell(onClick: () -> Unit) {
                     )
                 )
             }
-            .background(Color.White, RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -616,13 +624,13 @@ private fun AddPhotoCell(onClick: () -> Unit) {
                 imageVector = Icons.Default.Add,
                 contentDescription = null,
                 modifier = Modifier.size(22.dp),
-                tint = Color(0xFF9CA3AF)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = stringResource(Res.string.home_add_photos).split(" ").first(), // "Add"
+                text = stringResource(Res.string.home_add_label),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF9CA3AF)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -641,9 +649,8 @@ private fun BackgroundStyleSection(
         SectionHeaderWithIcon(
             text = stringResource(Res.string.home_background_style),
             iconContent = {
-                // Image/landscape icon
                 Icon(
-                    imageVector = Icons.Default.Settings, // Placeholder — will be replaced with proper icon
+                    painter = painterResource(Res.drawable.ic_palette),
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
                     tint = AppColors.PrimaryGreen
@@ -654,7 +661,9 @@ private fun BackgroundStyleSection(
         Card(
             onClick = onChangeStyle,
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
@@ -676,7 +685,7 @@ private fun BackgroundStyleSection(
                         },
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF111111)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = if (selectedStyle != null) {
@@ -685,7 +694,7 @@ private fun BackgroundStyleSection(
                             stringResource(Res.string.home_style_choose_hint)
                         },
                         fontSize = 13.sp,
-                        color = Color(0xFF9CA3AF)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -693,10 +702,18 @@ private fun BackgroundStyleSection(
                 Box(
                     modifier = Modifier
                         .size(28.dp)
-                        .background(AppColors.PrimaryGreenTint, RoundedCornerShape(8.dp)),
+                        .background(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            RoundedCornerShape(8.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("›", fontSize = 18.sp, color = AppColors.PrimaryGreen, fontWeight = FontWeight.Bold)
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_chevron_right),
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = AppColors.PrimaryGreen
+                    )
                 }
             }
         }
@@ -759,8 +776,12 @@ private fun ExportSizeSection(
         SectionHeaderWithIcon(
             text = stringResource(Res.string.home_export_format),
             iconContent = {
-                // Resize icon (placeholder text)
-                Text("⊞", fontSize = 14.sp, color = AppColors.PrimaryGreen)
+                Icon(
+                    painter = painterResource(Res.drawable.ic_aspect_ratio),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = AppColors.PrimaryGreen
+                )
             }
         )
 
@@ -798,7 +819,7 @@ private fun GenerateBottomBar(
     onGenerate: () -> Unit
 ) {
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp
     ) {
         Box(
@@ -817,8 +838,8 @@ private fun GenerateBottomBar(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppColors.PrimaryGreen,
                     contentColor = Color.White,
-                    disabledContainerColor = Color(0xFFE5E7EB),
-                    disabledContentColor = Color(0xFF9CA3AF)
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 elevation = if (canGenerate) {
                     ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
@@ -826,7 +847,11 @@ private fun GenerateBottomBar(
                     ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                 }
             ) {
-                Text("⚡", fontSize = 16.sp)
+                Icon(
+                    painter = painterResource(Res.drawable.ic_bolt),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(Res.string.home_generate_preview),
@@ -849,7 +874,7 @@ private fun SectionLabel(text: String) {
         text = text.uppercase(),
         fontSize = 14.sp,
         fontWeight = FontWeight.Bold,
-        color = Color(0xFF6B7280),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         letterSpacing = 0.5.sp
     )
 }
@@ -866,7 +891,10 @@ private fun SectionHeaderWithIcon(
         Box(
             modifier = Modifier
                 .size(28.dp)
-                .background(AppColors.PrimaryGreenTint, RoundedCornerShape(8.dp)),
+                .background(
+                    MaterialTheme.colorScheme.primaryContainer,
+                    RoundedCornerShape(8.dp)
+                ),
             contentAlignment = Alignment.Center
         ) {
             iconContent()
@@ -882,6 +910,4 @@ private const val CONTENT_TOP_PADDING = 16
 private const val CONTENT_BOTTOM_PADDING = 32
 private const val SECTION_SPACING = 28
 private const val HERO_IMAGE_SIZE = 120
-private const val GRID_COLUMNS = 3
-private const val PHOTO_CELL_SIZE = 110
-private const val GRID_SPACING = 10
+private const val PHOTO_CELL_SIZE = 100

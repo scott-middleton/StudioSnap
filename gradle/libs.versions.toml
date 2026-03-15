@@ -108,6 +108,7 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 room = { id = "androidx.room", version.ref = "room" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 firebase-crashlytics-plugin = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-gradle" }
+paparazzi = { id = "app.cash.paparazzi", version = "2.0.0-alpha02" }
 
 [bundles]
 koin-compose = ["koin-compose-viewmodel", "koin-compose-viewmodel-nav"]

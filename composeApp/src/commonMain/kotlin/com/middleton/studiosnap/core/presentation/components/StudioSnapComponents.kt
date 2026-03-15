@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import org.jetbrains.compose.resources.stringResource
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.content_back

@@ -43,6 +43,7 @@
     <string name="home_add_photos">Add Product Photos</string>
     <string name="home_add_photos_subtitle">Tap to select from gallery</string>
     <string name="home_add_more_photos">Add More</string>
+    <string name="home_add_label">Add</string>
     <string name="home_empty_title">Transform your products</string>
     <string name="home_empty_subtitle">Select photos from your gallery to get started</string>
     <string name="home_styles_title">Choose a Style</string>
@@ -220,7 +221,7 @@
     <string name="home_background_style">Background Style</string>
     <string name="home_style_tap_to_change">Tap to change</string>
     <string name="home_style_choose">Choose a style</string>
-    <string name="home_style_choose_hint">18 professional backgrounds</string>
+    <string name="home_style_choose_hint">Professional backgrounds</string>
     <string name="home_photos_header">Photos (%1$d / %2$d)</string>
 
     <!-- Accessibility -->

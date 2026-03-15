@@ -40,19 +40,22 @@ object AppColors {
 data class ExtendedColorScheme(
     val success: Color,
     val warning: Color,
-    val border: Color
+    val border: Color,
+    val unselectedChip: Color
 )
 
 val extendedLight = ExtendedColorScheme(
     success = AppColors.Success,
     warning = AppColors.Warning,
-    border = AppColors.LightBorder
+    border = AppColors.LightBorder,
+    unselectedChip = AppColors.LightSurface
 )
 
 val extendedDark = ExtendedColorScheme(
     success = AppColors.Success,
     warning = AppColors.WarningDark,
-    border = AppColors.DarkBorder
+    border = AppColors.DarkBorder,
+    unselectedChip = AppColors.DarkSurfaceElevated
 )
 
 val lightScheme = lightColorScheme(
