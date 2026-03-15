@@ -270,7 +270,7 @@ private fun AnimatedLoadingDots(
                     .size(8.dp)
                     .scale(dotScale)
                     .background(
-                        color = AppColors.PrimaryBlue,
+                        color = AppColors.PrimaryGreen,
                         shape = DotShape
                     )
             )
@@ -288,7 +288,7 @@ private fun DrawScope.drawPhotoSparkles(
 ) {
     val logoX = size.width / 2f
     val logoY = size.height * 0.38f
-    val sparkleColor = AppColors.PrimaryBlue
+    val sparkleColor = AppColors.PrimaryGreen
 
     // Inner sparkles (orbit around logo)
     InnerSparkles.forEach { sparkle ->

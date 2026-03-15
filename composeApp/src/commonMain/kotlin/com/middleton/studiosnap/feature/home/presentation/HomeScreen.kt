@@ -1,6 +1,11 @@
 package com.middleton.studiosnap.feature.home.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,34 +13,32 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +46,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -54,18 +58,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
-import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
+import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
@@ -74,6 +82,7 @@ import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigat
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeError
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
 import com.middleton.studiosnap.feature.home.presentation.viewmodel.HomeViewModel
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -81,24 +90,32 @@ import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.content_credits
 import studiosnap.composeapp.generated.resources.content_history
 import studiosnap.composeapp.generated.resources.content_settings
+import studiosnap.composeapp.generated.resources.hero_after
+import studiosnap.composeapp.generated.resources.hero_before
 import studiosnap.composeapp.generated.resources.home_add_photos
-import studiosnap.composeapp.generated.resources.home_empty_subtitle
+import studiosnap.composeapp.generated.resources.home_add_more_photos
+import studiosnap.composeapp.generated.resources.home_background_style
 import studiosnap.composeapp.generated.resources.home_empty_title
 import studiosnap.composeapp.generated.resources.home_error_generation_failed
 import studiosnap.composeapp.generated.resources.home_error_too_many_photos
+import studiosnap.composeapp.generated.resources.home_export_ebay
+import studiosnap.composeapp.generated.resources.home_export_etsy
+import studiosnap.composeapp.generated.resources.home_export_format
+import studiosnap.composeapp.generated.resources.home_export_original
+import studiosnap.composeapp.generated.resources.home_export_vinted
 import studiosnap.composeapp.generated.resources.home_generate_preview
-import studiosnap.composeapp.generated.resources.home_photos_count
+import studiosnap.composeapp.generated.resources.home_photos_header
 import studiosnap.composeapp.generated.resources.home_remove_photo
-import studiosnap.composeapp.generated.resources.home_background_style
 import studiosnap.composeapp.generated.resources.home_style_choose
 import studiosnap.composeapp.generated.resources.home_style_choose_hint
 import studiosnap.composeapp.generated.resources.home_style_tap_to_change
 import studiosnap.composeapp.generated.resources.home_title
-import studiosnap.composeapp.generated.resources.home_export_format
-import studiosnap.composeapp.generated.resources.home_export_etsy
-import studiosnap.composeapp.generated.resources.home_export_ebay
-import studiosnap.composeapp.generated.resources.home_export_vinted
-import studiosnap.composeapp.generated.resources.home_export_original
+import studiosnap.composeapp.generated.resources.home_before_label
+import studiosnap.composeapp.generated.resources.home_after_label
+import studiosnap.composeapp.generated.resources.swatch_botanical
+import studiosnap.composeapp.generated.resources.swatch_dark
+import studiosnap.composeapp.generated.resources.swatch_marble
+import studiosnap.composeapp.generated.resources.swatch_wood
 
 @Composable
 fun HomeScreen(
@@ -128,7 +145,6 @@ fun HomeScreenContent(
     onAction: (HomeUiAction) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-
     val errorTooMany = stringResource(Res.string.home_error_too_many_photos, HomeUiState.MAX_PHOTOS)
     val errorGenFailed = stringResource(Res.string.home_error_generation_failed)
 
@@ -146,71 +162,96 @@ fun HomeScreenContent(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.home_title),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp // Larger title as per spec
-                    )
-                },
-                actions = {
-                    CreditBalancePill(
-                        balance = state.creditBalance,
-                        onClick = { onAction(HomeUiAction.OnCreditBalanceClicked) }
-                    )
-                    IconButton(onClick = { onAction(HomeUiAction.OnHistoryClicked) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            Surface(shadowElevation = 4.dp) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(Res.string.home_title),
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = (-1.2).sp
+                        )
+                    },
+                    actions = {
+                        CreditBalancePill(
+                            balance = state.creditBalance,
+                            onClick = { onAction(HomeUiAction.OnCreditBalanceClicked) }
+                        )
+                        NavIconButton(
+                            onClick = { onAction(HomeUiAction.OnHistoryClicked) },
                             contentDescription = stringResource(Res.string.content_history)
-                        )
-                    }
-                    IconButton(onClick = { onAction(HomeUiAction.OnSettingsClicked) }) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.History,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                                tint = Color(0xFF555555)
+                            )
+                        }
+                        NavIconButton(
+                            onClick = { onAction(HomeUiAction.OnSettingsClicked) },
                             contentDescription = stringResource(Res.string.content_settings)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                                tint = Color(0xFF555555)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
                 )
-            )
+            }
+        },
+        bottomBar = {
+            AnimatedVisibility(
+                visible = state.photos.isNotEmpty(),
+                enter = slideInVertically { it },
+                exit = slideOutVertically { it }
+            ) {
+                GenerateBottomBar(
+                    canGenerate = state.canGenerate,
+                    onGenerate = { onAction(HomeUiAction.OnGenerateClicked) }
+                )
+            }
         },
         snackbarHost = {
             SnackbarHost(snackbarHostState) { data ->
                 Snackbar(snackbarData = data)
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 20.dp), // New standard padding
-            verticalArrangement = Arrangement.spacedBy(24.dp) // Section gaps
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
+                .padding(top = CONTENT_TOP_PADDING.dp, bottom = CONTENT_BOTTOM_PADDING.dp),
+            verticalArrangement = Arrangement.spacedBy(SECTION_SPACING.dp)
         ) {
-            PhotoSection(
-                photos = state.photos,
-                onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) },
-                onRemovePhoto = { onAction(HomeUiAction.OnPhotoRemoved(it)) },
-                modifier = Modifier.weight(1f)
-            )
+            if (state.photos.isEmpty()) {
+                EmptyStateHero(onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) })
+            } else {
+                PhotosGrid(
+                    photos = state.photos,
+                    onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) },
+                    onRemovePhoto = { onAction(HomeUiAction.OnPhotoRemoved(it)) }
+                )
+            }
 
-            SelectedStyleSection(
+            BackgroundStyleSection(
                 selectedStyle = state.selectedStyle,
                 onChangeStyle = { onAction(HomeUiAction.OnStylePickerClicked) }
             )
 
-            ExportFormatSection(
+            ExportSizeSection(
                 exportFormat = state.exportFormat,
                 onExportFormatSelected = { onAction(HomeUiAction.OnExportFormatSelected(it)) }
-            )
-
-            // Generate button at bottom (not FAB)
-            GenerateButton(
-                canGenerate = state.canGenerate,
-                onGenerate = { onAction(HomeUiAction.OnGenerateClicked) }
             )
         }
     }
@@ -228,35 +269,26 @@ fun HomeScreenContent(
     }
 }
 
+// region — Top Bar Components
+
 @Composable
-private fun GenerateButton(
-    canGenerate: Boolean,
-    onGenerate: () -> Unit
+private fun NavIconButton(
+    onClick: () -> Unit,
+    contentDescription: String,
+    content: @Composable () -> Unit
 ) {
-    Button(
-        onClick = onGenerate,
-        enabled = canGenerate,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp), // Standard button height
-        shape = RoundedCornerShape(16.dp), // Rounded corners as per spec
-        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        )
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.size(40.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = Color.White,
+        shadowElevation = 1.dp
     ) {
-        Icon(
-            imageVector = Icons.Default.Add, // Using Add as placeholder for magic wand
-            contentDescription = null,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = stringResource(Res.string.home_generate_preview),
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp
-        )
+        Box(contentAlignment = Alignment.Center) {
+            content()
+        }
     }
+    Spacer(modifier = Modifier.width(8.dp))
 }
 
 @Composable
@@ -264,141 +296,251 @@ private fun CreditBalancePill(
     balance: Int,
     onClick: () -> Unit
 ) {
-    AssistChip(
+    Surface(
         onClick = onClick,
-        label = {
+        shape = RoundedCornerShape(20.dp),
+        color = AppColors.PrimaryGreenDark,
+        shadowElevation = 2.dp,
+        modifier = Modifier.padding(end = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text("💎", fontSize = 14.sp)
             Text(
                 text = "$balance",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold
             )
-        },
-        leadingIcon = {
-            Text("💎", fontSize = 14.sp)
-        },
-        shape = RoundedCornerShape(20.dp), // Rounded pill
-        colors = AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.primary, // Filled blue
-            labelColor = MaterialTheme.colorScheme.onPrimary // White text
-        ),
-        border = null
+        }
+    }
+}
+
+// endregion
+
+// region — Empty State Hero
+
+@Composable
+private fun EmptyStateHero(onAddPhotos: () -> Unit) {
+    val dashedBorderColor = Color(0xFFD1D5DB)
+    val dashedPathEffect = remember {
+        PathEffect.dashPathEffect(floatArrayOf(20f, 12f), 0f)
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawRoundRect(
+                    color = dashedBorderColor,
+                    cornerRadius = CornerRadius(24.dp.toPx()),
+                    style = Stroke(
+                        width = 2.dp.toPx(),
+                        pathEffect = dashedPathEffect
+                    )
+                )
+            }
+            .background(Color.White, RoundedCornerShape(24.dp))
+            .padding(horizontal = 24.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        // Before/After showcase
+        BeforeAfterShowcase()
+
+        Text(
+            text = stringResource(Res.string.home_empty_title),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = (-0.3).sp,
+            color = Color(0xFF111111),
+            textAlign = TextAlign.Center
+        )
+
+        // Add Photos button
+        Button(
+            onClick = onAddPhotos,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.PrimaryGreen,
+                contentColor = Color.White
+            ),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(Res.string.home_add_photos),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+@Composable
+private fun BeforeAfterShowcase() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        // Before frame
+        Box(modifier = Modifier.size(HERO_IMAGE_SIZE.dp)) {
+            Image(
+                painter = painterResource(Res.drawable.hero_before),
+                contentDescription = stringResource(Res.string.home_before_label),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(2.dp, Color(0xFFE5E7EB), RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Crop,
+                alpha = 0.85f
+            )
+            ImageLabel(
+                text = stringResource(Res.string.home_before_label),
+                backgroundColor = Color.Black.copy(alpha = 0.5f),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 6.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Lightning bolt circle
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(AppColors.PrimaryGreen, CircleShape)
+                .shadow(4.dp, CircleShape, ambientColor = AppColors.PrimaryGreen),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("⚡", fontSize = 14.sp)
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // After frame
+        Box(modifier = Modifier.size(HERO_IMAGE_SIZE.dp)) {
+            Image(
+                painter = painterResource(Res.drawable.hero_after),
+                contentDescription = stringResource(Res.string.home_after_label),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Crop
+            )
+            ImageLabel(
+                text = stringResource(Res.string.home_after_label),
+                backgroundColor = AppColors.PrimaryGreen.copy(alpha = 0.85f),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 6.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ImageLabel(
+    text: String,
+    backgroundColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = text.uppercase(),
+        color = Color.White,
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.5.sp,
+        modifier = modifier
+            .background(backgroundColor, RoundedCornerShape(4.dp))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
     )
 }
 
+// endregion
+
+// region — Photos Grid (selected state)
+
 @Composable
-private fun PhotoSection(
+private fun PhotosGrid(
     photos: List<ProductPhoto>,
     onAddPhotos: () -> Unit,
-    onRemovePhoto: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onRemovePhoto: (String) -> Unit
 ) {
-    if (photos.isEmpty()) {
-        Column(
-            modifier = modifier,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Smaller hero illustration area  
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .background(
-                        color = extendedColorScheme().primaryTint,
-                        shape = RoundedCornerShape(16.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AddPhotoAlternate,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.primary
+            SectionLabel(
+                text = stringResource(
+                    Res.string.home_photos_header,
+                    photos.size,
+                    HomeUiState.MAX_PHOTOS
                 )
-            }
-            
-            // Title and subtitle
-            Text(
-                text = "Transform your product photos",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 20.sp
-                ),
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center
             )
-
-            Text(
-                text = "Transform your product photos with AI-powered backgrounds",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            
-            // Prominent CTA button
-            Button(
+            Surface(
                 onClick = onAddPhotos,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                shape = RoundedCornerShape(8.dp),
+                color = AppColors.PrimaryGreenTint
             ) {
-                Icon(
-                    imageVector = Icons.Default.AddPhotoAlternate,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(Res.string.home_add_photos),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
-                )
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = AppColors.PrimaryGreen
+                    )
+                    Text(
+                        text = stringResource(Res.string.home_add_more_photos),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = AppColors.PrimaryGreen
+                    )
+                }
             }
         }
-    } else {
-        Column(modifier = modifier) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(Res.string.home_photos_count, photos.size, HomeUiState.MAX_PHOTOS),
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp // Section header size
-                    )
-                )
-                AssistChip(
-                    onClick = onAddPhotos,
-                    label = { Text(stringResource(Res.string.home_add_photos)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
+
+        // Grid - fixed height based on rows needed
+        val rows = (photos.size + 1 + GRID_COLUMNS - 1) / GRID_COLUMNS // +1 for add cell
+        val gridHeight = (rows * PHOTO_CELL_SIZE + (rows - 1) * GRID_SPACING).dp
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(GRID_COLUMNS),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(gridHeight),
+            horizontalArrangement = Arrangement.spacedBy(GRID_SPACING.dp),
+            verticalArrangement = Arrangement.spacedBy(GRID_SPACING.dp),
+            userScrollEnabled = false
+        ) {
+            items(photos, key = { it.id }) { photo ->
+                PhotoCell(
+                    photoUri = photo.localUri,
+                    onRemove = { onRemovePhoto(photo.id) }
                 )
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            LazyRow(
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp), // Better spacing
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                items(photos, key = { it.id }) { photo ->
-                    PhotoChip(
-                        photoUri = photo.localUri,
-                        onRemove = { onRemovePhoto(photo.id) }
-                    )
+            if (photos.size < HomeUiState.MAX_PHOTOS) {
+                item {
+                    AddPhotoCell(onClick = onAddPhotos)
                 }
             }
         }
@@ -406,156 +548,221 @@ private fun PhotoSection(
 }
 
 @Composable
-private fun PhotoChip(
+private fun PhotoCell(
     photoUri: String,
     onRemove: () -> Unit
 ) {
-    StudioSnapCard(
+    Box(
         modifier = Modifier
-            .fillMaxHeight()
             .aspectRatio(1f)
+            .clip(RoundedCornerShape(14.dp))
     ) {
-        Box(
+        AsyncImage(
+            model = photoUri,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        IconButton(
+            onClick = onRemove,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(4.dp) // Inset so delete button isn't clipped
-        ) {
-            AsyncImage(
-                model = photoUri,
-                contentDescription = stringResource(Res.string.home_remove_photo),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(24.dp)
-                    .background(
-                        color = Color.Black.copy(alpha = 0.6f),
-                        shape = CircleShape
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(Res.string.home_remove_photo),
-                    tint = Color.White,
-                    modifier = Modifier.size(14.dp)
+                .align(Alignment.TopEnd)
+                .padding(6.dp)
+                .size(24.dp)
+                .background(
+                    color = Color.Black.copy(alpha = 0.45f),
+                    shape = RoundedCornerShape(6.dp)
                 )
-            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(Res.string.home_remove_photo),
+                tint = Color.White,
+                modifier = Modifier.size(12.dp)
+            )
         }
     }
 }
 
 @Composable
-private fun SelectedStyleSection(
+private fun AddPhotoCell(onClick: () -> Unit) {
+    val dashedColor = Color(0xFFD1D5DB)
+    val pathEffect = remember {
+        PathEffect.dashPathEffect(floatArrayOf(16f, 10f), 0f)
+    }
+
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .drawBehind {
+                drawRoundRect(
+                    color = dashedColor,
+                    cornerRadius = CornerRadius(14.dp.toPx()),
+                    style = Stroke(
+                        width = 2.dp.toPx(),
+                        pathEffect = pathEffect
+                    )
+                )
+            }
+            .background(Color.White, RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
+                tint = Color(0xFF9CA3AF)
+            )
+            Text(
+                text = stringResource(Res.string.home_add_photos).split(" ").first(), // "Add"
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF9CA3AF)
+            )
+        }
+    }
+}
+
+// endregion
+
+// region — Background Style Section
+
+@Composable
+private fun BackgroundStyleSection(
     selectedStyle: Style?,
     onChangeStyle: () -> Unit
 ) {
-    Column {
-        Text(
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionHeaderWithIcon(
             text = stringResource(Res.string.home_background_style),
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp // Section header size
-            )
+            iconContent = {
+                // Image/landscape icon
+                Icon(
+                    imageVector = Icons.Default.Settings, // Placeholder — will be replaced with proper icon
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = AppColors.PrimaryGreen
+                )
+            }
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        StudioSnapCard(
-            modifier = Modifier.fillMaxWidth(),
-            backgroundColor = if (selectedStyle != null) {
-                MaterialTheme.colorScheme.surface
-            } else {
-                extendedColorScheme().primaryTint // Blue tint for unselected
-            },
-            onClick = onChangeStyle
+        Card(
+            onClick = onChangeStyle,
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // Thumbnail placeholder
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(
-                            if (selectedStyle != null) {
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                            } else {
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                            }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
+                // 2x2 swatch grid
+                StyleSwatchGrid()
+
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (selectedStyle != null) "🎨" else "➕",
-                        fontSize = 24.sp
+                        text = if (selectedStyle != null) {
+                            resolveStyleName(selectedStyle.nameKey)
+                        } else {
+                            stringResource(Res.string.home_style_choose)
+                        },
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF111111)
+                    )
+                    Text(
+                        text = if (selectedStyle != null) {
+                            stringResource(Res.string.home_style_tap_to_change)
+                        } else {
+                            stringResource(Res.string.home_style_choose_hint)
+                        },
+                        fontSize = 13.sp,
+                        color = Color(0xFF9CA3AF)
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    if (selectedStyle != null) {
-                        Text(
-                            text = resolveStyleName(selectedStyle.nameKey),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(Res.string.home_style_tap_to_change),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(Res.string.home_style_choose),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Browse 18 professional backgrounds",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                // Chevron arrow
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(AppColors.PrimaryGreenTint, RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("›", fontSize = 18.sp, color = AppColors.PrimaryGreen, fontWeight = FontWeight.Bold)
                 }
-
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
             }
         }
     }
 }
 
 @Composable
-private fun ExportFormatSection(
+private fun StyleSwatchGrid() {
+    val swatches = listOf(
+        Res.drawable.swatch_botanical,
+        Res.drawable.swatch_marble,
+        Res.drawable.swatch_wood,
+        Res.drawable.swatch_dark
+    )
+
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(RoundedCornerShape(12.dp))
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                swatches.take(2).forEach { swatch ->
+                    Image(
+                        painter = painterResource(swatch),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(27.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                swatches.drop(2).forEach { swatch ->
+                    Image(
+                        painter = painterResource(swatch),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(27.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+        }
+    }
+}
+
+// endregion
+
+// region — Export Size Section
+
+@Composable
+private fun ExportSizeSection(
     exportFormat: ExportFormat,
     onExportFormatSelected: (ExportFormat) -> Unit
 ) {
-    Column {
-        Text(
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionHeaderWithIcon(
             text = stringResource(Res.string.home_export_format),
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp // Section header size
-            )
+            iconContent = {
+                // Resize icon (placeholder text)
+                Text("⊞", fontSize = 14.sp, color = AppColors.PrimaryGreen)
+            }
         )
-
-        Spacer(modifier = Modifier.height(12.dp))
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(ExportFormat.entries) { format ->
@@ -579,4 +786,104 @@ private fun exportFormatDisplayName(format: ExportFormat): String {
             ExportFormat.ORIGINAL -> Res.string.home_export_original
         }
     )
+}
+
+// endregion
+
+// region — Bottom Bar
+
+@Composable
+private fun GenerateBottomBar(
+    canGenerate: Boolean,
+    onGenerate: () -> Unit
+) {
+    Surface(
+        color = Color.White,
+        shadowElevation = 8.dp
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(bottom = 16.dp) // Safe area
+        ) {
+            Button(
+                onClick = onGenerate,
+                enabled = canGenerate,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AppColors.PrimaryGreen,
+                    contentColor = Color.White,
+                    disabledContainerColor = Color(0xFFE5E7EB),
+                    disabledContentColor = Color(0xFF9CA3AF)
+                ),
+                elevation = if (canGenerate) {
+                    ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                } else {
+                    ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                }
+            ) {
+                Text("⚡", fontSize = 16.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(Res.string.home_generate_preview),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.2).sp
+                )
+            }
+        }
+    }
+}
+
+// endregion
+
+// region — Shared Components
+
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text = text.uppercase(),
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color(0xFF6B7280),
+        letterSpacing = 0.5.sp
+    )
+}
+
+@Composable
+private fun SectionHeaderWithIcon(
+    text: String,
+    iconContent: @Composable () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .background(AppColors.PrimaryGreenTint, RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            iconContent()
+        }
+        SectionLabel(text = text)
+    }
+}
+
+// endregion
+
+private companion object {
+    const val CONTENT_HORIZONTAL_PADDING = 20
+    const val CONTENT_TOP_PADDING = 16
+    const val CONTENT_BOTTOM_PADDING = 32
+    const val SECTION_SPACING = 28
+    const val HERO_IMAGE_SIZE = 120
+    const val GRID_COLUMNS = 3
+    const val PHOTO_CELL_SIZE = 110
+    const val GRID_SPACING = 10
 }

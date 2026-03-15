@@ -128,7 +128,7 @@ fun OnboardingCarouselScreen() {
                         .alpha(dotAlpha)
                         .clip(CircleShape)
                         .background(
-                            if (isSelected) AppColors.PrimaryBlue 
+                            if (isSelected) AppColors.PrimaryGreen 
                             else AppColors.DarkTextTertiary
                         )
                 )

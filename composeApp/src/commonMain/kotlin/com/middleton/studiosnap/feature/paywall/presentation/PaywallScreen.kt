@@ -208,7 +208,7 @@ private fun PaywallScreenContent(
             // Pack cards
             if (uiState.isLoading && uiState.tokenPacks.isEmpty()) {
                 CircularProgressIndicator(
-                    color = AppColors.PrimaryBlue,
+                    color = AppColors.PrimaryGreen,
                     modifier = Modifier.size(32.dp)
                 )
             } else {
@@ -222,7 +222,7 @@ private fun PaywallScreenContent(
                         PackCard(
                             pack = pack,
                             isSelected = pack == uiState.selectedPack,
-                            accentColor = AppColors.PrimaryBlue,
+                            accentColor = AppColors.PrimaryGreen,
                             onSelect = { onAction(PaywallUiAction.SelectPack(pack)) }
                         )
                     }
@@ -250,8 +250,8 @@ private fun PaywallScreenContent(
                         .height(52.dp),
                     shape = ButtonShape,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.PrimaryBlue,
-                        disabledContainerColor = AppColors.PrimaryBlue.copy(alpha = 0.4f)
+                        containerColor = AppColors.PrimaryGreen,
+                        disabledContainerColor = AppColors.PrimaryGreen.copy(alpha = 0.4f)
                     )
                 ) {
                     if (isBusy) {

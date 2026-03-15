@@ -101,7 +101,7 @@ fun OnboardingBeforeAfterPage(
                 beforeLabel = UiText.StringResource(Res.string.onboarding_before_label),
                 afterLabel = UiText.StringResource(Res.string.onboarding_after_label),
                 beforeColor = AppColors.DarkTextTertiary,
-                afterColor = AppColors.PrimaryBlue,
+                afterColor = AppColors.PrimaryGreen,
                 beforeImage = Res.drawable.onboarding_before,
                 afterImage = Res.drawable.onboarding_after_studio,
                 modifier = Modifier
@@ -134,7 +134,7 @@ fun OnboardingBeforeAfterPage(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
-                color = AppColors.PrimaryBlue
+                color = AppColors.PrimaryGreen
             )
         }
     }

@@ -164,7 +164,7 @@ fun OnboardingStyleShowcasePage(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
-                color = AppColors.PrimaryBlue
+                color = AppColors.PrimaryGreen
             )
         }
     }

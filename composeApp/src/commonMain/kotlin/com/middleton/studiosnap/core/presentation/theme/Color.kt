@@ -7,8 +7,10 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 object AppColors {
-    // Core Palette - Primary Accent
-    val PrimaryBlue = Color(0xFF0066FF)
+    // Core Palette - Primary Green
+    val PrimaryGreen = Color(0xFF10B981)
+    val PrimaryGreenDark = Color(0xFF059669)
+    val PrimaryGreenTint = Color(0xFFF0FDF4)
     
     // Status Colors
     val Success = Color(0xFF00B894)
@@ -16,76 +18,53 @@ object AppColors {
     val WarningDark = Color(0xFFFDCB6E) // Dark mode warning
     val Error = Color(0xFFE74C3C)
     
-    // Light Mode - Premium polish colors
-    val LightBackground = Color(0xFFFAFAFA) // Warmer background
-    val LightSurface = Color(0xFFFFFFFF) // Cards float on the warmer background
+    // Light Mode
+    val LightBackground = Color(0xFFF5F5F7)
+    val LightSurface = Color(0xFFF5F5F7)
     val LightSurfaceElevated = Color(0xFFFFFFFF)
-    val LightTextPrimary = Color(0xFF111111) // Softer black
-    val LightTextSecondary = Color(0xFF6B7280) // Better contrast
-    val LightTextTertiary = Color(0xFF9CA3AF)
-    val LightBorder = Color(0xFFE5E7EB)
-    val LightDivider = Color(0xFFE5E7EB)
+    val LightTextPrimary = Color(0xFF1A1A1A)
+    val LightTextSecondary = Color(0xFF666666)
+    val LightTextTertiary = Color(0xFF999999)
+    val LightBorder = Color.Black.copy(alpha = 0.08f)
     
-    // Dark Mode - Brighter blue for dark backgrounds
-    val DarkPrimaryBlue = Color(0xFF3B82F6) // Brighter blue for dark backgrounds
-    val DarkBackground = Color(0xFF111111)
-    val DarkSurface = Color(0xFF1E1E1E)
+    // Dark Mode
+    val DarkBackground = Color(0xFF1A1A1A)
+    val DarkSurface = Color(0xFF242424)
     val DarkSurfaceElevated = Color(0xFF2E2E2E)
-    val DarkTextPrimary = Color(0xFFF9FAFB)
-    val DarkTextSecondary = Color(0xFF9CA3AF)
-    val DarkTextTertiary = Color(0xFF6B7280)
-    val DarkBorder = Color.White.copy(alpha = 0.08f)
-    val DarkDivider = Color.White.copy(alpha = 0.08f)
-    
-    // Special tints and shadows
-    val PrimaryTint = PrimaryBlue.copy(alpha = 0.08f) // For card backgrounds
-    val CardShadow = Color.Black.copy(alpha = 0.08f) // For shadows
-    
-    // Export chip colors
-    val LightUnselectedChip = Color(0xFFF0F0F0)
-    val DarkUnselectedChip = Color(0xFF2E2E2E)
+    val DarkTextPrimary = Color(0xFFFFFFFF)
+    val DarkTextSecondary = Color(0xFFA0A0A0)
+    val DarkTextTertiary = Color(0xFF666666)
+    val DarkBorder = Color.White.copy(alpha = 0.1f)
 }
 
 data class ExtendedColorScheme(
     val success: Color,
     val warning: Color,
-    val border: Color,
-    val divider: Color,
-    val primaryTint: Color,
-    val cardShadow: Color,
-    val unselectedChip: Color
+    val border: Color
 )
 
 val extendedLight = ExtendedColorScheme(
     success = AppColors.Success,
     warning = AppColors.Warning,
-    border = AppColors.LightBorder,
-    divider = AppColors.LightDivider,
-    primaryTint = AppColors.PrimaryTint,
-    cardShadow = AppColors.CardShadow,
-    unselectedChip = AppColors.LightUnselectedChip
+    border = AppColors.LightBorder
 )
 
 val extendedDark = ExtendedColorScheme(
     success = AppColors.Success,
     warning = AppColors.WarningDark,
-    border = AppColors.DarkBorder,
-    divider = AppColors.DarkDivider,
-    primaryTint = AppColors.DarkPrimaryBlue.copy(alpha = 0.08f),
-    cardShadow = Color.Transparent, // No shadows in dark mode
-    unselectedChip = AppColors.DarkUnselectedChip
+    border = AppColors.DarkBorder
 )
 
 val lightScheme = lightColorScheme(
-    primary = AppColors.PrimaryBlue,
+    primary = AppColors.PrimaryGreen,
     onPrimary = Color.White,
-    primaryContainer = AppColors.PrimaryTint,
-    onPrimaryContainer = AppColors.PrimaryBlue,
-    secondary = AppColors.PrimaryBlue,
+    primaryContainer = AppColors.PrimaryGreen.copy(alpha = 0.1f),
+    onPrimaryContainer = AppColors.PrimaryGreen,
+    secondary = AppColors.PrimaryGreen,
     onSecondary = Color.White,
-    secondaryContainer = AppColors.PrimaryBlue.copy(alpha = 0.1f),
-    onSecondaryContainer = AppColors.PrimaryBlue,
-    tertiary = AppColors.PrimaryBlue,
+    secondaryContainer = AppColors.PrimaryGreen.copy(alpha = 0.1f),
+    onSecondaryContainer = AppColors.PrimaryGreen,
+    tertiary = AppColors.PrimaryGreen,
     onTertiary = Color.White,
     error = AppColors.Error,
     onError = Color.White,
@@ -95,20 +74,19 @@ val lightScheme = lightColorScheme(
     onSurface = AppColors.LightTextPrimary,
     surfaceVariant = AppColors.LightSurface,
     onSurfaceVariant = AppColors.LightTextSecondary,
-    outline = AppColors.LightBorder,
-    outlineVariant = AppColors.LightDivider
+    outline = AppColors.LightBorder
 )
 
 val darkScheme = darkColorScheme(
-    primary = AppColors.DarkPrimaryBlue,
+    primary = AppColors.PrimaryGreen,
     onPrimary = Color.White,
-    primaryContainer = AppColors.DarkPrimaryBlue.copy(alpha = 0.2f),
-    onPrimaryContainer = AppColors.DarkPrimaryBlue.copy(alpha = 0.9f),
-    secondary = AppColors.DarkPrimaryBlue,
+    primaryContainer = AppColors.PrimaryGreen.copy(alpha = 0.2f),
+    onPrimaryContainer = AppColors.PrimaryGreen.copy(alpha = 0.9f),
+    secondary = AppColors.PrimaryGreen,
     onSecondary = Color.White,
-    secondaryContainer = AppColors.DarkPrimaryBlue.copy(alpha = 0.2f),
-    onSecondaryContainer = AppColors.DarkPrimaryBlue.copy(alpha = 0.9f),
-    tertiary = AppColors.DarkPrimaryBlue,
+    secondaryContainer = AppColors.PrimaryGreen.copy(alpha = 0.2f),
+    onSecondaryContainer = AppColors.PrimaryGreen.copy(alpha = 0.9f),
+    tertiary = AppColors.PrimaryGreen,
     onTertiary = Color.White,
     error = AppColors.Error,
     onError = Color.White,
@@ -118,8 +96,7 @@ val darkScheme = darkColorScheme(
     onSurface = AppColors.DarkTextPrimary,
     surfaceVariant = AppColors.DarkSurfaceElevated,
     onSurfaceVariant = AppColors.DarkTextSecondary,
-    outline = AppColors.DarkBorder,
-    outlineVariant = AppColors.DarkDivider
+    outline = AppColors.DarkBorder
 )
 
 val LocalExtendedColorScheme = staticCompositionLocalOf { extendedLight }

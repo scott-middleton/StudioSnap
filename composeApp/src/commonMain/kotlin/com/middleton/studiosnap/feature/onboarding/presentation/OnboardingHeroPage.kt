@@ -105,7 +105,7 @@ fun OnboardingHeroPage(
                 .height(44.dp),
             shape = ButtonShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.PrimaryBlue
+                containerColor = AppColors.PrimaryGreen
             )
         ) {
             Text(
