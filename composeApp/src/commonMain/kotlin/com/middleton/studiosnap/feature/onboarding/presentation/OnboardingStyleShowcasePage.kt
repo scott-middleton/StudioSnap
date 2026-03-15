@@ -206,7 +206,8 @@ private fun AnimatedStyleCard(
         shape = CardShape,
         colors = CardDefaults.cardColors(
             containerColor = Color.Black.copy(alpha = 0.3f)
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column {
             Image(

@@ -19,10 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,9 +42,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.theme.AppColors
-import com.middleton.studiosnap.core.presentation.theme.LocalExtendedColorScheme
 import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.benefit_ai_subtitle
@@ -56,6 +59,11 @@ import studiosnap.composeapp.generated.resources.benefit_free_trial_title
 import studiosnap.composeapp.generated.resources.benefit_no_subscriptions_subtitle
 import studiosnap.composeapp.generated.resources.benefit_no_subscriptions_title
 import studiosnap.composeapp.generated.resources.get_started_button
+import studiosnap.composeapp.generated.resources.ic_bolt
+import studiosnap.composeapp.generated.resources.ic_box
+import studiosnap.composeapp.generated.resources.ic_brain
+import studiosnap.composeapp.generated.resources.ic_cart
+import studiosnap.composeapp.generated.resources.ic_gift
 import studiosnap.composeapp.generated.resources.onboarding_value_headline
 import studiosnap.composeapp.generated.resources.onboarding_value_subheadline
 
@@ -66,33 +74,35 @@ private val ButtonShape = RoundedCornerShape(20.dp)
 fun OnboardingValuePage(
     onGetStarted: () -> Unit
 ) {
-    val extendedColors = LocalExtendedColorScheme.current
-
-    data class Benefit(val emoji: String, val title: String, val subtitle: String)
+    data class Benefit(
+        val icon: DrawableResource,
+        val title: String,
+        val subtitle: String
+    )
 
     val benefits = listOf(
         Benefit(
-            emoji = "🎁",
+            icon = Res.drawable.ic_gift,
             title = stringResource(Res.string.benefit_free_trial_title),
             subtitle = stringResource(Res.string.benefit_free_trial_subtitle)
         ),
         Benefit(
-            emoji = "⚡",
+            icon = Res.drawable.ic_bolt,
             title = stringResource(Res.string.benefit_no_subscriptions_title),
             subtitle = stringResource(Res.string.benefit_no_subscriptions_subtitle)
         ),
         Benefit(
-            emoji = "🧠",
+            icon = Res.drawable.ic_brain,
             title = stringResource(Res.string.benefit_ai_title),
             subtitle = stringResource(Res.string.benefit_ai_subtitle)
         ),
         Benefit(
-            emoji = "📦",
+            icon = Res.drawable.ic_box,
             title = stringResource(Res.string.benefit_batch_title),
             subtitle = stringResource(Res.string.benefit_batch_subtitle)
         ),
         Benefit(
-            emoji = "🛒",
+            icon = Res.drawable.ic_cart,
             title = stringResource(Res.string.benefit_export_title),
             subtitle = stringResource(Res.string.benefit_export_subtitle)
         )
@@ -138,7 +148,7 @@ fun OnboardingValuePage(
             ) {
                 benefits.forEachIndexed { index, benefit ->
                     AnimatedBenefitItem(
-                        emoji = benefit.emoji,
+                        icon = benefit.icon,
                         title = benefit.title,
                         subtitle = benefit.subtitle,
                         index = index,
@@ -177,21 +187,21 @@ fun OnboardingValuePage(
 
 @Composable
 private fun AnimatedBenefitItem(
-    emoji: String,
+    icon: DrawableResource,
     title: String,
     subtitle: String,
     index: Int,
     isVisible: Boolean
 ) {
     var animationTriggered by remember { mutableStateOf(false) }
-    var emojiAnimationTriggered by remember { mutableStateOf(false) }
+    var iconAnimationTriggered by remember { mutableStateOf(false) }
 
     LaunchedEffect(isVisible) {
         if (isVisible) {
             delay(index * 150L)
             animationTriggered = true
             delay(200L)
-            emojiAnimationTriggered = true
+            iconAnimationTriggered = true
         }
     }
 
@@ -210,13 +220,13 @@ private fun AnimatedBenefitItem(
         label = "opacity_$index"
     )
 
-    val emojiScale by animateFloatAsState(
-        targetValue = if (emojiAnimationTriggered) 1f else 0f,
+    val iconScale by animateFloatAsState(
+        targetValue = if (iconAnimationTriggered) 1f else 0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
         ),
-        label = "emoji_$index"
+        label = "icon_$index"
     )
 
     Row(
@@ -232,10 +242,13 @@ private fun AnimatedBenefitItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text(
-            text = emoji,
-            fontSize = 26.sp,
-            modifier = Modifier.scale(emojiScale)
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            modifier = Modifier
+                .size(26.dp)
+                .scale(iconScale),
+            tint = AppColors.PrimaryGreen
         )
 
         Column(modifier = Modifier.weight(1f)) {

@@ -20,18 +20,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.app_logo
 import studiosnap.composeapp.generated.resources.logo
@@ -41,7 +41,6 @@ import studiosnap.composeapp.generated.resources.onboarding_hero_subheadline
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-// Pre-allocated shapes
 private val LogoShape = RoundedCornerShape(24.dp)
 private val ButtonShape = RoundedCornerShape(20.dp)
 
@@ -49,9 +48,16 @@ private val ButtonShape = RoundedCornerShape(20.dp)
 fun OnboardingHeroPage(
     onNext: () -> Unit
 ) {
+    val logoBgBrush = remember {
+        Brush.linearGradient(
+            colors = listOf(
+                Color.Gray.copy(alpha = 0.3f),
+                Color.White.copy(alpha = 0.2f)
+            )
+        )
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Static content — Column instead of LazyColumn (no scrolling needed)
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -63,7 +69,7 @@ fun OnboardingHeroPage(
                 modifier = Modifier
                     .size(200.dp)
                     .clip(LogoShape)
-                    .background(Color.White),
+                    .background(logoBgBrush),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -77,10 +83,8 @@ fun OnboardingHeroPage(
 
             Text(
                 text = stringResource(Res.string.onboarding_hero_headline),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = AppColors.DarkTextPrimary,
+                style = studioSnapTextStyles().onboardingHeadline,
+                color = Color.White,
                 textAlign = TextAlign.Center
             )
 
@@ -88,13 +92,12 @@ fun OnboardingHeroPage(
 
             Text(
                 text = stringResource(Res.string.onboarding_hero_subheadline),
-                style = MaterialTheme.typography.bodyLarge,
-                color = AppColors.DarkTextSecondary,
+                style = studioSnapTextStyles().onboardingSubheadline,
+                color = Color.White.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
         }
 
-        // High-contrast button
         Button(
             onClick = onNext,
             modifier = Modifier
@@ -105,16 +108,18 @@ fun OnboardingHeroPage(
                 .height(44.dp),
             shape = ButtonShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.PrimaryGreen
-            )
+                containerColor = Color.White
+            ),
+            contentPadding = PaddingValues(),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
         ) {
             Text(
                 text = stringResource(Res.string.next_button),
-                style = MaterialTheme.typography.titleMedium.copy(
+                style = studioSnapTextStyles().buttonText.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
-                color = Color.White
+                color = AppColors.PrimaryGreen
             )
         }
     }

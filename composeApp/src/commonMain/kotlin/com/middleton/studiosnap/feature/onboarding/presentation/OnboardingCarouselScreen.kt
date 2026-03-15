@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.middleton.studiosnap.core.presentation.navigation.NavigationHandler
@@ -77,7 +78,16 @@ fun OnboardingCarouselScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.DarkBackground)
+            .background(
+                Brush.radialGradient(
+                    colors = listOf(
+                        AppColors.SplashLightGreen,
+                        AppColors.SplashMidGreen,
+                        AppColors.SplashDarkGreen
+                    ),
+                    radius = 900f
+                )
+            )
     ) {
         HorizontalPager(
             state = pagerState,
