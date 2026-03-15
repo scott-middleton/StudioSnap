@@ -27,6 +27,11 @@ object AppColors {
     val LightTextTertiary = Color(0xFF999999)
     val LightBorder = Color.Black.copy(alpha = 0.08f)
     
+    // Splash / Brand Background
+    val SplashDarkGreen = Color(0xFF030E0A)
+    val SplashMidGreen = Color(0xFF081F16)
+    val SplashLightGreen = Color(0xFF0F3328)
+
     // Dark Mode
     val DarkBackground = Color(0xFF1A1A1A)
     val DarkSurface = Color(0xFF242424)

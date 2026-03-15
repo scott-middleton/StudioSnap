@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -47,7 +48,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.navigation.NavigationHandler
-import androidx.compose.material3.MaterialTheme
 import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.feature.splash.presentation.viewmodel.SplashViewModel
 import studiosnap.composeapp.generated.resources.Res
@@ -63,9 +63,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.cos
 import kotlin.math.sin
 
-// Pre-allocated shapes — avoid allocation during composition
+// Pre-allocated shapes
 private val LogoCardShape = RoundedCornerShape(28.dp)
-private val LogoGlowShape = CircleShape
 private val DotShape = CircleShape
 
 // Pre-computed sparkle layout data (relative to logo center)
@@ -86,8 +85,8 @@ private val InnerSparkles: List<SparkleLayout> = List(10) { index ->
 }
 
 private data class OuterSparkleLayout(
-    val baseX: Float, // -0.5..0.5 normalized
-    val baseY: Float, // -0.5..0.5 normalized
+    val baseX: Float,
+    val baseY: Float,
     val rotationSpeed: Float,
     val size: Float
 )
@@ -169,15 +168,24 @@ fun SplashScreen() {
         label = "sparkle_rotation"
     )
 
+    // Pulsing green glow behind the logo
+    val glowBrush = remember(glowIntensity) {
+        Brush.radialGradient(
+            colors = listOf(
+                AppColors.PrimaryGreen.copy(alpha = glowIntensity),
+                Color.Transparent
+            )
+        )
+    }
+
     val progressValue = animationProgress.value
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors.DarkBackground)
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Combined background + sparkles in a single Canvas (avoid stacking two)
+        // Background: swipe-to-reveal from grey to branded green + sparkles
         Canvas(modifier = Modifier.fillMaxSize()) {
+            drawBrandRevealBackground(progressValue)
             drawPhotoSparkles(progressValue, sparkleRotation)
         }
 
@@ -188,30 +196,43 @@ fun SplashScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Card(
-                modifier = Modifier
-                    .size(120.dp)
-                    .scale(logoScale)
-                    .semantics { contentDescription = "App Logo" },
-                shape = LogoCardShape,
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
-            ) {
+            Box(contentAlignment = Alignment.Center) {
+                // Glow — blurred green pulse behind logo
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier
+                        .size(160.dp)
+                        .scale(logoScale)
+                        .drawBehind {
+                            drawCircle(brush = glowBrush)
+                        }
+                        .blur(20.dp)
+                )
+
+                Card(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .scale(logoScale)
+                        .semantics { contentDescription = "App Logo" },
+                    shape = LogoCardShape,
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White.copy(alpha = 0.98f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
                 ) {
-                    val colorMatrix = remember(progressValue) {
-                        ColorMatrix().apply { setToSaturation(progressValue) }
-                    }
-                    Image(
-                        painter = painterResource(Res.drawable.logo),
-                        contentDescription = stringResource(Res.string.app_logo),
+                    Box(
                         modifier = Modifier.fillMaxSize(),
-                        colorFilter = ColorFilter.colorMatrix(colorMatrix)
-                    )
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val colorMatrix = remember(progressValue) {
+                            ColorMatrix().apply { setToSaturation(progressValue) }
+                        }
+                        Image(
+                            painter = painterResource(Res.drawable.logo),
+                            contentDescription = stringResource(Res.string.app_logo),
+                            modifier = Modifier.fillMaxSize(),
+                            colorFilter = ColorFilter.colorMatrix(colorMatrix)
+                        )
+                    }
                 }
             }
 
@@ -219,21 +240,26 @@ fun SplashScreen() {
 
             Text(
                 text = stringResource(Res.string.app_name),
-                style = MaterialTheme.typography.displaySmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                ),
-                color = AppColors.DarkTextPrimary
+                fontSize = 36.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 1.sp,
+                color = Color.White,
+                style = androidx.compose.ui.text.TextStyle(
+                    shadow = Shadow(
+                        color = Color.Black.copy(alpha = 0.5f),
+                        offset = androidx.compose.ui.geometry.Offset(2f, 2f),
+                        blurRadius = 4f
+                    )
+                )
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = stringResource(Res.string.app_tagline),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    letterSpacing = 0.8.sp
-                ),
-                color = AppColors.DarkTextSecondary
+                fontSize = 14.sp,
+                letterSpacing = 0.8.sp,
+                color = Color.White.copy(alpha = 0.9f)
             )
 
             Spacer(modifier = Modifier.height(64.dp))
@@ -270,7 +296,7 @@ private fun AnimatedLoadingDots(
                     .size(8.dp)
                     .scale(dotScale)
                     .background(
-                        color = AppColors.PrimaryGreen,
+                        color = Color.White.copy(alpha = 0.9f),
                         shape = DotShape
                     )
             )
@@ -278,9 +304,52 @@ private fun AnimatedLoadingDots(
     }
 }
 
-// --- Draw-scope functions (no allocations per frame) ---
+// --- Draw-scope functions ---
 
 private val DegToRad = (kotlin.math.PI / 180.0).toFloat()
+
+/**
+ * Swipe-to-reveal background: grey sweeps to branded dark green.
+ * Matches the Restorer AI pattern but with StudioSnap brand colours.
+ */
+private fun DrawScope.drawBrandRevealBackground(animationProgress: Float) {
+    val sweepPosition = size.width * (1f - animationProgress)
+
+    // "Before" side — muted grey
+    drawRect(
+        brush = Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFF9E9E9E),
+                Color(0xFF616161),
+                Color(0xFF424242)
+            )
+        )
+    )
+
+    // "After" side — branded dark green (app icon colours)
+    if (sweepPosition < size.width) {
+        drawRect(
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    AppColors.SplashLightGreen,
+                    AppColors.SplashMidGreen,
+                    AppColors.SplashDarkGreen
+                )
+            ),
+            topLeft = androidx.compose.ui.geometry.Offset(sweepPosition, 0f),
+            size = androidx.compose.ui.geometry.Size(size.width - sweepPosition, size.height)
+        )
+    }
+
+    // Sweep line — white glow at the boundary
+    drawRect(
+        brush = Brush.horizontalGradient(
+            colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.6f), Color.Transparent),
+            startX = sweepPosition - 30f,
+            endX = sweepPosition + 30f
+        )
+    )
+}
 
 private fun DrawScope.drawPhotoSparkles(
     animationProgress: Float,
@@ -288,7 +357,7 @@ private fun DrawScope.drawPhotoSparkles(
 ) {
     val logoX = size.width / 2f
     val logoY = size.height * 0.38f
-    val sparkleColor = AppColors.PrimaryGreen
+    val sparkleColor = Color.White
 
     // Inner sparkles (orbit around logo)
     InnerSparkles.forEach { sparkle ->
