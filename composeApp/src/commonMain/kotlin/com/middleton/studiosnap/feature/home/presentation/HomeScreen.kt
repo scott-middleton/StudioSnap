@@ -58,6 +58,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
@@ -95,7 +96,6 @@ import studiosnap.composeapp.generated.resources.hero_before
 import studiosnap.composeapp.generated.resources.home_add_photos
 import studiosnap.composeapp.generated.resources.home_add_more_photos
 import studiosnap.composeapp.generated.resources.home_background_style
-import studiosnap.composeapp.generated.resources.home_empty_title
 import studiosnap.composeapp.generated.resources.home_error_generation_failed
 import studiosnap.composeapp.generated.resources.home_error_too_many_photos
 import studiosnap.composeapp.generated.resources.home_export_ebay
@@ -368,43 +368,30 @@ private fun EmptyStateHero(onAddPhotos: () -> Unit, modifier: Modifier = Modifie
                 )
             }
             .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
-            .padding(horizontal = 24.dp, vertical = 32.dp),
+            .clickable(onClick = onAddPhotos)
+            .padding(horizontal = 24.dp, vertical = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Before/After showcase
         BeforeAfterShowcase()
 
-        Text(
-            text = stringResource(Res.string.home_empty_title),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = (-0.3).sp,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
-        )
-
-        // Add Photos button
-        Button(
-            onClick = onAddPhotos,
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.PrimaryGreen,
-                contentColor = Color.White
-            ),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+        // Compact CTA — the whole card is tappable
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(14.dp),
+                tint = AppColors.PrimaryGreen
             )
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = stringResource(Res.string.home_add_photos),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors.PrimaryGreen
             )
         }
     }
@@ -412,13 +399,17 @@ private fun EmptyStateHero(onAddPhotos: () -> Unit, modifier: Modifier = Modifie
 
 @Composable
 private fun BeforeAfterShowcase() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxWidth()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Before frame
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Images row — bolt centers vertically with images only
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // Before image
             Image(
                 painter = painterResource(Res.drawable.hero_before),
                 contentDescription = stringResource(Res.string.home_before_label),
@@ -429,44 +420,55 @@ private fun BeforeAfterShowcase() {
                 contentScale = ContentScale.Crop,
                 alpha = 0.85f
             )
-            Spacer(modifier = Modifier.height(6.dp))
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Lightning bolt circle — centered with images
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(AppColors.PrimaryGreen, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_bolt),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // After image — slightly zoomed in so product fills the frame more
+            Box(
+                modifier = Modifier
+                    .size(HERO_IMAGE_SIZE.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(16.dp))
+            ) {
+                Image(
+                    painter = painterResource(Res.drawable.hero_after),
+                    contentDescription = stringResource(Res.string.home_after_label),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(scaleX = 1.15f, scaleY = 1.15f),
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
+
+        // Labels row below
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             ImageLabel(
                 text = stringResource(Res.string.home_before_label),
                 backgroundColor = Color.Black.copy(alpha = 0.5f)
             )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // Lightning bolt circle
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .background(AppColors.PrimaryGreen, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_bolt),
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = Color.White
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // After frame
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(
-                painter = painterResource(Res.drawable.hero_after),
-                contentDescription = stringResource(Res.string.home_after_label),
-                modifier = Modifier
-                    .size(HERO_IMAGE_SIZE.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.width(56.dp)) // bolt width + spacers
             ImageLabel(
                 text = stringResource(Res.string.home_after_label),
                 backgroundColor = AppColors.PrimaryGreen.copy(alpha = 0.85f)
