@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -58,7 +57,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
@@ -91,8 +89,7 @@ import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.content_credits
 import studiosnap.composeapp.generated.resources.content_history
 import studiosnap.composeapp.generated.resources.content_settings
-import studiosnap.composeapp.generated.resources.hero_after
-import studiosnap.composeapp.generated.resources.hero_before
+// hero_before/hero_after removed — reserved for onboarding
 import studiosnap.composeapp.generated.resources.home_add_photos
 import studiosnap.composeapp.generated.resources.home_add_more_photos
 import studiosnap.composeapp.generated.resources.home_background_style
@@ -110,14 +107,14 @@ import studiosnap.composeapp.generated.resources.home_style_choose
 import studiosnap.composeapp.generated.resources.home_style_choose_hint
 import studiosnap.composeapp.generated.resources.home_style_tap_to_change
 import studiosnap.composeapp.generated.resources.home_title
-import studiosnap.composeapp.generated.resources.home_before_label
-import studiosnap.composeapp.generated.resources.home_after_label
+// home_before_label/home_after_label removed — reserved for onboarding
 import studiosnap.composeapp.generated.resources.swatch_botanical
 import studiosnap.composeapp.generated.resources.swatch_dark
 import studiosnap.composeapp.generated.resources.swatch_marble
 import studiosnap.composeapp.generated.resources.swatch_wood
 import studiosnap.composeapp.generated.resources.home_add_label
 import studiosnap.composeapp.generated.resources.ic_bolt
+import studiosnap.composeapp.generated.resources.ic_transform_photos
 import studiosnap.composeapp.generated.resources.ic_diamond
 import studiosnap.composeapp.generated.resources.ic_chevron_right
 import studiosnap.composeapp.generated.resources.ic_aspect_ratio
@@ -373,8 +370,13 @@ private fun EmptyStateHero(onAddPhotos: () -> Unit, modifier: Modifier = Modifie
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Before/After showcase
-        BeforeAfterShowcase()
+        // Transform icon — two overlapping cards with bolt
+        Image(
+            painter = painterResource(Res.drawable.ic_transform_photos),
+            contentDescription = null,
+            modifier = Modifier.size(140.dp, 110.dp),
+            contentScale = ContentScale.Fit
+        )
 
         // Compact CTA — the whole card is tappable
         Row(
@@ -397,103 +399,7 @@ private fun EmptyStateHero(onAddPhotos: () -> Unit, modifier: Modifier = Modifie
     }
 }
 
-@Composable
-private fun BeforeAfterShowcase() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        // Images row — bolt centers vertically with images only
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // Before image
-            Image(
-                painter = painterResource(Res.drawable.hero_before),
-                contentDescription = stringResource(Res.string.home_before_label),
-                modifier = Modifier
-                    .size(HERO_IMAGE_SIZE.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop,
-                alpha = 0.85f
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // Lightning bolt circle — centered with images
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(AppColors.PrimaryGreen, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_bolt),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // After image — slightly zoomed in so product fills the frame more
-            Box(
-                modifier = Modifier
-                    .size(HERO_IMAGE_SIZE.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(16.dp))
-            ) {
-                Image(
-                    painter = painterResource(Res.drawable.hero_after),
-                    contentDescription = stringResource(Res.string.home_after_label),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer(scaleX = 1.15f, scaleY = 1.15f),
-                    contentScale = ContentScale.Crop
-                )
-            }
-        }
-
-        // Labels row below
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ImageLabel(
-                text = stringResource(Res.string.home_before_label),
-                backgroundColor = Color.Black.copy(alpha = 0.5f)
-            )
-            Spacer(modifier = Modifier.width(56.dp)) // bolt width + spacers
-            ImageLabel(
-                text = stringResource(Res.string.home_after_label),
-                backgroundColor = AppColors.PrimaryGreen.copy(alpha = 0.85f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun ImageLabel(
-    text: String,
-    backgroundColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Text(
-        text = text.uppercase(),
-        color = Color.White,
-        fontSize = 10.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 0.5.sp,
-        modifier = modifier
-            .background(backgroundColor, RoundedCornerShape(4.dp))
-            .padding(horizontal = 8.dp, vertical = 3.dp)
-    )
-}
+// BeforeAfterShowcase + ImageLabel removed — before/after reserved for onboarding
 
 // endregion
 
@@ -970,5 +876,4 @@ private const val CONTENT_HORIZONTAL_PADDING = 20
 private const val CONTENT_TOP_PADDING = 16
 private const val CONTENT_BOTTOM_PADDING = 32
 private const val SECTION_SPACING = 28
-private const val HERO_IMAGE_SIZE = 120
 private const val PHOTO_CELL_SIZE = 100
