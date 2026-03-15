@@ -2,8 +2,13 @@ package com.middleton.studiosnap.feature.home.presentation
 
 import androidx.compose.runtime.Composable
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.stringResource
 import studiosnap.composeapp.generated.resources.Res
+import studiosnap.composeapp.generated.resources.swatch_botanical
+import studiosnap.composeapp.generated.resources.swatch_dark
+import studiosnap.composeapp.generated.resources.swatch_marble
+import studiosnap.composeapp.generated.resources.swatch_wood
 import studiosnap.composeapp.generated.resources.category_all
 import studiosnap.composeapp.generated.resources.category_clothing
 import studiosnap.composeapp.generated.resources.category_cosmetics
@@ -57,6 +62,20 @@ internal fun resolveStyleName(nameKey: String): String {
         "style_neon_pop" -> stringResource(Res.string.style_neon_pop)
         else -> nameKey.removePrefix("style_").replace("_", " ")
             .replaceFirstChar { it.uppercase() }
+    }
+}
+
+/**
+ * Resolves a style's thumbnailResName to its DrawableResource.
+ * Returns null if no matching drawable exists (fallback handled by caller).
+ */
+internal fun resolveStyleThumbnail(thumbnailResName: String): DrawableResource? {
+    return when (thumbnailResName) {
+        "swatch_botanical" -> Res.drawable.swatch_botanical
+        "swatch_marble" -> Res.drawable.swatch_marble
+        "swatch_wood" -> Res.drawable.swatch_wood
+        "swatch_dark" -> Res.drawable.swatch_dark
+        else -> null
     }
 }
 

@@ -418,23 +418,21 @@ private fun BeforeAfterShowcase() {
         modifier = Modifier.fillMaxWidth()
     ) {
         // Before frame
-        Box(modifier = Modifier.size(HERO_IMAGE_SIZE.dp)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(Res.drawable.hero_before),
                 contentDescription = stringResource(Res.string.home_before_label),
                 modifier = Modifier
-                    .fillMaxSize()
+                    .size(HERO_IMAGE_SIZE.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)),
                 contentScale = ContentScale.Crop,
                 alpha = 0.85f
             )
+            Spacer(modifier = Modifier.height(6.dp))
             ImageLabel(
                 text = stringResource(Res.string.home_before_label),
-                backgroundColor = Color.Black.copy(alpha = 0.5f),
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 6.dp)
+                backgroundColor = Color.Black.copy(alpha = 0.5f)
             )
         }
 
@@ -444,8 +442,7 @@ private fun BeforeAfterShowcase() {
         Box(
             modifier = Modifier
                 .size(32.dp)
-                .background(AppColors.PrimaryGreen, CircleShape)
-                .shadow(4.dp, CircleShape, ambientColor = AppColors.PrimaryGreen),
+                .background(AppColors.PrimaryGreen, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -459,22 +456,20 @@ private fun BeforeAfterShowcase() {
         Spacer(modifier = Modifier.width(12.dp))
 
         // After frame
-        Box(modifier = Modifier.size(HERO_IMAGE_SIZE.dp)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(Res.drawable.hero_after),
                 contentDescription = stringResource(Res.string.home_after_label),
                 modifier = Modifier
-                    .fillMaxSize()
+                    .size(HERO_IMAGE_SIZE.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(16.dp)),
                 contentScale = ContentScale.Crop
             )
+            Spacer(modifier = Modifier.height(6.dp))
             ImageLabel(
                 text = stringResource(Res.string.home_after_label),
-                backgroundColor = AppColors.PrimaryGreen.copy(alpha = 0.85f),
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 6.dp)
+                backgroundColor = AppColors.PrimaryGreen.copy(alpha = 0.85f)
             )
         }
     }
@@ -695,8 +690,12 @@ private fun BackgroundStyleSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // 2x2 swatch grid
-                StyleSwatchGrid()
+                // Show selected style thumbnail or 2x2 swatch grid
+                if (selectedStyle != null) {
+                    SelectedStyleThumbnail(style = selectedStyle)
+                } else {
+                    StyleSwatchGrid()
+                }
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -781,6 +780,38 @@ private fun StyleSwatchGrid() {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SelectedStyleThumbnail(style: Style) {
+    val thumbnailRes = resolveStyleThumbnail(style.thumbnailResName)
+    if (thumbnailRes != null) {
+        Image(
+            painter = painterResource(thumbnailRes),
+            contentDescription = resolveStyleName(style.nameKey),
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        // Fallback — green box with palette icon
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .background(AppColors.PrimaryGreen.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                .border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(Res.drawable.ic_palette),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = AppColors.PrimaryGreen
+            )
         }
     }
 }
