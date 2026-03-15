@@ -7,7 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 
 @Composable
 fun StudioSnapTheme(
-    darkTheme: Boolean = true,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) darkScheme else lightScheme
