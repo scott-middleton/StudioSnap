@@ -168,17 +168,18 @@ fun SplashScreen() {
         label = "sparkle_rotation"
     )
 
-    // Pulsing green glow behind the logo
-    val glowBrush = remember(glowIntensity) {
+    val progressValue = animationProgress.value
+
+    // Pulsing glow behind the logo — only shows green after reveal completes
+    val glowAlpha = glowIntensity * progressValue
+    val glowBrush = remember(glowAlpha) {
         Brush.radialGradient(
             colors = listOf(
-                AppColors.PrimaryGreen.copy(alpha = glowIntensity),
+                AppColors.PrimaryGreen.copy(alpha = glowAlpha),
                 Color.Transparent
             )
         )
     }
-
-    val progressValue = animationProgress.value
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -238,15 +239,26 @@ fun SplashScreen() {
 
             Spacer(modifier = Modifier.height(48.dp))
 
+            val titleColor = androidx.compose.ui.graphics.lerp(
+                Color(0xFF888888),
+                Color.White,
+                progressValue
+            )
+            val taglineColor = androidx.compose.ui.graphics.lerp(
+                Color(0xFF555555),
+                Color.White.copy(alpha = 0.9f),
+                progressValue
+            )
+
             Text(
                 text = stringResource(Res.string.app_name),
                 fontSize = 36.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 1.sp,
-                color = Color.White,
+                color = titleColor,
                 style = androidx.compose.ui.text.TextStyle(
                     shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.5f),
+                        color = Color.Black.copy(alpha = 0.5f * progressValue),
                         offset = androidx.compose.ui.geometry.Offset(2f, 2f),
                         blurRadius = 4f
                     )
@@ -259,7 +271,7 @@ fun SplashScreen() {
                 text = stringResource(Res.string.app_tagline),
                 fontSize = 14.sp,
                 letterSpacing = 0.8.sp,
-                color = Color.White.copy(alpha = 0.9f)
+                color = taglineColor
             )
 
             Spacer(modifier = Modifier.height(64.dp))
@@ -267,7 +279,8 @@ fun SplashScreen() {
             val loadingContentDescription = stringResource(Res.string.splash_loading)
             AnimatedLoadingDots(
                 modifier = Modifier.semantics { contentDescription = loadingContentDescription },
-                progress = loadingProgress
+                progress = loadingProgress,
+                revealProgress = progressValue
             )
         }
     }
@@ -276,8 +289,15 @@ fun SplashScreen() {
 @Composable
 private fun AnimatedLoadingDots(
     modifier: Modifier = Modifier,
-    progress: Float
+    progress: Float,
+    revealProgress: Float = 1f
 ) {
+    // Dots transition from grey to white as the reveal sweeps across
+    val dotColor = androidx.compose.ui.graphics.lerp(
+        Color(0xFF666666),
+        Color.White.copy(alpha = 0.9f),
+        revealProgress
+    )
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -296,7 +316,7 @@ private fun AnimatedLoadingDots(
                     .size(8.dp)
                     .scale(dotScale)
                     .background(
-                        color = Color.White.copy(alpha = 0.9f),
+                        color = dotColor,
                         shape = DotShape
                     )
             )
@@ -315,13 +335,13 @@ private val DegToRad = (kotlin.math.PI / 180.0).toFloat()
 private fun DrawScope.drawBrandRevealBackground(animationProgress: Float) {
     val sweepPosition = size.width * (1f - animationProgress)
 
-    // "Before" side — muted grey
+    // "Before" side — pure dark (black to dark grey)
     drawRect(
         brush = Brush.verticalGradient(
             colors = listOf(
-                Color(0xFF9E9E9E),
-                Color(0xFF616161),
-                Color(0xFF424242)
+                Color(0xFF2A2A2A),
+                Color(0xFF1A1A1A),
+                Color(0xFF0F0F0F)
             )
         )
     )
