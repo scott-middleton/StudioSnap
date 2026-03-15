@@ -1,8 +1,12 @@
 package com.middleton.studiosnap.feature.home.presentation
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -232,23 +236,35 @@ fun HomeScreenContent(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
                 .padding(top = CONTENT_TOP_PADDING.dp, bottom = CONTENT_BOTTOM_PADDING.dp),
             verticalArrangement = Arrangement.spacedBy(SECTION_SPACING.dp)
         ) {
-            if (state.photos.isEmpty()) {
-                EmptyStateHero(onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) })
-            } else {
-                PhotosRow(
-                    photos = state.photos,
-                    onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) },
-                    onRemovePhoto = { onAction(HomeUiAction.OnPhotoRemoved(it)) }
-                )
+            // Photos section — animates between empty hero and photo row
+            AnimatedContent(
+                targetState = state.photos.isEmpty(),
+                transitionSpec = {
+                    fadeIn() togetherWith fadeOut()
+                },
+                label = "photos_transition"
+            ) { isEmpty ->
+                if (isEmpty) {
+                    EmptyStateHero(
+                        onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) },
+                        modifier = Modifier.padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
+                    )
+                } else {
+                    PhotosRow(
+                        photos = state.photos,
+                        onAddPhotos = { onAction(HomeUiAction.OnAddPhotosClicked) },
+                        onRemovePhoto = { onAction(HomeUiAction.OnPhotoRemoved(it)) }
+                    )
+                }
             }
 
             BackgroundStyleSection(
                 selectedStyle = state.selectedStyle,
-                onChangeStyle = { onAction(HomeUiAction.OnStylePickerClicked) }
+                onChangeStyle = { onAction(HomeUiAction.OnStylePickerClicked) },
+                modifier = Modifier.padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
             )
 
             ExportSizeSection(
@@ -331,15 +347,16 @@ private fun CreditBalancePill(
 // region — Empty State Hero
 
 @Composable
-private fun EmptyStateHero(onAddPhotos: () -> Unit) {
+private fun EmptyStateHero(onAddPhotos: () -> Unit, modifier: Modifier = Modifier) {
     val dashedBorderColor = MaterialTheme.colorScheme.outline
     val dashedPathEffect = remember {
         PathEffect.dashPathEffect(floatArrayOf(20f, 12f), 0f)
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(24.dp))
             .drawBehind {
                 drawRoundRect(
                     color = dashedBorderColor,
@@ -492,9 +509,11 @@ private fun PhotosRow(
     onRemovePhoto: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // Header
+        // Header — with horizontal padding
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -533,10 +552,10 @@ private fun PhotosRow(
             }
         }
 
-        // Horizontal scrolling row
+        // Horizontal scrolling row — edge-to-edge with internal padding
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(end = 4.dp)
+            contentPadding = PaddingValues(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
         ) {
             items(photos, key = { it.id }) { photo ->
                 PhotoCell(
@@ -561,6 +580,7 @@ private fun PhotoCell(
     Box(
         modifier = Modifier
             .size(PHOTO_CELL_SIZE.dp)
+            .shadow(4.dp, RoundedCornerShape(14.dp))
             .clip(RoundedCornerShape(14.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
@@ -602,6 +622,7 @@ private fun AddPhotoCell(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(PHOTO_CELL_SIZE.dp)
+            .shadow(2.dp, RoundedCornerShape(14.dp))
             .drawBehind {
                 drawRoundRect(
                     color = dashedColor,
@@ -643,9 +664,10 @@ private fun AddPhotoCell(onClick: () -> Unit) {
 @Composable
 private fun BackgroundStyleSection(
     selectedStyle: Style?,
-    onChangeStyle: () -> Unit
+    onChangeStyle: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionHeaderWithIcon(
             text = stringResource(Res.string.home_background_style),
             iconContent = {
@@ -775,6 +797,7 @@ private fun ExportSizeSection(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionHeaderWithIcon(
             text = stringResource(Res.string.home_export_format),
+            modifier = Modifier.padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp),
             iconContent = {
                 Icon(
                     painter = painterResource(Res.drawable.ic_aspect_ratio),
@@ -785,7 +808,10 @@ private fun ExportSizeSection(
             }
         )
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
+        ) {
             items(ExportFormat.entries) { format ->
                 StudioSnapFilterChip(
                     label = exportFormatDisplayName(format),
@@ -882,9 +908,11 @@ private fun SectionLabel(text: String) {
 @Composable
 private fun SectionHeaderWithIcon(
     text: String,
+    modifier: Modifier = Modifier,
     iconContent: @Composable () -> Unit
 ) {
     Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {

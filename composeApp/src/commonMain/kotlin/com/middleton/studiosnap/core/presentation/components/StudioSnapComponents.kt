@@ -89,7 +89,11 @@ fun StudioSnapFilterChip(
             containerColor = extendedColorScheme().unselectedChip,
             labelColor = MaterialTheme.colorScheme.onSurface
         ),
-        border = null // Remove border for filled style
+        border = null, // Remove border for filled style
+        elevation = FilterChipDefaults.filterChipElevation(
+            elevation = 2.dp,
+            pressedElevation = 4.dp
+        )
     )
 }
 
