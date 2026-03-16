@@ -65,6 +65,9 @@ fun OnboardingCarouselScreen() {
                 if (page != uiState.currentPage) {
                     viewModel.handleAction(OnboardingUiAction.NavigateToPage(page))
                 }
+                if (page == OnboardingViewModel.TOTAL_PAGES - 1) {
+                    viewModel.handleAction(OnboardingUiAction.TriggerValuePageAnimation)
+                }
             }
     }
 
@@ -105,6 +108,7 @@ fun OnboardingCarouselScreen() {
                     onNext = { viewModel.handleAction(OnboardingUiAction.NextPage) }
                 )
                 3 -> OnboardingValuePage(
+                    animationTrigger = uiState.valuePageAnimationTrigger,
                     onGetStarted = { viewModel.handleAction(OnboardingUiAction.GetStarted) }
                 )
             }

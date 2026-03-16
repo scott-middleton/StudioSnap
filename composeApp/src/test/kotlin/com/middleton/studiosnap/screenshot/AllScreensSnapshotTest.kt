@@ -1,10 +1,16 @@
 package com.middleton.studiosnap.screenshot
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalInspectionMode
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
+import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.core.presentation.theme.StudioSnapTheme
 import com.middleton.studiosnap.feature.history.presentation.HistoryScreenContent
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryFilter
@@ -61,33 +67,60 @@ class AllScreensSnapshotTest {
         }
     }
 
+    private fun onboardingSnapshot(
+        content: @Composable () -> Unit
+    ) {
+        paparazzi.snapshot {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                StudioSnapTheme(darkTheme = true) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.radialGradient(
+                                    colors = listOf(
+                                        AppColors.SplashLightGreen,
+                                        AppColors.SplashMidGreen,
+                                        AppColors.SplashDarkGreen
+                                    ),
+                                    radius = 900f
+                                )
+                            )
+                    ) {
+                        content()
+                    }
+                }
+            }
+        }
+    }
+
     // region — Onboarding
 
     @Test
     fun onboarding_heroPage() {
-        snapshot(darkTheme = true) {
+        onboardingSnapshot {
             OnboardingHeroPage(onNext = {})
         }
     }
 
     @Test
     fun onboarding_beforeAfterPage() {
-        snapshot(darkTheme = true) {
+        onboardingSnapshot {
             OnboardingBeforeAfterPage(isPageSettled = false, onNext = {})
         }
     }
 
     @Test
     fun onboarding_styleShowcasePage() {
-        snapshot(darkTheme = true) {
+        onboardingSnapshot {
             OnboardingStyleShowcasePage(onNext = {})
         }
     }
 
     @Test
     fun onboarding_valuePage() {
-        snapshot(darkTheme = true) {
-            OnboardingValuePage(onGetStarted = {})
+        onboardingSnapshot {
+            OnboardingValuePage(animationTrigger = 1, onGetStarted = {})
         }
     }
 

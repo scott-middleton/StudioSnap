@@ -44,6 +44,10 @@ class OnboardingViewModel(
                 }
             }
 
+            OnboardingUiAction.TriggerValuePageAnimation -> {
+                _uiState.update { it.copy(valuePageAnimationTrigger = it.valuePageAnimationTrigger + 1) }
+            }
+
             OnboardingUiAction.GetStarted -> {
                 analyticsService.logEvent(AnalyticsEvents.ONBOARDING_COMPLETED)
                 viewModelScope.launch {

@@ -72,6 +72,7 @@ private val ButtonShape = RoundedCornerShape(20.dp)
 
 @Composable
 fun OnboardingValuePage(
+    animationTrigger: Int = 0,
     onGetStarted: () -> Unit
 ) {
     data class Benefit(
@@ -110,9 +111,12 @@ fun OnboardingValuePage(
 
     var isVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        delay(200L)
-        isVisible = true
+    LaunchedEffect(animationTrigger) {
+        if (animationTrigger > 0) {
+            isVisible = false
+            delay(50L)
+            isVisible = true
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -152,7 +156,8 @@ fun OnboardingValuePage(
                         title = benefit.title,
                         subtitle = benefit.subtitle,
                         index = index,
-                        isVisible = isVisible
+                        isVisible = isVisible,
+                        animationTrigger = animationTrigger
                     )
                 }
             }
@@ -191,10 +196,11 @@ private fun AnimatedBenefitItem(
     title: String,
     subtitle: String,
     index: Int,
-    isVisible: Boolean
+    isVisible: Boolean,
+    animationTrigger: Int
 ) {
-    var animationTriggered by remember { mutableStateOf(false) }
-    var iconAnimationTriggered by remember { mutableStateOf(false) }
+    var animationTriggered by remember(animationTrigger) { mutableStateOf(false) }
+    var iconAnimationTriggered by remember(animationTrigger) { mutableStateOf(false) }
 
     LaunchedEffect(isVisible) {
         if (isVisible) {
