@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.results.presentation.viewmodel
 
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
@@ -32,9 +33,9 @@ import kotlin.test.assertTrue
 class ResultsViewModelTest : BaseViewModelTest() {
 
     private val testStyle = Style(
-        id = "clean_white", nameKey = "Clean White",
+        id = "clean_white", displayName = UiText.DynamicString("Clean White"),
         categories = setOf(StyleCategory.ALL),
-        thumbnailResName = "clean_white",
+        thumbnail = null,
         kontextPrompt = "white bg"
     )
     private val testPhoto = ProductPhoto(id = "photo_1", localUri = "content://photo1", width = 1024, height = 768)

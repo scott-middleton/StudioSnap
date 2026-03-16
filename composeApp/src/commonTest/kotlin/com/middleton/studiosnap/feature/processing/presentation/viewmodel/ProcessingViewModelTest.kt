@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.processing.presentation.viewmodel
 
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
@@ -36,9 +37,9 @@ class ProcessingViewModelTest : BaseViewModelTest() {
 
     private val testStyle = Style(
         id = "clean_white",
-        nameKey = "Clean White",
+        displayName = UiText.DynamicString("Clean White"),
         categories = setOf(StyleCategory.ALL),
-        thumbnailResName = "clean_white",
+        thumbnail = null,
         kontextPrompt = "Place the product on a pure white background"
     )
 

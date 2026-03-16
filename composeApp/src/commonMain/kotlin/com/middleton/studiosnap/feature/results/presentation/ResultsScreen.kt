@@ -62,6 +62,7 @@ import studiosnap.composeapp.generated.resources.results_get_credits
 import studiosnap.composeapp.generated.resources.results_photo_counter
 import studiosnap.composeapp.generated.resources.results_product_photo
 import studiosnap.composeapp.generated.resources.results_purchased
+import com.middleton.studiosnap.core.presentation.util.asString
 import studiosnap.composeapp.generated.resources.results_share
 import studiosnap.composeapp.generated.resources.results_title
 import studiosnap.composeapp.generated.resources.results_watermarked
@@ -247,7 +248,7 @@ private fun ResultPage(
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = result.styleName,
+            text = result.styleDisplayName.asString(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

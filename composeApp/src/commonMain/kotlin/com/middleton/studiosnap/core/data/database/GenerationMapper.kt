@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.core.data.database
 
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
@@ -16,9 +17,9 @@ fun GenerationEntity.toDomainModel(styleRepository: StyleRepository): Generation
         // Style was removed or renamed — use placeholder so history stays visible
         Style(
             id = styleId,
-            nameKey = styleName,
+            displayName = UiText.DynamicString(styleName),
             categories = emptySet(),
-            thumbnailResName = "",
+            thumbnail = null,
             kontextPrompt = ""
         )
     }
@@ -50,7 +51,7 @@ fun GenerationResult.Success.toEntity(): GenerationEntity {
         id = generationId,
         inputPhotoUri = inputPhoto.localUri,
         styleId = style.id,
-        styleName = style.nameKey,
+        styleName = style.id,
         previewUri = previewUri,
         fullResUrl = fullResUrl,
         fullResLocalUri = fullResUri,

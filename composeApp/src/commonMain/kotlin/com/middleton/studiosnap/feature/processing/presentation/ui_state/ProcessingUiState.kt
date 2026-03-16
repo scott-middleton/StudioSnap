@@ -7,7 +7,7 @@ sealed interface ProcessingUiState {
     data class Processing(
         val currentPhotoIndex: Int,
         val totalPhotos: Int,
-        val styleName: String,
+        val styleName: com.middleton.studiosnap.core.domain.model.UiText,
         val overallProgress: Float
     ) : ProcessingUiState
 

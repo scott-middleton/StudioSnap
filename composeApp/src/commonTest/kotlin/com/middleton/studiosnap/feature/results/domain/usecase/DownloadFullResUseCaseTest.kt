@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.results.domain.usecase
 
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.CreditDeductor
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
@@ -20,8 +21,8 @@ import kotlin.test.assertTrue
 class DownloadFullResUseCaseTest {
 
     private val testStyle = Style(
-        id = "test", nameKey = "Test", categories = setOf(StyleCategory.ALL),
-        thumbnailResName = "test", kontextPrompt = "test"
+        id = "test", displayName = UiText.DynamicString("Test"), categories = setOf(StyleCategory.ALL),
+        thumbnail = null, kontextPrompt = "test"
     )
 
     @Test

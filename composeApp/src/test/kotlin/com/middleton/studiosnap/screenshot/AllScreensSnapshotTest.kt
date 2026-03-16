@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.screenshot
 
+import com.middleton.studiosnap.core.domain.model.UiText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -145,7 +146,7 @@ class AllScreensSnapshotTest {
                 state = ProcessingUiState.Processing(
                     currentPhotoIndex = 1,
                     totalPhotos = 3,
-                    styleName = "Rustic Wood",
+                    styleName = UiText.DynamicString("Rustic Wood"),
                     overallProgress = 0.45f
                 ),
                 onAction = {}
@@ -218,7 +219,7 @@ class AllScreensSnapshotTest {
                             inputPhotoUri = "file:///fake/input.jpg",
                             previewUri = "file:///fake/preview1.jpg",
                             fullResLocalUri = null,
-                            styleName = "Rustic Wood",
+                            styleName = UiText.DynamicString("Rustic Wood"),
                             isPurchased = true,
                             createdAt = System.currentTimeMillis(),
                             imageWidth = 1024,
@@ -229,7 +230,7 @@ class AllScreensSnapshotTest {
                             inputPhotoUri = "file:///fake/input2.jpg",
                             previewUri = "file:///fake/preview2.jpg",
                             fullResLocalUri = null,
-                            styleName = "Marble Luxe",
+                            styleName = UiText.DynamicString("Marble Luxe"),
                             isPurchased = false,
                             createdAt = System.currentTimeMillis() - 86400000,
                             imageWidth = 1024,
@@ -310,19 +311,19 @@ class AllScreensSnapshotTest {
 
     private fun fakeStyle() = Style(
         id = "rustic_wood",
-        nameKey = "rustic_wood",
+        displayName = UiText.DynamicString("rustic_wood"),
         categories = emptySet(),
-        thumbnailResName = "swatch_wood",
+        thumbnail = null,
         kontextPrompt = "Change only the background to rustic wood."
     )
 
     private fun fakeStyles(): List<Style> = listOf(
-        Style("clean_white", "clean_white", setOf(StyleCategory.ALL), "", "Clean white background"),
-        Style("warm_linen", "warm_linen", setOf(StyleCategory.ALL), "", "Warm linen background"),
-        Style("marble_luxe", "marble_luxe", setOf(StyleCategory.ALL), "", "Marble background"),
-        Style("rustic_wood", "rustic_wood", setOf(StyleCategory.ALL), "swatch_wood", "Rustic wood background"),
-        Style("dark_moody", "dark_moody", setOf(StyleCategory.ALL), "swatch_dark", "Dark moody background"),
-        Style("botanical_garden", "botanical_garden", setOf(StyleCategory.ALL), "swatch_botanical", "Botanical garden background")
+        Style("clean_white", UiText.DynamicString("Clean White"), setOf(StyleCategory.ALL), null, "Clean white background"),
+        Style("warm_linen", UiText.DynamicString("Warm Linen"), setOf(StyleCategory.ALL), null, "Warm linen background"),
+        Style("marble_luxe", UiText.DynamicString("Marble Luxe"), setOf(StyleCategory.ALL), null, "Marble background"),
+        Style("rustic_wood", UiText.DynamicString("Rustic Wood"), setOf(StyleCategory.ALL), null, "Rustic wood background"),
+        Style("dark_moody", UiText.DynamicString("Dark Moody"), setOf(StyleCategory.ALL), null, "Dark moody background"),
+        Style("botanical_garden", UiText.DynamicString("Botanical Garden"), setOf(StyleCategory.ALL), null, "Botanical garden background")
     )
 
     // endregion

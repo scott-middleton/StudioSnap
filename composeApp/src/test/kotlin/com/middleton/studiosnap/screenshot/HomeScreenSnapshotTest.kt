@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.screenshot
 
+import com.middleton.studiosnap.core.domain.model.UiText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -188,9 +189,9 @@ class HomeScreenSnapshotTest {
 
     private fun fakeStyle() = Style(
         id = "rustic_wood",
-        nameKey = "rustic_wood",
+        displayName = UiText.DynamicString("rustic_wood"),
         categories = emptySet(),
-        thumbnailResName = "swatch_wood",
+        thumbnail = null,
         kontextPrompt = "Change only the background to rustic wood."
     )
 

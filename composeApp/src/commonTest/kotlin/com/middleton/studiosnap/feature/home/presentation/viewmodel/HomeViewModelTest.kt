@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.home.presentation.viewmodel
 
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
@@ -30,23 +31,23 @@ class HomeViewModelTest : BaseViewModelTest() {
     private val testStyles = listOf(
         Style(
             id = "clean_white",
-            nameKey = "Clean White",
+            displayName = UiText.DynamicString("Clean White"),
             categories = setOf(StyleCategory.ALL),
-            thumbnailResName = "style_clean_white",
+            thumbnail = null,
             kontextPrompt = "White bg"
         ),
         Style(
             id = "warm_linen",
-            nameKey = "Warm Linen",
+            displayName = UiText.DynamicString("Warm Linen"),
             categories = setOf(StyleCategory.CLOTHING, StyleCategory.JEWELLERY),
-            thumbnailResName = "style_warm_linen",
+            thumbnail = null,
             kontextPrompt = "Linen bg"
         ),
         Style(
             id = "morning_kitchen",
-            nameKey = "Morning Kitchen",
+            displayName = UiText.DynamicString("Morning Kitchen"),
             categories = setOf(StyleCategory.FOOD, StyleCategory.HOMEWARE),
-            thumbnailResName = "style_morning_kitchen",
+            thumbnail = null,
             kontextPrompt = "Kitchen bg"
         )
     )

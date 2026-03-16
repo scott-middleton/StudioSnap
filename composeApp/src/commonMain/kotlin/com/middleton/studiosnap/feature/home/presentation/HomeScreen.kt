@@ -69,6 +69,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
@@ -108,10 +109,10 @@ import studiosnap.composeapp.generated.resources.home_style_choose_hint
 import studiosnap.composeapp.generated.resources.home_style_tap_to_change
 import studiosnap.composeapp.generated.resources.home_title
 // home_before_label/home_after_label removed — reserved for onboarding
-import studiosnap.composeapp.generated.resources.swatch_botanical
-import studiosnap.composeapp.generated.resources.swatch_dark
-import studiosnap.composeapp.generated.resources.swatch_marble
-import studiosnap.composeapp.generated.resources.swatch_wood
+import studiosnap.composeapp.generated.resources.style_botanical_garden
+import studiosnap.composeapp.generated.resources.style_dark_moody
+import studiosnap.composeapp.generated.resources.style_marble_luxe
+import studiosnap.composeapp.generated.resources.style_rustic_wood
 import studiosnap.composeapp.generated.resources.home_add_label
 import studiosnap.composeapp.generated.resources.ic_bolt
 import studiosnap.composeapp.generated.resources.ic_transform_photos
@@ -608,7 +609,7 @@ private fun BackgroundStyleSection(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = if (selectedStyle != null) {
-                            resolveStyleName(selectedStyle.nameKey)
+                            selectedStyle.displayName.asString()
                         } else {
                             stringResource(Res.string.home_style_choose)
                         },
@@ -652,10 +653,10 @@ private fun BackgroundStyleSection(
 @Composable
 private fun StyleSwatchGrid() {
     val swatches = listOf(
-        Res.drawable.swatch_botanical,
-        Res.drawable.swatch_marble,
-        Res.drawable.swatch_wood,
-        Res.drawable.swatch_dark
+        Res.drawable.style_botanical_garden,
+        Res.drawable.style_marble_luxe,
+        Res.drawable.style_rustic_wood,
+        Res.drawable.style_dark_moody
     )
 
     Box(
@@ -694,11 +695,11 @@ private fun StyleSwatchGrid() {
 
 @Composable
 private fun SelectedStyleThumbnail(style: Style) {
-    val thumbnailRes = resolveStyleThumbnail(style.thumbnailResName)
+    val thumbnailRes = style.thumbnail
     if (thumbnailRes != null) {
         Image(
             painter = painterResource(thumbnailRes),
-            contentDescription = resolveStyleName(style.nameKey),
+            contentDescription = style.displayName.asString(),
             modifier = Modifier
                 .size(56.dp)
                 .clip(RoundedCornerShape(12.dp))

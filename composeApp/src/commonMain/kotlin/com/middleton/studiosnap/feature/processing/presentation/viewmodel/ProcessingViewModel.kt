@@ -60,7 +60,7 @@ class ProcessingViewModel(
             _uiState.value = ProcessingUiState.Processing(
                 currentPhotoIndex = 0,
                 totalPhotos = currentConfig.photos.size,
-                styleName = currentConfig.style.nameKey,
+                styleName = currentConfig.style.displayName,
                 overallProgress = 0f
             )
 
@@ -69,7 +69,7 @@ class ProcessingViewModel(
                     _uiState.value = ProcessingUiState.Processing(
                         currentPhotoIndex = progress.currentIndex,
                         totalPhotos = progress.totalCount,
-                        styleName = currentConfig.style.nameKey,
+                        styleName = currentConfig.style.displayName,
                         overallProgress = (progress.currentIndex + 1).toFloat() / progress.totalCount
                     )
 

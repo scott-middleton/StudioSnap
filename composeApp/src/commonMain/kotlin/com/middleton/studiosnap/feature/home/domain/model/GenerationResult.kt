@@ -18,7 +18,8 @@ sealed interface GenerationResult {
         val imageWidth: Int = 0,
         val imageHeight: Int = 0
     ) : GenerationResult {
-        val styleName: String get() = style.nameKey
+        /** Style display name for UI. Resolves via UiText.asString() in composable context. */
+        val styleDisplayName: com.middleton.studiosnap.core.domain.model.UiText get() = style.displayName
     }
 
     data class Failure(

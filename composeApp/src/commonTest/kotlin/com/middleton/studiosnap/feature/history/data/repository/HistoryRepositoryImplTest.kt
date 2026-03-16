@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.history.data.repository
 
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.data.database.GenerationDao
 import com.middleton.studiosnap.core.data.database.GenerationEntity
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
@@ -149,9 +150,9 @@ class HistoryRepositoryImplTest {
         fullResUri = fullResUri,
         style = fakeStyleRepository.getStyleById(styleId) ?: Style(
             id = styleId,
-            nameKey = styleId,
+            displayName = UiText.DynamicString(styleId),
             categories = emptySet(),
-            thumbnailResName = "",
+            thumbnail = null,
             kontextPrompt = ""
         ),
         createdAt = 1000L,
@@ -206,9 +207,9 @@ private class FakeStyleRepository : StyleRepository {
     private val styles = listOf(
         Style(
             id = "clean_white",
-            nameKey = "Clean White",
+            displayName = UiText.DynamicString("Clean White"),
             categories = setOf(StyleCategory.ALL),
-            thumbnailResName = "style_clean_white",
+            thumbnail = null,
             kontextPrompt = "test prompt"
         )
     )

@@ -43,7 +43,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
+import studiosnap.composeapp.generated.resources.ic_palette
 import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
@@ -141,7 +149,8 @@ internal fun StylePickerScreenContent(
             // Style cards in 3-column grid
             items(styles, key = { it.id }) { style ->
                 StylePickerCard(
-                    styleName = resolveStyleName(style.nameKey),
+                    styleName = style.displayName.asString(),
+                    thumbnail = style.thumbnail,
                     isSelected = style.id == selectedStyleId,
                     onClick = { onStyleSelected(style.id) }
                 )
@@ -158,6 +167,7 @@ internal fun StylePickerScreenContent(
 @Composable
 private fun StylePickerCard(
     styleName: String,
+    thumbnail: DrawableResource?,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -186,21 +196,35 @@ private fun StylePickerCard(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // TODO: Load style thumbnail from thumbnailResName when assets are ready
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .background(
-                        if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surfaceVariant
-                    ),
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "🎨",
-                    fontSize = 28.sp
-                )
+                if (thumbnail != null) {
+                    Image(
+                        painter = painterResource(thumbnail),
+                        contentDescription = styleName,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.ic_palette),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
             Text(
                 text = styleName,

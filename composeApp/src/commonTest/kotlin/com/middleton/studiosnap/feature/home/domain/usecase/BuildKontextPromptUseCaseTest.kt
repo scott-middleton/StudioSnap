@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.home.domain.usecase
 
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
 import kotlin.test.Test
@@ -13,9 +14,9 @@ class BuildKontextPromptUseCaseTest {
 
     private val testStyle = Style(
         id = "test",
-        nameKey = "Test Style",
+        displayName = UiText.DynamicString("Test Style"),
         categories = setOf(StyleCategory.ALL),
-        thumbnailResName = "test",
+        thumbnail = null,
         kontextPrompt = "Base prompt here."
     )
 

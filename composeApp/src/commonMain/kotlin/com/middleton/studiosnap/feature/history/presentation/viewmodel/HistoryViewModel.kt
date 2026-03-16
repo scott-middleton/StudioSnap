@@ -55,7 +55,7 @@ class HistoryViewModel(
                         inputPhotoUri = result.inputPhoto.localUri,
                         previewUri = result.previewUri,
                         fullResLocalUri = result.fullResUri,
-                        styleName = result.styleName,
+                        styleName = result.styleDisplayName,
                         isPurchased = result.fullResUri != null,
                         createdAt = result.createdAt,
                         imageWidth = result.imageWidth,

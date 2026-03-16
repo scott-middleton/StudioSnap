@@ -68,6 +68,7 @@ import studiosnap.composeapp.generated.resources.history_empty_title
 import studiosnap.composeapp.generated.resources.history_filter_all
 import studiosnap.composeapp.generated.resources.history_filter_previews
 import studiosnap.composeapp.generated.resources.history_filter_purchased
+import com.middleton.studiosnap.core.presentation.util.asString
 import studiosnap.composeapp.generated.resources.history_product_photo
 import studiosnap.composeapp.generated.resources.history_purchased_badge
 import studiosnap.composeapp.generated.resources.history_title
@@ -241,7 +242,7 @@ private fun HistoryGrid(
 @Composable
 private fun HistoryGridItem(
     imageUri: String,
-    styleName: String,
+    styleName: com.middleton.studiosnap.core.domain.model.UiText,
     isPurchased: Boolean,
     onClick: () -> Unit,
     onDelete: () -> Unit
@@ -269,7 +270,7 @@ private fun HistoryGridItem(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = styleName,
+                        text = styleName.asString(),
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

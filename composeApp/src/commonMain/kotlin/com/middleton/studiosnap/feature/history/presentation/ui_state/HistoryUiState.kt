@@ -13,7 +13,7 @@ data class HistoryItem(
     val inputPhotoUri: String,
     val previewUri: String,
     val fullResLocalUri: String?,
-    val styleName: String,
+    val styleName: com.middleton.studiosnap.core.domain.model.UiText,
     val isPurchased: Boolean,
     val createdAt: Long,
     val imageWidth: Int,
