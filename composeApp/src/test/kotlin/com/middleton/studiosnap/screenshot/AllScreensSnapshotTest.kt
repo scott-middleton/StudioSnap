@@ -28,6 +28,7 @@ import com.middleton.studiosnap.feature.onboarding.presentation.OnboardingBefore
 import com.middleton.studiosnap.feature.onboarding.presentation.OnboardingStyleShowcasePage
 import com.middleton.studiosnap.feature.onboarding.presentation.OnboardingValuePage
 import com.middleton.studiosnap.feature.processing.presentation.ProcessingScreenContent
+import com.middleton.studiosnap.feature.processing.presentation.ui_state.ProcessingStatus
 import com.middleton.studiosnap.feature.processing.presentation.ui_state.ProcessingUiState
 import com.middleton.studiosnap.feature.results.presentation.ResultsScreenContent
 import com.middleton.studiosnap.feature.results.presentation.ui_state.ResultItem
@@ -147,7 +148,7 @@ class AllScreensSnapshotTest {
                     currentPhotoIndex = 1,
                     totalPhotos = 3,
                     styleName = UiText.DynamicString("Rustic Wood"),
-                    overallProgress = 0.45f
+                    status = ProcessingStatus.Generating
                 ),
                 onAction = {}
             )

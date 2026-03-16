@@ -11,6 +11,8 @@ object AppColors {
     val PrimaryGreen = Color(0xFF10B981)
     val PrimaryGreenDark = Color(0xFF059669)
     val PrimaryGreenTint = Color(0xFFF0FDF4)
+    val ProcessingTeal = Color(0xFF14B8A6)
+    val SuccessGreen = Color(0xFF22C55E)
     
     // Status Colors
     val Success = Color(0xFF00B894)

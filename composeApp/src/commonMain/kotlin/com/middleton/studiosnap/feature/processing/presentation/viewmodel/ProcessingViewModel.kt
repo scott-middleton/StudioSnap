@@ -10,6 +10,7 @@ import com.middleton.studiosnap.feature.processing.domain.usecase.GenerateBatchP
 import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationResultsHolder
 import com.middleton.studiosnap.feature.processing.presentation.action.ProcessingUiAction
 import com.middleton.studiosnap.feature.processing.presentation.navigation.ProcessingNavigationAction
+import com.middleton.studiosnap.feature.processing.presentation.ui_state.ProcessingStatus
 import com.middleton.studiosnap.feature.processing.presentation.ui_state.ProcessingUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,20 +58,34 @@ class ProcessingViewModel(
 
         processingJob?.cancel()
         processingJob = viewModelScope.launch {
+            val firstPhotoUri = currentConfig.photos.firstOrNull()?.localUri
+
             _uiState.value = ProcessingUiState.Processing(
                 currentPhotoIndex = 0,
                 totalPhotos = currentConfig.photos.size,
                 styleName = currentConfig.style.displayName,
-                overallProgress = 0f
+                status = ProcessingStatus.Preparing,
+                currentPhotoUri = firstPhotoUri
             )
 
             try {
+                // Transition to Generating before the API call starts
+                _uiState.value = ProcessingUiState.Processing(
+                    currentPhotoIndex = 0,
+                    totalPhotos = currentConfig.photos.size,
+                    styleName = currentConfig.style.displayName,
+                    status = ProcessingStatus.Generating,
+                    currentPhotoUri = firstPhotoUri
+                )
+
                 generateBatchPreviewsUseCase(currentConfig).collect { progress ->
+                    // Photo just completed — show downloading stage briefly
                     _uiState.value = ProcessingUiState.Processing(
                         currentPhotoIndex = progress.currentIndex,
                         totalPhotos = progress.totalCount,
                         styleName = currentConfig.style.displayName,
-                        overallProgress = (progress.currentIndex + 1).toFloat() / progress.totalCount
+                        status = ProcessingStatus.Downloading,
+                        currentPhotoUri = currentConfig.photos.getOrNull(progress.currentIndex)?.localUri
                     )
 
                     if (progress.isComplete) {
@@ -86,6 +101,24 @@ class ProcessingViewModel(
                         _uiState.value = ProcessingUiState.Complete
                         _navigationEvent.value = ProcessingNavigationAction.GoToResults(
                             generationId = currentConfig.hashCode().toString()
+                        )
+                    } else {
+                        // Move to next photo — show preparing then generating for new photo
+                        val nextIndex = progress.currentIndex + 1
+                        val nextPhotoUri = currentConfig.photos.getOrNull(nextIndex)?.localUri
+                        _uiState.value = ProcessingUiState.Processing(
+                            currentPhotoIndex = nextIndex,
+                            totalPhotos = progress.totalCount,
+                            styleName = currentConfig.style.displayName,
+                            status = ProcessingStatus.Preparing,
+                            currentPhotoUri = nextPhotoUri
+                        )
+                        _uiState.value = ProcessingUiState.Processing(
+                            currentPhotoIndex = nextIndex,
+                            totalPhotos = progress.totalCount,
+                            styleName = currentConfig.style.displayName,
+                            status = ProcessingStatus.Generating,
+                            currentPhotoUri = nextPhotoUri
                         )
                     }
                 }

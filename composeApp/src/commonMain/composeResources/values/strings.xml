@@ -82,6 +82,15 @@
     <string name="processing_error_title">Something went wrong</string>
     <string name="processing_retry">Try Again</string>
     <string name="processing_go_back">Go Back</string>
+    <string name="processing_preparing">Preparing</string>
+    <string name="processing_generating">Generating</string>
+    <string name="processing_downloading">Downloading</string>
+    <string name="processing_subtitle_preparing">Setting up your photo…</string>
+    <string name="processing_subtitle_generating">AI is creating your styled image</string>
+    <string name="processing_subtitle_downloading">Saving your result…</string>
+    <string name="processing_patience">This can take a moment</string>
+    <string name="processing_do_not_close">Please don\'t close the app</string>
+    <string name="processing_your_photo">Your photo</string>
 
     <!-- Results Screen -->
     <string name="results_title">Your Results</string>
