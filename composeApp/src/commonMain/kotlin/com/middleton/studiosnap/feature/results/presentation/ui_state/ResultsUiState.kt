@@ -6,10 +6,7 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 data class ResultsUiState(
     val results: List<ResultItem> = emptyList(),
     val snackbarMessage: UiText? = null
-) {
-    val successCount: Int
-        get() = results.count { it.result is GenerationResult.Success }
-}
+)
 
 data class ResultItem(
     val result: GenerationResult,

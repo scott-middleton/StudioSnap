@@ -69,7 +69,7 @@ class ResultsViewModel(
         setSaving(generationId, true)
 
         viewModelScope.launch {
-            saveToGalleryUseCase(result.previewUri, "studiosnap_$generationId")
+            saveToGalleryUseCase(result.previewUri, "${SAVE_NAME_PREFIX}$generationId")
                 .onSuccess {
                     updateResultItem(generationId) { it.copy(isSaved = true, isSaving = false) }
                     analyticsService.logEvent(AnalyticsEvents.DOWNLOAD_COMPLETED)
@@ -98,9 +98,10 @@ class ResultsViewModel(
     }
 
     private fun shareResult(generationId: String) {
+        // TODO: Wire platform share sheet via expect/actual (Phase 5)
         analyticsService.logEvent(
             AnalyticsEvents.PREVIEW_SHARED,
-            mapOf("generation_id" to generationId)
+            mapOf(AnalyticsParams.GENERATION_ID to generationId)
         )
     }
 
@@ -129,5 +130,9 @@ class ResultsViewModel(
                 }
             )
         }
+    }
+
+    companion object {
+        private const val SAVE_NAME_PREFIX = "studiosnap_"
     }
 }
