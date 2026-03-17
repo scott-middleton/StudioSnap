@@ -115,9 +115,6 @@
     <string name="history_title">History</string>
     <string name="history_empty_title">No generations yet</string>
     <string name="history_empty_subtitle">Your styled photos will appear here</string>
-    <string name="history_filter_all">All</string>
-    <string name="history_filter_purchased">Purchased</string>
-    <string name="history_filter_previews">Previews</string>
     <string name="history_delete">Delete</string>
     <string name="history_delete_title">Delete Generation?</string>
     <string name="history_delete_message">This will permanently remove this image.</string>
@@ -217,7 +214,6 @@
     <string name="processing_error_unknown">Generation failed</string>
 
     <!-- History (additional) -->
-    <string name="history_purchased_badge">Purchased</string>
     <string name="history_product_photo">Product photo</string>
 
     <!-- Style Picker -->

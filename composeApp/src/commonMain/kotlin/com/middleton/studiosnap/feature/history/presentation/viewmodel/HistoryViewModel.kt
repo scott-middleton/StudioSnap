@@ -7,7 +7,6 @@ import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
 import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryNavigationAction
-import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryFilter
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,8 +26,6 @@ class HistoryViewModel(
     private val _navigationEvent = MutableStateFlow<HistoryNavigationAction?>(null)
     val navigationEvent: StateFlow<HistoryNavigationAction?> = _navigationEvent.asStateFlow()
 
-    private var allItems: List<HistoryItem> = emptyList()
-
     init {
         observeHistory()
         analyticsService.logEvent(AnalyticsEvents.HISTORY_VIEWED)
@@ -39,7 +36,6 @@ class HistoryViewModel(
             is HistoryUiAction.OnItemClicked ->
                 _navigationEvent.value = HistoryNavigationAction.GoToResultDetail(action.itemId)
             is HistoryUiAction.OnDeleteClicked -> deleteItem(action.itemId)
-            is HistoryUiAction.OnFilterChanged -> changeFilter(action.filter)
             HistoryUiAction.OnBackClicked ->
                 _navigationEvent.value = HistoryNavigationAction.GoBack
             HistoryUiAction.OnNavigationHandled -> _navigationEvent.value = null
@@ -49,37 +45,17 @@ class HistoryViewModel(
     private fun observeHistory() {
         viewModelScope.launch {
             historyRepository.getAll().collect { results ->
-                allItems = results.map { result ->
+                val items = results.map { result ->
                     HistoryItem(
                         id = result.generationId,
-                        inputPhotoUri = result.inputPhoto.localUri,
                         previewUri = result.previewUri,
-                        fullResLocalUri = result.fullResUri,
                         styleName = result.styleDisplayName,
-                        isPurchased = result.fullResUri != null,
-                        createdAt = result.createdAt,
-                        imageWidth = result.imageWidth,
-                        imageHeight = result.imageHeight
+                        createdAt = result.createdAt
                     )
                 }
-                applyFilter()
+                _uiState.update { it.copy(items = items, isLoading = false) }
             }
         }
-    }
-
-    private fun changeFilter(filter: HistoryFilter) {
-        _uiState.update { it.copy(filter = filter) }
-        applyFilter()
-    }
-
-    private fun applyFilter() {
-        val filter = _uiState.value.filter
-        val filtered = when (filter) {
-            HistoryFilter.ALL -> allItems
-            HistoryFilter.PURCHASED -> allItems.filter { it.isPurchased }
-            HistoryFilter.PREVIEWS -> allItems.filter { !it.isPurchased }
-        }
-        _uiState.update { it.copy(items = filtered, isLoading = false) }
     }
 
     private fun deleteItem(itemId: String) {

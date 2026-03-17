@@ -1,6 +1,5 @@
 package com.middleton.studiosnap.feature.history.presentation
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,9 +17,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,13 +42,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
-import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
+import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
 import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryNavigationAction
-import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryFilter
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
 import com.middleton.studiosnap.feature.history.presentation.viewmodel.HistoryViewModel
@@ -65,12 +63,7 @@ import studiosnap.composeapp.generated.resources.history_delete_message
 import studiosnap.composeapp.generated.resources.history_delete_title
 import studiosnap.composeapp.generated.resources.history_empty_subtitle
 import studiosnap.composeapp.generated.resources.history_empty_title
-import studiosnap.composeapp.generated.resources.history_filter_all
-import studiosnap.composeapp.generated.resources.history_filter_previews
-import studiosnap.composeapp.generated.resources.history_filter_purchased
-import com.middleton.studiosnap.core.presentation.util.asString
 import studiosnap.composeapp.generated.resources.history_product_photo
-import studiosnap.composeapp.generated.resources.history_purchased_badge
 import studiosnap.composeapp.generated.resources.history_title
 
 @Composable
@@ -109,35 +102,25 @@ fun HistoryScreenContent(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            FilterRow(
-                currentFilter = state.filter,
-                onFilterChanged = { onAction(HistoryUiAction.OnFilterChanged(it)) }
-            )
-
-            when {
-                state.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+        when {
+            state.isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
-                state.isEmpty -> {
-                    EmptyHistoryContent()
-                }
-                else -> {
-                    HistoryGrid(
-                        items = state.items,
-                        onItemClicked = { onAction(HistoryUiAction.OnItemClicked(it)) },
-                        onDeleteClicked = { deleteDialogItemId = it }
-                    )
-                }
+            }
+            state.isEmpty -> {
+                EmptyHistoryContent(modifier = Modifier.padding(padding))
+            }
+            else -> {
+                HistoryGrid(
+                    items = state.items,
+                    modifier = Modifier.padding(padding),
+                    onItemClicked = { onAction(HistoryUiAction.OnItemClicked(it)) },
+                    onDeleteClicked = { deleteDialogItemId = it }
+                )
             }
         }
     }
@@ -165,44 +148,28 @@ fun HistoryScreenContent(
     }
 }
 
-@Composable
-private fun FilterRow(
-    currentFilter: HistoryFilter,
-    onFilterChanged: (HistoryFilter) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        HistoryFilter.entries.forEach { filter ->
-            StudioSnapFilterChip(
-                label = when (filter) {
-                    HistoryFilter.ALL -> stringResource(Res.string.history_filter_all)
-                    HistoryFilter.PURCHASED -> stringResource(Res.string.history_filter_purchased)
-                    HistoryFilter.PREVIEWS -> stringResource(Res.string.history_filter_previews)
-                },
-                selected = filter == currentFilter,
-                onClick = { onFilterChanged(filter) }
-            )
-        }
-    }
-}
+// ─── Empty State ────────────────────────────────────────────────────────────
 
 @Composable
-private fun EmptyHistoryContent() {
+private fun EmptyHistoryContent(modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("📸", fontSize = MaterialTheme.typography.displayMedium.fontSize)
+            Icon(
+                imageVector = Icons.Default.ImageSearch,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = stringResource(Res.string.history_empty_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -215,23 +182,24 @@ private fun EmptyHistoryContent() {
     }
 }
 
+// ─── History Grid ───────────────────────────────────────────────────────────
+
 @Composable
 private fun HistoryGrid(
     items: List<HistoryItem>,
+    modifier: Modifier = Modifier,
     onItemClicked: (String) -> Unit,
     onDeleteClicked: (String) -> Unit
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 150.dp),
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+        modifier = modifier.fillMaxSize().padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(items, key = { it.id }) { item ->
             HistoryGridItem(
-                imageUri = item.fullResLocalUri ?: item.previewUri,
-                styleName = item.styleName,
-                isPurchased = item.isPurchased,
+                item = item,
                 onClick = { onItemClicked(item.id) },
                 onDelete = { onDeleteClicked(item.id) }
             )
@@ -241,9 +209,7 @@ private fun HistoryGrid(
 
 @Composable
 private fun HistoryGridItem(
-    imageUri: String,
-    styleName: com.middleton.studiosnap.core.domain.model.UiText,
-    isPurchased: Boolean,
+    item: HistoryItem,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -253,7 +219,7 @@ private fun HistoryGridItem(
     ) {
         Column {
             AsyncImage(
-                model = imageUri,
+                model = item.previewUri,
                 contentDescription = stringResource(Res.string.history_product_photo),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -264,25 +230,19 @@ private fun HistoryGridItem(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = styleName.asString(),
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    if (isPurchased) {
-                        Text(
-                            text = stringResource(Res.string.history_purchased_badge),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
+                Text(
+                    text = item.styleName.asString(),
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
                 IconButton(
                     onClick = onDelete,
                     modifier = Modifier.size(32.dp)

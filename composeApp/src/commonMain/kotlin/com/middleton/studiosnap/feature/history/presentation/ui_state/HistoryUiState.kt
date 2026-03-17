@@ -1,8 +1,9 @@
 package com.middleton.studiosnap.feature.history.presentation.ui_state
 
+import com.middleton.studiosnap.core.domain.model.UiText
+
 data class HistoryUiState(
     val items: List<HistoryItem> = emptyList(),
-    val filter: HistoryFilter = HistoryFilter.ALL,
     val isLoading: Boolean = true
 ) {
     val isEmpty: Boolean get() = items.isEmpty() && !isLoading
@@ -10,16 +11,7 @@ data class HistoryUiState(
 
 data class HistoryItem(
     val id: String,
-    val inputPhotoUri: String,
     val previewUri: String,
-    val fullResLocalUri: String?,
-    val styleName: com.middleton.studiosnap.core.domain.model.UiText,
-    val isPurchased: Boolean,
-    val createdAt: Long,
-    val imageWidth: Int,
-    val imageHeight: Int
+    val styleName: UiText,
+    val createdAt: Long
 )
-
-enum class HistoryFilter {
-    ALL, PURCHASED, PREVIEWS
-}

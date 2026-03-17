@@ -14,7 +14,6 @@ import app.cash.paparazzi.Paparazzi
 import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.core.presentation.theme.StudioSnapTheme
 import com.middleton.studiosnap.feature.history.presentation.HistoryScreenContent
-import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryFilter
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
@@ -265,28 +264,17 @@ class AllScreensSnapshotTest {
                     items = listOf(
                         HistoryItem(
                             id = "h1",
-                            inputPhotoUri = "file:///fake/input.jpg",
                             previewUri = "file:///fake/preview1.jpg",
-                            fullResLocalUri = null,
                             styleName = UiText.DynamicString("Rustic Wood"),
-                            isPurchased = true,
-                            createdAt = System.currentTimeMillis(),
-                            imageWidth = 1024,
-                            imageHeight = 1024
+                            createdAt = 1710000000000L
                         ),
                         HistoryItem(
                             id = "h2",
-                            inputPhotoUri = "file:///fake/input2.jpg",
                             previewUri = "file:///fake/preview2.jpg",
-                            fullResLocalUri = null,
                             styleName = UiText.DynamicString("Marble Luxe"),
-                            isPurchased = false,
-                            createdAt = System.currentTimeMillis() - 86400000,
-                            imageWidth = 1024,
-                            imageHeight = 1024
+                            createdAt = 1709913600000L
                         )
                     ),
-                    filter = HistoryFilter.ALL,
                     isLoading = false
                 ),
                 onAction = {}
