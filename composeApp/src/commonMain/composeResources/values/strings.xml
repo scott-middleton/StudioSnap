@@ -96,20 +96,20 @@
     <string name="results_title">Your Results</string>
     <string name="results_before">Before</string>
     <string name="results_after">After</string>
-    <string name="results_download">Download Full Quality</string>
-    <string name="results_download_credit">1 credit</string>
-    <string name="results_download_all">Download All (%1$d credits)</string>
-    <string name="results_generate_more">Generate More Like This</string>
+    <string name="results_save">Save to Gallery</string>
+    <string name="results_save_all">Save All</string>
+    <string name="results_saving">Saving…</string>
+    <string name="results_saved">Saved ✓</string>
+    <string name="results_save_failed">Save failed</string>
+    <string name="results_error_network">Network error</string>
+    <string name="results_error_timeout">Request timed out</string>
+    <string name="results_error_api">Generation failed</string>
+    <string name="results_error_filtered">Content was filtered</string>
+    <string name="results_error_unknown">Something went wrong</string>
     <string name="results_back_to_home">New Session</string>
     <string name="results_share">Share</string>
-    <string name="results_watermarked">Free Generation</string>
-    <string name="results_purchased">Full Quality ✓</string>
     <string name="results_photo_counter">%1$d of %2$d</string>
-    <string name="results_insufficient_credits">Not enough credits</string>
-    <string name="results_get_credits">Get Credits</string>
-    <string name="results_downloading">Downloading…</string>
-    <string name="results_download_success">Saved to gallery ✓</string>
-    <string name="results_download_failed">Download failed. Tap to retry.</string>
+    <string name="results_done">Done</string>
 
     <!-- History Screen -->
     <string name="history_title">History</string>
@@ -209,10 +209,7 @@
     <string name="settings_credit_count">%1$d credits</string>
 
     <!-- Results (additional) -->
-    <string name="results_empty">No results</string>
-    <string name="results_download_success_message">Downloaded successfully</string>
-    <string name="results_download_failed_message">Download failed</string>
-    <string name="results_need_credits">Need %1$d credits to download all</string>
+    <string name="results_empty">No results yet</string>
     <string name="results_product_photo">Product photo result</string>
 
     <!-- Processing (additional) -->

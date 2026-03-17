@@ -20,7 +20,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,8 +36,6 @@ import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.ImageSearch
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -70,6 +67,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.middleton.studiosnap.core.presentation.components.GradientButton
 import com.middleton.studiosnap.core.presentation.components.PickedImage
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.core.presentation.theme.AppColors
@@ -673,12 +671,6 @@ private fun ErrorContent(
     onRetry: () -> Unit,
     onGoBack: () -> Unit
 ) {
-    val gradientBrush = remember {
-        Brush.horizontalGradient(
-            colors = listOf(AppColors.PrimaryGreen, AppColors.ProcessingTeal)
-        )
-    }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -724,30 +716,10 @@ private fun ErrorContent(
 
         Spacer(modifier = Modifier.height(36.dp))
 
-        Button(
-            onClick = onRetry,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = ButtonShape,
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(gradientBrush, ButtonShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(Res.string.processing_retry),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-        }
+        GradientButton(
+            text = stringResource(Res.string.processing_retry),
+            onClick = onRetry
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 

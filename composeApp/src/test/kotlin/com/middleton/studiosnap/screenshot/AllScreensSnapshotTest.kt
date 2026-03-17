@@ -184,11 +184,59 @@ class AllScreensSnapshotTest {
                                 createdAt = System.currentTimeMillis(),
                                 imageWidth = 1024,
                                 imageHeight = 1024
-                            ),
-                            isPurchased = false
+                            )
                         )
-                    ),
-                    creditBalance = 10
+                    )
+                ),
+                onAction = {}
+            )
+        }
+    }
+
+    @Test
+    fun results_showingOriginal() {
+        snapshot {
+            ResultsScreenContent(
+                state = ResultsUiState(
+                    results = listOf(
+                        ResultItem(
+                            result = GenerationResult.Success(
+                                generationId = "gen_1",
+                                inputPhoto = ProductPhoto(id = "p1", localUri = "file:///fake/photo.jpg"),
+                                previewUri = "file:///fake/preview.jpg",
+                                style = fakeStyle(),
+                                createdAt = System.currentTimeMillis(),
+                                imageWidth = 1024,
+                                imageHeight = 1024
+                            ),
+                            showingOriginal = true
+                        )
+                    )
+                ),
+                onAction = {}
+            )
+        }
+    }
+
+    @Test
+    fun results_saved() {
+        snapshot {
+            ResultsScreenContent(
+                state = ResultsUiState(
+                    results = listOf(
+                        ResultItem(
+                            result = GenerationResult.Success(
+                                generationId = "gen_1",
+                                inputPhoto = ProductPhoto(id = "p1", localUri = "file:///fake/photo.jpg"),
+                                previewUri = "file:///fake/preview.jpg",
+                                style = fakeStyle(),
+                                createdAt = System.currentTimeMillis(),
+                                imageWidth = 1024,
+                                imageHeight = 1024
+                            ),
+                            isSaved = true
+                        )
+                    )
                 ),
                 onAction = {}
             )
