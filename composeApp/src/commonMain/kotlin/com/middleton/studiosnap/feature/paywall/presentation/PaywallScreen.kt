@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -24,9 +23,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,45 +39,44 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.zIndex
-import com.middleton.studiosnap.core.presentation.theme.AppColors
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import com.middleton.studiosnap.core.presentation.components.GradientButton
 import com.middleton.studiosnap.core.presentation.components.NativeSignInEffect
-import com.middleton.studiosnap.core.presentation.theme.LocalExtendedColorScheme
+import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.util.SystemBarsAppearance
+import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.feature.paywall.presentation.action.PaywallUiAction
 import com.middleton.studiosnap.feature.paywall.presentation.navigation.PaywallNavigationAction
 import com.middleton.studiosnap.feature.paywall.presentation.ui_state.PaywallUiState
 import com.middleton.studiosnap.feature.paywall.presentation.ui_state.TokenPack
 import com.middleton.studiosnap.feature.paywall.presentation.viewmodel.PaywallViewModel
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.content_close
+import studiosnap.composeapp.generated.resources.ic_diamond
 import studiosnap.composeapp.generated.resources.paywall_already_have_account
 import studiosnap.composeapp.generated.resources.paywall_best_value
 import studiosnap.composeapp.generated.resources.paywall_continue
-import studiosnap.composeapp.generated.resources.paywall_headline_topup
-import studiosnap.composeapp.generated.resources.paywall_headline_trial
-import studiosnap.composeapp.generated.resources.paywall_most_popular
 import studiosnap.composeapp.generated.resources.paywall_credits_remaining
+import studiosnap.composeapp.generated.resources.paywall_headline_topup
+import studiosnap.composeapp.generated.resources.paywall_headline_post_trial
+import studiosnap.composeapp.generated.resources.paywall_most_popular
 import studiosnap.composeapp.generated.resources.paywall_per_restoration
 import studiosnap.composeapp.generated.resources.paywall_restorations
 import studiosnap.composeapp.generated.resources.paywall_select_pack
 import studiosnap.composeapp.generated.resources.paywall_sign_in_success
 import studiosnap.composeapp.generated.resources.paywall_subtitle
-import org.jetbrains.compose.resources.stringResource
-import com.middleton.studiosnap.core.presentation.util.SystemBarsAppearance
-import org.koin.compose.viewmodel.koinViewModel
 
-// Pre-allocated
-private val BackgroundColor = AppColors.DarkBackground
 private val CardShape = RoundedCornerShape(16.dp)
 private val BadgeShape = RoundedCornerShape(8.dp)
-private val ButtonShape = RoundedCornerShape(28.dp)
 
 @Composable
 fun PaywallScreen() {
@@ -99,19 +94,13 @@ fun PaywallScreen() {
 }
 
 @Composable
-private fun PaywallScreenContent(
+fun PaywallScreenContent(
     uiState: PaywallUiState,
     onAction: (PaywallUiAction) -> Unit
 ) {
-    val extendedColors = LocalExtendedColorScheme.current
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val errorMessage = when (val error = uiState.error) {
-        is com.middleton.studiosnap.core.domain.model.UiText.StringResource -> stringResource(error.resId)
-        is com.middleton.studiosnap.core.domain.model.UiText.DynamicString -> error.value
-        null -> null
-    }
-
+    val errorMessage = uiState.error?.asString()
     val signInSuccessMessage = stringResource(Res.string.paywall_sign_in_success)
 
     LaunchedEffect(uiState.error) {
@@ -131,7 +120,7 @@ private fun PaywallScreenContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.DarkBackground)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -152,7 +141,7 @@ private fun PaywallScreenContent(
                     Icon(
                         Icons.Default.Close,
                         contentDescription = stringResource(Res.string.content_close),
-                        tint = Color.White.copy(alpha = 0.7f)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -164,15 +153,15 @@ private fun PaywallScreenContent(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.MonetizationOn,
+                        painter = painterResource(Res.drawable.ic_diamond),
                         contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.7f),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
                         text = stringResource(Res.string.paywall_credits_remaining, uiState.currentCredits),
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -181,14 +170,14 @@ private fun PaywallScreenContent(
             // Headline — context-aware
             Text(
                 text = stringResource(
-                    if (uiState.isPostTrial) Res.string.paywall_headline_trial
+                    if (uiState.isPostTrial) Res.string.paywall_headline_post_trial
                     else Res.string.paywall_headline_topup
                 ),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
                     lineHeight = 36.sp
                 ),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp)
             )
@@ -199,7 +188,7 @@ private fun PaywallScreenContent(
             Text(
                 text = stringResource(Res.string.paywall_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 
@@ -222,7 +211,6 @@ private fun PaywallScreenContent(
                         PackCard(
                             pack = pack,
                             isSelected = pack == uiState.selectedPack,
-                            accentColor = AppColors.PrimaryGreen,
                             onSelect = { onAction(PaywallUiAction.SelectPack(pack)) }
                         )
                     }
@@ -232,67 +220,7 @@ private fun PaywallScreenContent(
             Spacer(modifier = Modifier.weight(1f))
 
             // Bottom CTA area
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .windowInsetsPadding(WindowInsets.navigationBars),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val hasSelection = uiState.selectedPack != null
-
-                val isBusy = uiState.isPurchasing || uiState.isSigningIn
-                Button(
-                    onClick = { onAction(PaywallUiAction.ConfirmPurchase) },
-                    enabled = hasSelection && !isBusy,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape = ButtonShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.PrimaryGreen,
-                        disabledContainerColor = AppColors.PrimaryGreen.copy(alpha = 0.4f)
-                    )
-                ) {
-                    if (isBusy) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = Color.White,
-                            strokeWidth = 2.5.dp
-                        )
-                    } else {
-                        Text(
-                            text = if (hasSelection) {
-                                stringResource(
-                                    Res.string.paywall_continue,
-                                    uiState.selectedPack!!.storeProduct.price.formatted
-                                )
-                            } else {
-                                stringResource(Res.string.paywall_select_pack)
-                            },
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = Color.White
-                        )
-                    }
-                }
-
-                if (!uiState.isSignedIn) {
-                    TextButton(
-                        onClick = { onAction(PaywallUiAction.SignIn) }
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.paywall_already_have_account),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.6f),
-                            textDecoration = TextDecoration.Underline
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+            BottomCtaSection(uiState = uiState, onAction = onAction)
         }
 
         // Snackbar
@@ -303,11 +231,12 @@ private fun PaywallScreenContent(
     }
 }
 
+// ─── Pack Card ──────────────────────────────────────────────────────────────
+
 @Composable
 private fun PackCard(
     pack: TokenPack,
     isSelected: Boolean,
-    accentColor: Color,
     onSelect: () -> Unit
 ) {
     val selectionAlpha by animateFloatAsState(
@@ -316,8 +245,11 @@ private fun PackCard(
         label = "selection"
     )
 
-    val cardBackground = Color.White.copy(alpha = 0.06f + 0.04f * selectionAlpha)
-    val borderColor = accentColor.copy(alpha = selectionAlpha * 0.8f)
+    val cardBackground = MaterialTheme.colorScheme.surfaceVariant.copy(
+        alpha = 0.3f + 0.2f * selectionAlpha
+    )
+    val borderColor = AppColors.PrimaryGreen.copy(alpha = selectionAlpha * 0.8f)
+    val unselectedBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
 
     Box {
         Row(
@@ -327,13 +259,13 @@ private fun PackCard(
                 .background(cardBackground, CardShape)
                 .then(
                     if (isSelected) Modifier.border(1.5.dp, borderColor, CardShape)
-                    else Modifier.border(1.dp, Color.White.copy(alpha = 0.08f), CardShape)
+                    else Modifier.border(1.dp, unselectedBorder, CardShape)
                 )
                 .clickable { onSelect() }
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Credits + restorations
+            // Credits + per-photo price
             Column(modifier = Modifier.weight(1f)) {
                 Row {
                     Text(
@@ -341,25 +273,24 @@ private fun PackCard(
                         style = MaterialTheme.typography.headlineSmall.copy(
                             fontWeight = FontWeight.Bold
                         ),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.alignByBaseline()
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = stringResource(Res.string.paywall_restorations),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.alignByBaseline()
                     )
                 }
 
-                // Per-restoration price
                 val pricePerRestoration = calculatePerRestorationPrice(pack)
                 if (pricePerRestoration != null) {
                     Text(
                         text = "$pricePerRestoration ${stringResource(Res.string.paywall_per_restoration)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -370,17 +301,17 @@ private fun PackCard(
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold
                 ),
-                color = if (isSelected) accentColor else Color.White
+                color = if (isSelected) AppColors.PrimaryGreen else MaterialTheme.colorScheme.onSurface
             )
         }
 
-        // Badge rendered after the card so it draws on top of the border
+        // Badge
         if (pack.isMostPopular || pack.isBestValue) {
             val badgeText = stringResource(
                 if (pack.isMostPopular) Res.string.paywall_most_popular
                 else Res.string.paywall_best_value
             )
-            val badgeColor = if (pack.isMostPopular) accentColor else AppColors.Warning
+            val badgeColor = if (pack.isMostPopular) AppColors.PrimaryGreen else AppColors.Warning
 
             Text(
                 text = badgeText,
@@ -388,7 +319,7 @@ private fun PackCard(
                     fontWeight = FontWeight.Bold,
                     fontSize = 10.sp
                 ),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .zIndex(1f)
@@ -400,6 +331,67 @@ private fun PackCard(
         }
     }
 }
+
+// ─── Bottom CTA ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun BottomCtaSection(
+    uiState: PaywallUiState,
+    onAction: (PaywallUiAction) -> Unit
+) {
+    val hasSelection = uiState.selectedPack != null
+    val isBusy = uiState.isPurchasing || uiState.isSigningIn
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (isBusy) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = AppColors.PrimaryGreen,
+                    strokeWidth = 2.5.dp
+                )
+            }
+        } else {
+            val buttonText = uiState.selectedPack?.let { pack ->
+                stringResource(Res.string.paywall_continue, pack.storeProduct.price.formatted)
+            } ?: stringResource(Res.string.paywall_select_pack)
+
+            GradientButton(
+                text = buttonText,
+                onClick = { onAction(PaywallUiAction.ConfirmPurchase) },
+                enabled = hasSelection
+            )
+        }
+
+        if (!uiState.isSignedIn) {
+            TextButton(
+                onClick = { onAction(PaywallUiAction.SignIn) }
+            ) {
+                Text(
+                    text = stringResource(Res.string.paywall_already_have_account),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textDecoration = TextDecoration.Underline
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 private fun calculatePerRestorationPrice(pack: TokenPack): String? {
     val priceAmountMicros = pack.storeProduct.price.amountMicros

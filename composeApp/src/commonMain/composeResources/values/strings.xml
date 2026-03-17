@@ -150,9 +150,9 @@
     <string name="paywall_select_pack">Select a pack</string>
     <string name="paywall_continue">Continue — %1$s</string>
     <string name="paywall_headline">Professional photos.\nNo subscription.</string>
-    <string name="paywall_headline_trial">Remove watermarks.\nUnlock full quality.</string>
+    <string name="paywall_headline_post_trial">Love your results?\nGet more credits.</string>
     <string name="paywall_headline_topup">More credits.\nMore photos.</string>
-    <string name="paywall_subtitle">1 credit = 1 full-quality download</string>
+    <string name="paywall_subtitle">1 credit = 1 styled photo</string>
     <string name="paywall_restorations">photos</string>
     <string name="paywall_per_restoration">per photo</string>
     <string name="paywall_already_have_account">Already have an account? Sign in</string>
