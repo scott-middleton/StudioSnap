@@ -1,9 +1,8 @@
 package com.middleton.studiosnap.feature.home.presentation
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,8 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,29 +37,28 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.painterResource
-import studiosnap.composeapp.generated.resources.ic_palette
 import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
+import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
 import com.middleton.studiosnap.feature.home.presentation.action.StylePickerUiAction
 import com.middleton.studiosnap.feature.home.presentation.viewmodel.StylePickerViewModel
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.content_close
+import studiosnap.composeapp.generated.resources.ic_palette
+import studiosnap.composeapp.generated.resources.style_picker_empty_category
 import studiosnap.composeapp.generated.resources.style_picker_title
 
 @Composable
@@ -115,54 +113,99 @@ internal fun StylePickerScreenContent(
             )
         }
     ) { padding ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Category filter chips as full-width header
-            item(span = { GridItemSpan(3) }) {
-                Column {
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        StyleCategory.entries.forEach { category ->
-                            StudioSnapFilterChip(
-                                label = categoryDisplayName(category),
-                                selected = category == selectedCategory,
-                                onClick = { onCategorySelected(category) }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
-
-            // Style cards in 3-column grid
-            items(styles, key = { it.id }) { style ->
-                StylePickerCard(
-                    styleName = style.displayName.asString(),
-                    thumbnail = style.thumbnail,
-                    isSelected = style.id == selectedStyleId,
-                    onClick = { onStyleSelected(style.id) }
+        if (styles.isEmpty() && selectedCategory != StyleCategory.ALL) {
+            // Empty state for filtered category
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+                CategoryChipRow(
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = onCategorySelected
                 )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                        imageVector = Icons.Default.ImageSearch,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(Res.string.style_picker_empty_category),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.weight(1f))
             }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Category filter chips as full-width header
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Column {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        CategoryChipRow(
+                            selectedCategory = selectedCategory,
+                            onCategorySelected = onCategorySelected
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
 
-            // Bottom padding
-            item(span = { GridItemSpan(3) }) {
-                Spacer(modifier = Modifier.height(16.dp))
+                // Style cards
+                items(styles, key = { it.id }) { style ->
+                    StylePickerCard(
+                        styleName = style.displayName.asString(),
+                        thumbnail = style.thumbnail,
+                        isSelected = style.id == selectedStyleId,
+                        onClick = { onStyleSelected(style.id) }
+                    )
+                }
+
+                // Bottom padding
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
 }
+
+// ─── Category Chips ─────────────────────────────────────────────────────────
+
+@Composable
+private fun CategoryChipRow(
+    selectedCategory: StyleCategory,
+    onCategorySelected: (StyleCategory) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        StyleCategory.entries.forEach { category ->
+            StudioSnapFilterChip(
+                label = categoryDisplayName(category),
+                selected = category == selectedCategory,
+                onClick = { onCategorySelected(category) }
+            )
+        }
+    }
+}
+
+// ─── Style Card ─────────────────────────────────────────────────────────────
 
 @Composable
 private fun StylePickerCard(
@@ -173,10 +216,7 @@ private fun StylePickerCard(
     modifier: Modifier = Modifier
 ) {
     val borderModifier = if (isSelected) {
-        Modifier.border(
-            BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-            RoundedCornerShape(16.dp) // Updated corner radius
-        )
+        Modifier.border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(16.dp))
     } else {
         Modifier
     }
@@ -228,11 +268,12 @@ private fun StylePickerCard(
             }
             Text(
                 text = styleName,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
                 textAlign = TextAlign.Center
             )
         }

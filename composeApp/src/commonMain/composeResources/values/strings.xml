@@ -218,6 +218,7 @@
 
     <!-- Style Picker -->
     <string name="style_picker_title">Choose Style</string>
+    <string name="style_picker_empty_category">No styles in this category</string>
 
     <!-- Home - Style Section -->
     <string name="home_background_style">Background Style</string>
