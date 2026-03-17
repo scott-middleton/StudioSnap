@@ -99,9 +99,7 @@ class ProcessingViewModel(
                             )
                         )
                         _uiState.value = ProcessingUiState.Complete
-                        _navigationEvent.value = ProcessingNavigationAction.GoToResults(
-                            generationId = currentConfig.hashCode().toString()
-                        )
+                        _navigationEvent.value = ProcessingNavigationAction.GoToResults
                     } else {
                         // Move to next photo — show preparing then generating for new photo
                         val nextIndex = progress.currentIndex + 1

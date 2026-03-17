@@ -6,10 +6,8 @@ import com.middleton.studiosnap.core.presentation.navigation.Route
 
 sealed class ProcessingNavigationAction : NavigationAction {
 
-    data class GoToResults(val generationId: String) : ProcessingNavigationAction() {
-        override val navigationCommand = NavigationCommand.NavigateAndPopCurrent(
-            Route.Results(generationId)
-        )
+    data object GoToResults : ProcessingNavigationAction() {
+        override val navigationCommand = NavigationCommand.NavigateAndPopCurrent(Route.Results)
     }
 
     data object GoBack : ProcessingNavigationAction() {

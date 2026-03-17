@@ -6,10 +6,8 @@ import com.middleton.studiosnap.core.presentation.navigation.Route
 
 sealed class HomeNavigationAction : NavigationAction {
 
-    data class GoToProcessing(val generationConfigId: String) : HomeNavigationAction() {
-        override val navigationCommand = NavigationCommand.Navigate(
-            Route.Processing(generationConfigId)
-        )
+    data object GoToProcessing : HomeNavigationAction() {
+        override val navigationCommand = NavigationCommand.Navigate(Route.Processing)
     }
 
     data object GoToSettings : HomeNavigationAction() {

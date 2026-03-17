@@ -172,7 +172,7 @@ class HomeViewModel(
             )
         )
 
-        _navigationEvent.value = HomeNavigationAction.GoToProcessing(config.hashCode().toString())
+        _navigationEvent.value = HomeNavigationAction.GoToProcessing
     }
 
     private fun navigateTo(action: HomeNavigationAction) {

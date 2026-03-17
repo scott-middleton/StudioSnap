@@ -21,10 +21,10 @@ sealed interface Route {
     data object Home : Route
 
     @Serializable
-    data class Processing(val generationConfigId: String) : Route
+    data object Processing : Route
 
     @Serializable
-    data class Results(val generationId: String) : Route
+    data object Results : Route
 
     @Serializable
     data object CreditStore : Route
