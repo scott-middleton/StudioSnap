@@ -9,6 +9,7 @@ import com.middleton.studiosnap.core.data.model.KontextInput
 import com.middleton.studiosnap.core.data.model.KontextPredictionRequest
 import com.middleton.studiosnap.core.data.model.ReplicatePredictionResponse
 import com.middleton.studiosnap.core.data.util.getImageDimensions
+import com.middleton.studiosnap.core.data.util.readBytesFromUri
 import com.middleton.studiosnap.core.data.util.resizeImage
 import com.middleton.studiosnap.core.data.util.toBase64DataUri
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
@@ -38,8 +39,9 @@ class GenerationRepositoryImpl(
         quality: GenerationQuality
     ): Result<GenerationResult.Success> = runCatching {
         // 1. Read and compress the input image
-        val imageBytes = imageCacheManager.readImageFromCache(photo.localUri)
-            ?: imageCacheManager.readFile(photo.localUri)
+        // readBytesFromUri handles content:// URIs on Android (via ContentResolver)
+        // and IosImageCache / file paths on iOS
+        val imageBytes = readBytesFromUri(photo.localUri)
             ?: throw IllegalStateException("Cannot read input image at ${photo.localUri}")
 
         val resizedBytes = imageBytes.resizeImage(
