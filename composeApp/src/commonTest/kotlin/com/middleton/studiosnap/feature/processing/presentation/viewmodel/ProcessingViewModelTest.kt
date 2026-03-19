@@ -269,8 +269,6 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val savedResults = mutableListOf<GenerationResult.Success>()
 
         override fun getAll(): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
-        override fun getPurchasedOnly(): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
-        override fun getPreviewsOnly(): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
         override suspend fun save(result: GenerationResult.Success) {
             savedResults.add(result)
         }

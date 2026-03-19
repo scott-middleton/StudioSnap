@@ -11,10 +11,6 @@ interface HistoryRepository {
 
     fun getAll(): Flow<List<GenerationResult.Success>>
 
-    fun getPurchasedOnly(): Flow<List<GenerationResult.Success>>
-
-    fun getPreviewsOnly(): Flow<List<GenerationResult.Success>>
-
     suspend fun save(result: GenerationResult.Success)
 
     suspend fun saveAll(results: List<GenerationResult.Success>)

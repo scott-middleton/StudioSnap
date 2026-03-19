@@ -53,8 +53,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import com.middleton.studiosnap.core.presentation.components.GalleryImage
 import com.middleton.studiosnap.core.presentation.components.GradientButton
+import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
@@ -271,11 +272,15 @@ private fun SuccessCard(
     showingOriginal: Boolean,
     onToggleBeforeAfter: () -> Unit
 ) {
-    val imageUri = if (showingOriginal) result.inputPhoto.localUri else result.previewUri
     val aspectRatio = if (result.imageWidth > 0 && result.imageHeight > 0) {
         result.imageWidth.toFloat() / result.imageHeight.toFloat()
     } else {
         1f
+    }
+    val inputAspectRatio = if (result.inputPhoto.width > 0 && result.inputPhoto.height > 0) {
+        result.inputPhoto.width.toFloat() / result.inputPhoto.height.toFloat()
+    } else {
+        aspectRatio
     }
 
     Column(
@@ -289,21 +294,34 @@ private fun SuccessCard(
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 AnimatedContent(
-                    targetState = imageUri,
+                    targetState = showingOriginal,
                     transitionSpec = {
                         fadeIn(tween(300)) togetherWith fadeOut(tween(300))
                     },
                     label = "before_after"
-                ) { uri ->
-                    AsyncImage(
-                        model = uri,
-                        contentDescription = stringResource(Res.string.results_product_photo),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(aspectRatio)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Fit
-                    )
+                ) { isOriginal ->
+                    if (isOriginal) {
+                        GalleryImage(
+                            galleryUri = result.inputPhoto.localUri,
+                            contentDescription = stringResource(Res.string.results_product_photo),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(inputAspectRatio)
+                                .clip(RoundedCornerShape(16.dp)),
+                            contentScale = ContentScale.Fit,
+                            knownAspectRatio = inputAspectRatio
+                        )
+                    } else {
+                        RestorationImage(
+                            imagePath = result.previewUri,
+                            contentDescription = stringResource(Res.string.results_product_photo),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(aspectRatio)
+                                .clip(RoundedCornerShape(16.dp)),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                 }
 
                 // Before/After toggle pill

@@ -68,7 +68,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import com.middleton.studiosnap.core.presentation.components.GalleryImage
 import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
@@ -488,11 +488,13 @@ private fun PhotoCell(
             .clip(RoundedCornerShape(14.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        AsyncImage(
-            model = photoUri,
+        GalleryImage(
+            galleryUri = photoUri,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            fillContainer = true,
+            targetSizePx = 300
         )
         Box(
             modifier = Modifier

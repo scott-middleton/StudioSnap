@@ -12,12 +12,6 @@ interface GenerationDao {
     @Query("SELECT * FROM generations ORDER BY createdAt DESC")
     fun getAll(): Flow<List<GenerationEntity>>
 
-    @Query("SELECT * FROM generations WHERE isPurchased = 1 ORDER BY createdAt DESC")
-    fun getPurchasedOnly(): Flow<List<GenerationEntity>>
-
-    @Query("SELECT * FROM generations WHERE isPurchased = 0 ORDER BY createdAt DESC")
-    fun getPreviewsOnly(): Flow<List<GenerationEntity>>
-
     @Query("SELECT * FROM generations WHERE id = :id")
     suspend fun getById(id: String): GenerationEntity?
 

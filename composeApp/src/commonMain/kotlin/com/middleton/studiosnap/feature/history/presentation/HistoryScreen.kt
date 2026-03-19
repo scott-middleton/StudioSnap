@@ -41,8 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
-import com.middleton.studiosnap.core.domain.model.UiText
+import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
@@ -218,8 +217,8 @@ private fun HistoryGridItem(
         onClick = onClick
     ) {
         Column {
-            AsyncImage(
-                model = item.previewUri,
+            RestorationImage(
+                imagePath = item.previewUri,
                 contentDescription = stringResource(Res.string.history_product_photo),
                 modifier = Modifier
                     .fillMaxWidth()

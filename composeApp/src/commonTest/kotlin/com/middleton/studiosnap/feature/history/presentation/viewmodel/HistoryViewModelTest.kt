@@ -135,10 +135,6 @@ class HistoryViewModelTest : BaseViewModelTest() {
         val items = MutableStateFlow<List<GenerationResult.Success>>(emptyList())
 
         override fun getAll(): Flow<List<GenerationResult.Success>> = items
-        override fun getPurchasedOnly(): Flow<List<GenerationResult.Success>> =
-            MutableStateFlow(items.value.filter { it.fullResUri != null })
-        override fun getPreviewsOnly(): Flow<List<GenerationResult.Success>> =
-            MutableStateFlow(items.value.filter { it.fullResUri == null })
         override suspend fun save(result: GenerationResult.Success) {
             items.value = items.value + result
         }

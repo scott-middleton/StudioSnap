@@ -92,8 +92,6 @@ class DownloadFullResUseCaseTest {
         val purchasedIds = mutableListOf<String>()
 
         override fun getAll(): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
-        override fun getPurchasedOnly(): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
-        override fun getPreviewsOnly(): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
         override suspend fun save(result: GenerationResult.Success) {}
         override suspend fun saveAll(results: List<GenerationResult.Success>) {}
         override suspend fun getById(id: String): GenerationResult.Success? = null

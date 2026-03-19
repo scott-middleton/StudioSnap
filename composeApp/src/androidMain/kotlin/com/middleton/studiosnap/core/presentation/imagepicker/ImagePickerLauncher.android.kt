@@ -8,9 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.net.toUri
 
 @Composable
 actual fun ImagePickerLauncher(
@@ -86,15 +84,10 @@ actual fun ImagePickerLauncher(
     }
 }
 
-actual fun ImagePickerResult.loadImageBitmap(): ImageBitmap? {
-    return try {
-        val context = AndroidContextHolder.context ?: return null
-        val uri = this.uri.toUri()
-        context.decodeBitmapWithOrientation(uri)?.asImageBitmap()
-    } catch (_: Exception) {
-        null
-    }
-}
+// Android always returns null — PickedImage falls through to Coil (GalleryImage/SubcomposeAsyncImage)
+// which handles content:// URIs with proper downsampling. Loading full-res bitmaps into
+// ImageBitmap crashes with "Canvas: trying to draw too large bitmap" on high-res camera photos.
+actual fun ImagePickerResult.loadImageBitmap(): ImageBitmap? = null
 
 /**
  * Holder for Android context to be used in non-composable functions.

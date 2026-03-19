@@ -1,21 +1,18 @@
 package com.middleton.studiosnap.core.presentation.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import coil3.compose.SubcomposeAsyncImage
-import coil3.toUri
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerResult
 import com.middleton.studiosnap.core.presentation.imagepicker.loadImageBitmap
 
 /**
  * Displays an image from an ImagePickerResult, handling platform differences.
- * iOS: loads from IosImageCache via loadImageBitmap()
- * Android: loads via Coil from content:// URI
+ * iOS: loads from IosImageCache via loadImageBitmap() — bitmap is already downsampled.
+ * Android: loadImageBitmap() returns null, falls through to GalleryImage (Coil),
+ *          which downsamples content:// URIs to display size — avoids OOM on camera photos.
  */
 @Composable
 fun PickedImage(
@@ -38,13 +35,14 @@ fun PickedImage(
             contentScale = contentScale
         )
     } else {
-        SubcomposeAsyncImage(
-            model = imageUri.toUri(),
+        GalleryImage(
+            galleryUri = imageUri,
             contentDescription = contentDescription,
             modifier = modifier,
             contentScale = contentScale,
-            loading = { loading?.invoke() ?: Box(Modifier.fillMaxSize()) },
-            error = { error?.invoke() ?: Box(Modifier.fillMaxSize()) }
+            fillContainer = true,
+            loading = loading,
+            error = error
         )
     }
 }

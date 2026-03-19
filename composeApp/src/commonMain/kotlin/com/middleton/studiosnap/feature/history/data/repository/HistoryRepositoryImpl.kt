@@ -20,18 +20,6 @@ class HistoryRepositoryImpl(
         }
     }
 
-    override fun getPurchasedOnly(): Flow<List<GenerationResult.Success>> {
-        return generationDao.getPurchasedOnly().map { entities ->
-            entities.map { it.toDomainModel(styleRepository) }
-        }
-    }
-
-    override fun getPreviewsOnly(): Flow<List<GenerationResult.Success>> {
-        return generationDao.getPreviewsOnly().map { entities ->
-            entities.map { it.toDomainModel(styleRepository) }
-        }
-    }
-
     override suspend fun save(result: GenerationResult.Success) {
         generationDao.insert(result.toEntity())
     }

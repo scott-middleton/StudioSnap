@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.middleton.studiosnap.core.presentation.components.GradientButton
 import com.middleton.studiosnap.core.presentation.components.NativeSignInEffect
 import com.middleton.studiosnap.core.presentation.theme.AppColors
@@ -83,7 +84,7 @@ fun PaywallScreen() {
     val viewModel: PaywallViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
-    SystemBarsAppearance(lightIcons = true)
+    SystemBarsAppearance(lightIcons = isSystemInDarkTheme())
 
     NativeSignInEffect(
         showSignIn = uiState.showSignIn,
@@ -94,7 +95,7 @@ fun PaywallScreen() {
 }
 
 @Composable
-fun PaywallScreenContent(
+internal fun PaywallScreenContent(
     uiState: PaywallUiState,
     onAction: (PaywallUiAction) -> Unit
 ) {

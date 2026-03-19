@@ -51,7 +51,7 @@ class HistoryRepositoryImplTest {
 
     // endregion
 
-    // region getAll, getPurchasedOnly, getPreviewsOnly
+    // region getAll
 
     @Test
     fun `getAll returns all generations`() = runTest {
@@ -60,26 +60,6 @@ class HistoryRepositoryImplTest {
 
         val all = sut.getAll().first()
         assertEquals(2, all.size)
-    }
-
-    @Test
-    fun `getPurchasedOnly returns only purchased generations`() = runTest {
-        sut.save(testResult("gen-1"))
-        sut.save(testResult("gen-2", fullResUri = "/path/to/full.jpg"))
-
-        val purchased = sut.getPurchasedOnly().first()
-        assertEquals(1, purchased.size)
-        assertEquals("gen-2", purchased[0].generationId)
-    }
-
-    @Test
-    fun `getPreviewsOnly returns only non-purchased generations`() = runTest {
-        sut.save(testResult("gen-1"))
-        sut.save(testResult("gen-2", fullResUri = "/path/to/full.jpg"))
-
-        val previews = sut.getPreviewsOnly().first()
-        assertEquals(1, previews.size)
-        assertEquals("gen-1", previews[0].generationId)
     }
 
     // endregion
@@ -170,12 +150,6 @@ private class FakeGenerationDao : GenerationDao {
 
     override fun getAll(): Flow<List<GenerationEntity>> =
         entities.map { list -> list.sortedByDescending { it.createdAt } }
-
-    override fun getPurchasedOnly(): Flow<List<GenerationEntity>> =
-        entities.map { list -> list.filter { it.isPurchased }.sortedByDescending { it.createdAt } }
-
-    override fun getPreviewsOnly(): Flow<List<GenerationEntity>> =
-        entities.map { list -> list.filter { !it.isPurchased }.sortedByDescending { it.createdAt } }
 
     override suspend fun getById(id: String): GenerationEntity? =
         entities.value.find { it.id == id }
