@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -216,7 +217,7 @@ private fun ResultsContent(
                 textAlign = TextAlign.Center
             )
         } else {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
         }
 
         // Image pager
@@ -323,7 +324,7 @@ private fun SuccessCard(
         // Save status — above the image card
         GallerySaveIndicator(isSavedToGallery = isSavedToGallery, isAutoSaving = isAutoSaving)
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         StudioSnapCard(
             modifier = Modifier.fillMaxWidth()
@@ -468,7 +469,7 @@ private fun GallerySaveIndicator(isSavedToGallery: Boolean, isAutoSaving: Boolea
                 color = AppColors.SuccessGreen
             )
         }
-        else -> Spacer(modifier = height)
+        else -> Spacer(modifier = Modifier.height(4.dp))
     }
 }
 
@@ -485,6 +486,7 @@ private fun BeforeAfterToggle(
 
     Row(
         modifier = modifier
+            .wrapContentWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onToggle)
