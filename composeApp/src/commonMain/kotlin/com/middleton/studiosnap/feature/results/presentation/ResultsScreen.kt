@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -235,6 +234,8 @@ private fun ResultsContent(
                 ResultCard(
                     item = item,
                     isAutoSaving = state.isAutoSaving,
+                    pageCount = state.results.size,
+                    currentPage = pagerState.currentPage,
                     onToggleBeforeAfter = {
                         val result = item.result
                         if (result is GenerationResult.Success) {
@@ -252,16 +253,6 @@ private fun ResultsContent(
                     }
                 )
             }
-        }
-
-        // Page indicator
-        if (state.results.size > 1) {
-            Spacer(modifier = Modifier.height(8.dp))
-            PageIndicator(
-                pagerState = pagerState,
-                pageCount = state.results.size,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -283,6 +274,8 @@ private fun ResultsContent(
 private fun ResultCard(
     item: ResultItem,
     isAutoSaving: Boolean,
+    pageCount: Int,
+    currentPage: Int,
     onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
@@ -294,6 +287,8 @@ private fun ResultCard(
             showingOriginal = item.showingOriginal,
             isSavedToGallery = item.isSavedToGallery,
             isAutoSaving = isAutoSaving,
+            pageCount = pageCount,
+            currentPage = currentPage,
             onToggleBeforeAfter = onToggleBeforeAfter,
             onFullScreenClicked = onFullScreenClicked
         )
@@ -307,6 +302,8 @@ private fun SuccessCard(
     showingOriginal: Boolean,
     isSavedToGallery: Boolean,
     isAutoSaving: Boolean,
+    pageCount: Int,
+    currentPage: Int,
     onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
@@ -405,6 +402,14 @@ private fun SuccessCard(
             showingOriginal = showingOriginal,
             onToggle = onToggleBeforeAfter
         )
+
+        if (pageCount > 1) {
+            Spacer(modifier = Modifier.height(10.dp))
+            PageIndicator(
+                currentPage = currentPage,
+                pageCount = pageCount
+            )
+        }
     }
 }
 
@@ -544,7 +549,7 @@ private fun TogglePill(
 
 @Composable
 private fun PageIndicator(
-    pagerState: PagerState,
+    currentPage: Int,
     pageCount: Int,
     modifier: Modifier = Modifier
 ) {
@@ -554,7 +559,7 @@ private fun PageIndicator(
         verticalAlignment = Alignment.CenterVertically
     ) {
         repeat(pageCount) { index ->
-            val isSelected = pagerState.currentPage == index
+            val isSelected = currentPage == index
             val dotSize by animateDpAsState(
                 targetValue = if (isSelected) 8.dp else 6.dp,
                 animationSpec = tween(200),
