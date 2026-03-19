@@ -270,6 +270,7 @@ private fun HistoryGridItem(
     }
 }
 
+// TODO: Replace hardcoded English strings with localized string resources when i18n is added
 internal fun formatRelativeTime(createdAt: Long, nowMs: Long = Clock.System.now().toEpochMilliseconds()): String {
     val diffMs = nowMs - createdAt
     val diffDays = diffMs / (1000L * 60 * 60 * 24)

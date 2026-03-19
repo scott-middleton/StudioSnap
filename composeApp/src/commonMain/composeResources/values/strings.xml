@@ -96,8 +96,6 @@
     <string name="results_title">Your Results</string>
     <string name="results_before">Before</string>
     <string name="results_after">After</string>
-    <string name="results_save">Save to Gallery</string>
-    <string name="results_save_all">Save All</string>
     <string name="results_saving">Saving…</string>
     <string name="results_saved">Saved ✓</string>
     <string name="results_save_failed">Save failed</string>
@@ -106,7 +104,6 @@
     <string name="results_error_api">Generation failed</string>
     <string name="results_error_filtered">Content was filtered</string>
     <string name="results_error_unknown">Something went wrong</string>
-    <string name="results_back_to_home">New Session</string>
     <string name="results_share">Share</string>
     <string name="results_photo_counter">%1$d of %2$d</string>
     <string name="results_done">Done</string>

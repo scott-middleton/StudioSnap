@@ -34,7 +34,6 @@ import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -120,7 +119,8 @@ fun ResultsScreenContent(
     onAction: (ResultsUiAction) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    var fullScreenImagePath by remember { mutableStateOf<String?>(null) }
+    // Pair of (imagePath, aspectRatio) — aspect ratio used for landscape lock in overlay
+    var fullScreenImage by remember { mutableStateOf<Pair<String, Float?>?>(null) }
 
     val snackbarText = state.snackbarMessage?.asString()
     LaunchedEffect(snackbarText) {
@@ -147,15 +147,16 @@ fun ResultsScreenContent(
                     state = state,
                     modifier = Modifier.padding(padding),
                     onAction = onAction,
-                    onFullScreenClicked = { path -> fullScreenImagePath = path }
+                    onFullScreenClicked = { path, aspectRatio -> fullScreenImage = path to aspectRatio }
                 )
             }
         }
 
-        if (fullScreenImagePath != null) {
+        fullScreenImage?.let { (path, aspectRatio) ->
             FullScreenImageOverlay(
-                imagePath = fullScreenImagePath!!,
-                onDismiss = { fullScreenImagePath = null }
+                imagePath = path,
+                imageAspectRatio = aspectRatio,
+                onDismiss = { fullScreenImage = null }
             )
         }
     }
@@ -193,7 +194,7 @@ private fun ResultsContent(
     state: ResultsUiState,
     modifier: Modifier = Modifier,
     onAction: (ResultsUiAction) -> Unit,
-    onFullScreenClicked: (String) -> Unit
+    onFullScreenClicked: (path: String, aspectRatio: Float?) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { state.results.size })
 
@@ -237,7 +238,10 @@ private fun ResultsContent(
                 onFullScreenClicked = {
                     val result = item.result
                     if (result is GenerationResult.Success) {
-                        onFullScreenClicked(result.previewUri)
+                        val ar = if (result.imageWidth > 0 && result.imageHeight > 0) {
+                            result.imageWidth.toFloat() / result.imageHeight.toFloat()
+                        } else null
+                        onFullScreenClicked(result.previewUri, ar)
                     }
                 }
             )
@@ -350,19 +354,20 @@ private fun SuccessCard(
                     }
                 }
 
-                // Zoom hint icon (top-right, only shown when viewing after)
+                // Zoom hint icon (top-right, only shown when viewing after).
+                // The entire Box is already tappable — this is a visual affordance only.
                 if (!showingOriginal) {
-                    IconButton(
-                        onClick = onFullScreenClicked,
+                    Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(4.dp)
-                            .size(32.dp)
+                            .padding(8.dp)
+                            .size(24.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.ZoomIn,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             modifier = Modifier.size(20.dp)
                         )
                     }

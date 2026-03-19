@@ -68,6 +68,15 @@ class ResultsViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun `auto save failure does not mark item as saved to gallery`() {
+        val sut = createSut(
+            results = listOf(successResult),
+            galleryRepo = FakeGalleryRepository(shouldFail = true)
+        )
+        assertFalse(sut.uiState.value.results.first().isSavedToGallery)
+    }
+
+    @Test
     fun `auto save failure shows error snackbar`() {
         val sut = createSut(
             results = listOf(successResult),
