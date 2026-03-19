@@ -10,7 +10,7 @@ fun formatRelativeTime(createdAt: Long, nowMs: Long = Clock.System.now().toEpoch
     val diffMs = nowMs - createdAt
     val diffDays = diffMs / (1000L * 60 * 60 * 24)
     return when {
-        diffDays == 0L -> "Today"
+        diffDays <= 0L -> "Today"
         diffDays == 1L -> "Yesterday"
         diffDays < 7L -> "$diffDays days ago"
         diffDays < 14L -> "Last week"

@@ -97,7 +97,7 @@ class GenerationRepositoryImpl(
             fullResUrl = outputUrl,
             fullResUri = null,
             style = style,
-            createdAt = Clock.System.now().epochSeconds,
+            createdAt = Clock.System.now().toEpochMilliseconds(),
             imageWidth = dimensions?.first ?: 0,
             imageHeight = dimensions?.second ?: 0
         )
