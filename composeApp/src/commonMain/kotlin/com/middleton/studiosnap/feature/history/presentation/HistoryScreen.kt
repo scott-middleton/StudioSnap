@@ -45,7 +45,6 @@ import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
-import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.core.presentation.util.formatRelativeTime
 import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
@@ -236,7 +235,7 @@ private fun HistoryGridItem(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = item.styleName.asString(),
+                        text = item.styleName,
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Medium
                         ),

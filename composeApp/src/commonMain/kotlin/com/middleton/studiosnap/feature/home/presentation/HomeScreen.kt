@@ -888,7 +888,7 @@ private fun RecentGenerationCard(
                     .padding(horizontal = 10.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = item.styleName.asString(),
+                    text = item.styleName,
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.SemiBold
                     ),

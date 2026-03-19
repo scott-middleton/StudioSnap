@@ -11,6 +11,7 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
+import com.middleton.studiosnap.core.presentation.util.asDisplayString
 import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
@@ -97,7 +98,7 @@ class HomeViewModel(
                     HistoryItem(
                         id = result.generationId,
                         previewUri = result.previewUri,
-                        styleName = result.style.displayName,
+                        styleName = result.styleDisplayName.asDisplayString(),
                         createdAt = result.createdAt
                     )
                 }

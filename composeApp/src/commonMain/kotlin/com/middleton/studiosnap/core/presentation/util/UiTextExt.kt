@@ -13,3 +13,13 @@ fun UiText.asString(): String = when (this) {
     is UiText.DynamicString -> value
     is UiText.StringResource -> stringResource(resId)
 }
+
+/**
+ * Non-composable conversion for use in ViewModels.
+ * StringResource variants return an empty string — only use where the value
+ * is guaranteed to be DynamicString (e.g. strings persisted from the database).
+ */
+fun UiText.asDisplayString(): String = when (this) {
+    is UiText.DynamicString -> value
+    is UiText.StringResource -> ""
+}

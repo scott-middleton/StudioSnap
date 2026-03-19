@@ -265,13 +265,13 @@ class AllScreensSnapshotTest {
                         HistoryItem(
                             id = "h1",
                             previewUri = "file:///fake/preview1.jpg",
-                            styleName = UiText.DynamicString("Rustic Wood"),
+                            styleName = "Rustic Wood",
                             createdAt = 1710000000000L
                         ),
                         HistoryItem(
                             id = "h2",
                             previewUri = "file:///fake/preview2.jpg",
-                            styleName = UiText.DynamicString("Marble Luxe"),
+                            styleName = "Marble Luxe",
                             createdAt = 1709913600000L
                         )
                     ),

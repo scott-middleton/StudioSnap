@@ -7,6 +7,7 @@ import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
 import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryNavigationAction
+import com.middleton.studiosnap.core.presentation.util.asDisplayString
 import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +50,7 @@ class HistoryViewModel(
                     HistoryItem(
                         id = result.generationId,
                         previewUri = result.previewUri,
-                        styleName = result.styleDisplayName,
+                        styleName = result.styleDisplayName.asDisplayString(),
                         createdAt = result.createdAt
                     )
                 }

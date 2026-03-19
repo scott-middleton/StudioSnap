@@ -115,8 +115,7 @@ class HistoryViewModelTest : BaseViewModelTest() {
         assertEquals("gen_1", item.id)
         assertEquals("preview_gen_1.jpg", item.previewUri)
         assertEquals(1000L, item.createdAt)
-        assertIs<UiText.DynamicString>(item.styleName)
-        assertEquals("Clean White", (item.styleName as UiText.DynamicString).value)
+        assertEquals("Clean White", item.styleName)
     }
 
     // --- Factory ---
