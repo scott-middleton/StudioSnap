@@ -372,19 +372,18 @@ private fun SuccessCard(
                         )
                     }
                 }
-
-                // Before/After toggle pill
-                BeforeAfterToggle(
-                    showingOriginal = showingOriginal,
-                    onToggle = onToggleBeforeAfter,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 12.dp)
-                )
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
+
+        // Before/After toggle pill — below the card so it doesn't overlap the image
+        BeforeAfterToggle(
+            showingOriginal = showingOriginal,
+            onToggle = onToggleBeforeAfter
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Style name
         Text(
@@ -635,9 +634,9 @@ private fun ActionButtons(
             Text(
                 text = stringResource(Res.string.results_done),
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
