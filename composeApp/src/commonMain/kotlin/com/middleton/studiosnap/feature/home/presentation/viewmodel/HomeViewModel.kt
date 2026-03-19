@@ -11,6 +11,8 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
+import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
+import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
@@ -28,7 +30,8 @@ class HomeViewModel(
     private val creditQueries: CreditQueries,
     private val authService: AuthService,
     private val generationConfigHolder: GenerationConfigHolder,
-    private val analyticsService: AnalyticsService
+    private val analyticsService: AnalyticsService,
+    private val historyRepository: HistoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -40,6 +43,7 @@ class HomeViewModel(
     init {
         loadInitialState()
         observeCredits()
+        observeRecentGenerations()
     }
 
     fun handleAction(action: HomeUiAction) {
@@ -61,6 +65,7 @@ class HomeViewModel(
             is HomeUiAction.OnGenerateClicked -> onGenerate()
             is HomeUiAction.OnSettingsClicked -> navigateTo(HomeNavigationAction.GoToSettings)
             is HomeUiAction.OnHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
+            is HomeUiAction.OnViewAllHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
             is HomeUiAction.OnCreditBalanceClicked -> navigateTo(HomeNavigationAction.GoToCreditStore)
             is HomeUiAction.OnErrorDismissed -> _uiState.update { it.copy(error = null) }
             is HomeUiAction.OnNavigationHandled -> _navigationEvent.value = null
@@ -79,6 +84,22 @@ class HomeViewModel(
         viewModelScope.launch {
             creditQueries.observeCredits().collect { credits ->
                 _uiState.update { it.copy(creditBalance = credits.amount) }
+            }
+        }
+    }
+
+    private fun observeRecentGenerations() {
+        viewModelScope.launch {
+            historyRepository.getAll().collect { results ->
+                val items = results.take(RECENT_GENERATIONS_MAX).map { result ->
+                    HistoryItem(
+                        id = result.generationId,
+                        previewUri = result.previewUri,
+                        styleName = result.style.displayName,
+                        createdAt = result.createdAt
+                    )
+                }
+                _uiState.update { it.copy(recentGenerations = items) }
             }
         }
     }
@@ -177,5 +198,9 @@ class HomeViewModel(
 
     private fun navigateTo(action: HomeNavigationAction) {
         _navigationEvent.value = action
+    }
+
+    companion object {
+        private const val RECENT_GENERATIONS_MAX = 5
     }
 }

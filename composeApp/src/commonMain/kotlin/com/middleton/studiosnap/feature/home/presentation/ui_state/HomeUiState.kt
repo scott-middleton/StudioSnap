@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.home.presentation.ui_state
 
+import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
@@ -13,6 +14,7 @@ data class HomeUiState(
     val exportFormat: ExportFormat = ExportFormat.DEFAULT,
     val creditBalance: Int = 0,
     val isSignedIn: Boolean = false,
+    val recentGenerations: List<HistoryItem> = emptyList(),
     val error: HomeError? = null
 ) {
     val canGenerate: Boolean

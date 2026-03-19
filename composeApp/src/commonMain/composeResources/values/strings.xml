@@ -224,6 +224,10 @@
     <string name="home_style_choose_hint">Professional backgrounds</string>
     <string name="home_photos_header">Photos (%1$d / %2$d)</string>
 
+    <!-- Home - Recent Generations Section -->
+    <string name="home_recent_title">Recent Generations</string>
+    <string name="home_recent_view_all">View All</string>
+
     <!-- Accessibility -->
     <string name="content_close">Close</string>
     <string name="content_back">Back</string>

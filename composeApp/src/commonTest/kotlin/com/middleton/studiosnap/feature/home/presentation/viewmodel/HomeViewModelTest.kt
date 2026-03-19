@@ -7,11 +7,14 @@ import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditQueries
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
+import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
+import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
 import com.middleton.studiosnap.feature.home.data.repository.GenerationConfigHolderImpl
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
+import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
 import com.middleton.studiosnap.core.domain.model.AuthUser
@@ -55,14 +58,16 @@ class HomeViewModelTest : BaseViewModelTest() {
     private fun createViewModel(
         styles: List<Style> = testStyles,
         creditBalance: Int = 10,
-        isSignedIn: Boolean = false
+        isSignedIn: Boolean = false,
+        historyItems: List<GenerationResult.Success> = emptyList()
     ): HomeViewModel {
         return HomeViewModel(
             styleRepository = FakeStyleRepository(styles),
             creditQueries = FakeCreditQueries(creditBalance),
             authService = FakeAuthService(isSignedIn),
             generationConfigHolder = GenerationConfigHolderImpl(),
-            analyticsService = FakeAnalyticsService()
+            analyticsService = FakeAnalyticsService(),
+            historyRepository = FakeHistoryRepository(historyItems)
         )
     }
 
@@ -215,6 +220,33 @@ class HomeViewModelTest : BaseViewModelTest() {
         assertEquals("warm_linen", (nav as HomeNavigationAction.GoToStylePicker).currentStyleId)
     }
 
+    @Test
+    fun `recent generations loaded from history repository`() {
+        val result = GenerationResult.Success(
+            generationId = "gen_1",
+            inputPhoto = ProductPhoto(id = "p1", localUri = "content://p1"),
+            previewUri = "/cache/preview.jpg",
+            style = testStyles.first(),
+            createdAt = 1000L
+        )
+        val viewModel = createViewModel(historyItems = listOf(result))
+        assertEquals(1, viewModel.uiState.value.recentGenerations.size)
+        assertEquals("gen_1", viewModel.uiState.value.recentGenerations.first().id)
+    }
+
+    @Test
+    fun `recent generations empty when no history`() {
+        val viewModel = createViewModel(historyItems = emptyList())
+        assertTrue(viewModel.uiState.value.recentGenerations.isEmpty())
+    }
+
+    @Test
+    fun `view all history click navigates to history`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(HomeUiAction.OnViewAllHistoryClicked)
+        assertTrue(viewModel.navigationEvent.value is HomeNavigationAction.GoToHistory)
+    }
+
     // --- Fakes ---
 
     private class FakeStyleRepository(private val styles: List<Style>) : StyleRepository {
@@ -243,5 +275,16 @@ class HomeViewModelTest : BaseViewModelTest() {
 
     private class FakeAnalyticsService : AnalyticsService {
         override fun logEvent(name: String, params: Map<String, Any>) {}
+    }
+
+    private class FakeHistoryRepository(
+        private val items: List<GenerationResult.Success> = emptyList()
+    ) : HistoryRepository {
+        override fun getAll(): Flow<List<GenerationResult.Success>> = flowOf(items)
+        override suspend fun save(result: GenerationResult.Success) {}
+        override suspend fun saveAll(results: List<GenerationResult.Success>) {}
+        override suspend fun getById(id: String) = items.find { it.generationId == id }
+        override suspend fun delete(id: String) {}
+        override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
     }
 }

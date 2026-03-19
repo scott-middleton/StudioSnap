@@ -68,8 +68,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Brush
 import com.middleton.studiosnap.core.presentation.components.GalleryImage
+import com.middleton.studiosnap.core.presentation.components.RestorationImage
+import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.util.asString
+import com.middleton.studiosnap.feature.history.presentation.formatRelativeTime
+import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
 import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
@@ -120,6 +125,8 @@ import studiosnap.composeapp.generated.resources.ic_diamond
 import studiosnap.composeapp.generated.resources.ic_chevron_right
 import studiosnap.composeapp.generated.resources.ic_aspect_ratio
 import studiosnap.composeapp.generated.resources.ic_palette
+import studiosnap.composeapp.generated.resources.home_recent_title
+import studiosnap.composeapp.generated.resources.home_recent_view_all
 
 @Composable
 fun HomeScreen(
@@ -269,6 +276,13 @@ fun HomeScreenContent(
                 exportFormat = state.exportFormat,
                 onExportFormatSelected = { onAction(HomeUiAction.OnExportFormatSelected(it)) }
             )
+
+            if (state.recentGenerations.isNotEmpty()) {
+                RecentGenerationsSection(
+                    items = state.recentGenerations,
+                    onViewAll = { onAction(HomeUiAction.OnViewAllHistoryClicked) }
+                )
+            }
         }
     }
 
@@ -779,6 +793,117 @@ private fun exportFormatDisplayName(format: ExportFormat): String {
 
 // endregion
 
+// region — Recent Generations Section
+
+@Composable
+private fun RecentGenerationsSection(
+    items: List<HistoryItem>,
+    onViewAll: () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SectionHeaderWithIcon(
+                text = stringResource(Res.string.home_recent_title),
+                iconContent = {
+                    Icon(
+                        imageVector = Icons.Default.History,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = AppColors.PrimaryGreen
+                    )
+                }
+            )
+            Surface(
+                onClick = onViewAll,
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Text(
+                    text = stringResource(Res.string.home_recent_view_all),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppColors.PrimaryGreen,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+        }
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
+        ) {
+            items(items, key = { it.id }) { item ->
+                RecentGenerationCard(item = item, onClick = onViewAll)
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentGenerationCard(
+    item: HistoryItem,
+    onClick: () -> Unit
+) {
+    StudioSnapCard(
+        modifier = Modifier.width(RECENT_CARD_WIDTH.dp),
+        onClick = onClick
+    ) {
+        Box {
+            RestorationImage(
+                imagePath = item.previewUri,
+                contentDescription = null,
+                modifier = Modifier
+                    .width(RECENT_CARD_WIDTH.dp)
+                    .height(RECENT_CARD_HEIGHT.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Crop
+            )
+            // Gradient overlay with text at bottom
+            Box(
+                modifier = Modifier
+                    .width(RECENT_CARD_WIDTH.dp)
+                    .height(RECENT_CARD_HEIGHT.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.65f)),
+                            startY = 80f
+                        )
+                    )
+            )
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = item.styleName.asString(),
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+                Text(
+                    text = formatRelativeTime(item.createdAt),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.75f),
+                    maxLines = 1
+                )
+            }
+        }
+    }
+}
+
+// endregion
+
 // region — Bottom Bar
 
 @Composable
@@ -880,3 +1005,5 @@ private const val CONTENT_TOP_PADDING = 16
 private const val CONTENT_BOTTOM_PADDING = 32
 private const val SECTION_SPACING = 28
 private const val PHOTO_CELL_SIZE = 100
+private const val RECENT_CARD_WIDTH = 130
+private const val RECENT_CARD_HEIGHT = 170
