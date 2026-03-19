@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -196,7 +197,6 @@ private fun ResultsContent(
     onFullScreenClicked: (path: String, aspectRatio: Float?) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { state.results.size })
-    val currentItem = state.results.getOrNull(pagerState.currentPage)
 
     Column(modifier = modifier.fillMaxSize()) {
         // Photo counter
@@ -220,71 +220,43 @@ private fun ResultsContent(
             Spacer(modifier = Modifier.height(4.dp))
         }
 
-        // Save indicator — always visible, handles its own states
-        GallerySaveIndicator(
-            isSavedToGallery = currentItem?.isSavedToGallery ?: false,
-            isAutoSaving = state.isAutoSaving
-        )
-
-        // Image pager — fills all remaining height; cards are image-only
+        // Pager — each page is a self-contained unit (save indicator + image + pill + dots)
+        // centered vertically so the pill is always directly below the image
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f),
             pageSpacing = 16.dp
         ) { page ->
             val item = state.results[page]
-            ResultCard(
-                item = item,
-                onFullScreenClicked = {
-                    val result = item.result
-                    if (result is GenerationResult.Success) {
-                        val ar = if (result.imageWidth > 0 && result.imageHeight > 0) {
-                            result.imageWidth.toFloat() / result.imageHeight.toFloat()
-                        } else null
-                        onFullScreenClicked(result.previewUri, ar)
-                    }
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Before/After toggle — always visible below the pager
-        // Show placeholder spacer on failure pages so layout stays stable
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            val successItem = currentItem?.takeIf { it.result is GenerationResult.Success }
-            if (successItem != null) {
-                BeforeAfterToggle(
-                    showingOriginal = successItem.showingOriginal,
-                    onToggle = {
-                        val result = successItem.result as GenerationResult.Success
-                        onAction(ResultsUiAction.OnToggleBeforeAfter(result.generationId))
-                    }
-                )
-            }
-        }
-
-        // Page indicator dots — only when more than one page
-        if (state.results.size > 1) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                PageIndicator(
+                ResultCard(
+                    item = item,
+                    isAutoSaving = state.isAutoSaving,
+                    pageCount = state.results.size,
                     currentPage = pagerState.currentPage,
-                    pageCount = state.results.size
+                    onToggleBeforeAfter = {
+                        val result = item.result
+                        if (result is GenerationResult.Success) {
+                            onAction(ResultsUiAction.OnToggleBeforeAfter(result.generationId))
+                        }
+                    },
+                    onFullScreenClicked = {
+                        val result = item.result
+                        if (result is GenerationResult.Success) {
+                            val ar = if (result.imageWidth > 0 && result.imageHeight > 0) {
+                                result.imageWidth.toFloat() / result.imageHeight.toFloat()
+                            } else null
+                            onFullScreenClicked(result.previewUri, ar)
+                        }
+                    }
                 )
             }
-        } else {
-            Spacer(modifier = Modifier.height(8.dp))
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Action buttons
         ActionButtons(
@@ -302,12 +274,21 @@ private fun ResultsContent(
 @Composable
 private fun ResultCard(
     item: ResultItem,
+    isAutoSaving: Boolean,
+    pageCount: Int,
+    currentPage: Int,
+    onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
     when (val result = item.result) {
         is GenerationResult.Success -> SuccessCard(
             result = result,
             showingOriginal = item.showingOriginal,
+            isSavedToGallery = item.isSavedToGallery,
+            isAutoSaving = isAutoSaving,
+            pageCount = pageCount,
+            currentPage = currentPage,
+            onToggleBeforeAfter = onToggleBeforeAfter,
             onFullScreenClicked = onFullScreenClicked
         )
         is GenerationResult.Failure -> FailureCard(error = result.error)
@@ -318,6 +299,11 @@ private fun ResultCard(
 private fun SuccessCard(
     result: GenerationResult.Success,
     showingOriginal: Boolean,
+    isSavedToGallery: Boolean,
+    isAutoSaving: Boolean,
+    pageCount: Int,
+    currentPage: Int,
+    onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
     val aspectRatio = if (result.imageWidth > 0 && result.imageHeight > 0) {
@@ -331,16 +317,21 @@ private fun SuccessCard(
         aspectRatio
     }
 
-    // fillMaxSize so the card fills the pager page; ContentScale.Fit keeps the image proportional
-    Box(
+    // Self-contained column: save indicator + image + pill + dots.
+    // wrapContentHeight so it sizes to its content and the centering Box in the pager
+    // vertically centres the whole unit — pill and dots always directly below the image.
+    Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .wrapContentHeight()
             .padding(horizontal = 20.dp),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        StudioSnapCard(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        GallerySaveIndicator(isSavedToGallery = isSavedToGallery, isAutoSaving = isAutoSaving)
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        StudioSnapCard(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -348,9 +339,7 @@ private fun SuccessCard(
             ) {
                 AnimatedContent(
                     targetState = showingOriginal,
-                    transitionSpec = {
-                        fadeIn(tween(300)) togetherWith fadeOut(tween(300))
-                    },
+                    transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
                     label = "before_after"
                 ) { isOriginal ->
                     if (isOriginal) {
@@ -377,8 +366,6 @@ private fun SuccessCard(
                     }
                 }
 
-                // Zoom hint — scrim background ensures visibility over any image colour.
-                // The entire Box is already tappable — this is a visual affordance only.
                 if (!showingOriginal) {
                     Box(
                         modifier = Modifier
@@ -398,6 +385,18 @@ private fun SuccessCard(
                     }
                 }
             }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        BeforeAfterToggle(
+            showingOriginal = showingOriginal,
+            onToggle = onToggleBeforeAfter
+        )
+
+        if (pageCount > 1) {
+            Spacer(modifier = Modifier.height(10.dp))
+            PageIndicator(currentPage = currentPage, pageCount = pageCount)
         }
     }
 }
