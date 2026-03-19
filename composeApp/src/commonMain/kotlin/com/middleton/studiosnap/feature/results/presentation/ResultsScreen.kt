@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -227,25 +228,30 @@ private fun ResultsContent(
             pageSpacing = 16.dp
         ) { page ->
             val item = state.results[page]
-            ResultCard(
-                item = item,
-                isAutoSaving = state.isAutoSaving,
-                onToggleBeforeAfter = {
-                    val result = item.result
-                    if (result is GenerationResult.Success) {
-                        onAction(ResultsUiAction.OnToggleBeforeAfter(result.generationId))
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                ResultCard(
+                    item = item,
+                    isAutoSaving = state.isAutoSaving,
+                    onToggleBeforeAfter = {
+                        val result = item.result
+                        if (result is GenerationResult.Success) {
+                            onAction(ResultsUiAction.OnToggleBeforeAfter(result.generationId))
+                        }
+                    },
+                    onFullScreenClicked = {
+                        val result = item.result
+                        if (result is GenerationResult.Success) {
+                            val ar = if (result.imageWidth > 0 && result.imageHeight > 0) {
+                                result.imageWidth.toFloat() / result.imageHeight.toFloat()
+                            } else null
+                            onFullScreenClicked(result.previewUri, ar)
+                        }
                     }
-                },
-                onFullScreenClicked = {
-                    val result = item.result
-                    if (result is GenerationResult.Success) {
-                        val ar = if (result.imageWidth > 0 && result.imageHeight > 0) {
-                            result.imageWidth.toFloat() / result.imageHeight.toFloat()
-                        } else null
-                        onFullScreenClicked(result.previewUri, ar)
-                    }
-                }
-            )
+                )
+            }
         }
 
         // Page indicator
@@ -315,9 +321,12 @@ private fun SuccessCard(
         aspectRatio
     }
 
+    // wrapContentHeight so the column sizes to card + pill, not the pager's full height.
+    // This keeps the pill visually anchored just below the image for any aspect ratio.
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .wrapContentHeight()
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -385,19 +394,17 @@ private fun SuccessCard(
                         )
                     }
                 }
-
-                // Before/After pill — overlaid at the bottom of the image so it stays
-                // anchored to the image regardless of aspect ratio
-                BeforeAfterToggle(
-                    showingOriginal = showingOriginal,
-                    onToggle = onToggleBeforeAfter,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 12.dp)
-                )
             }
         }
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Pill is outside the card so it never covers the image, but still inside
+        // SuccessCard's column so it stays visually attached to the image
+        BeforeAfterToggle(
+            showingOriginal = showingOriginal,
+            onToggle = onToggleBeforeAfter
+        )
     }
 }
 
