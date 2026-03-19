@@ -30,9 +30,11 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -45,7 +47,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,8 +57,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.middleton.studiosnap.core.presentation.components.FullScreenImageOverlay
 import com.middleton.studiosnap.core.presentation.components.GalleryImage
-import com.middleton.studiosnap.core.presentation.components.GradientButton
 import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
@@ -73,7 +77,6 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.results_after
-import studiosnap.composeapp.generated.resources.results_back_to_home
 import studiosnap.composeapp.generated.resources.results_before
 import studiosnap.composeapp.generated.resources.results_done
 import studiosnap.composeapp.generated.resources.results_empty
@@ -84,8 +87,6 @@ import studiosnap.composeapp.generated.resources.results_error_timeout
 import studiosnap.composeapp.generated.resources.results_error_unknown
 import studiosnap.composeapp.generated.resources.results_photo_counter
 import studiosnap.composeapp.generated.resources.results_product_photo
-import studiosnap.composeapp.generated.resources.results_save
-import studiosnap.composeapp.generated.resources.results_save_all
 import studiosnap.composeapp.generated.resources.results_saved
 import studiosnap.composeapp.generated.resources.results_saving
 import studiosnap.composeapp.generated.resources.results_share
@@ -119,6 +120,7 @@ fun ResultsScreenContent(
     onAction: (ResultsUiAction) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    var fullScreenImagePath by remember { mutableStateOf<String?>(null) }
 
     val snackbarText = state.snackbarMessage?.asString()
     LaunchedEffect(snackbarText) {
@@ -128,22 +130,32 @@ fun ResultsScreenContent(
         }
     }
 
-    Scaffold(
-        topBar = {
-            StudioSnapTopBar(
-                title = stringResource(Res.string.results_title),
-                onBack = { onAction(ResultsUiAction.OnBackClicked) }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) { Snackbar(it) } }
-    ) { padding ->
-        if (state.results.isEmpty()) {
-            EmptyResultsContent(modifier = Modifier.padding(padding))
-        } else {
-            ResultsContent(
-                state = state,
-                modifier = Modifier.padding(padding),
-                onAction = onAction
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                StudioSnapTopBar(
+                    title = stringResource(Res.string.results_title),
+                    onBack = { onAction(ResultsUiAction.OnBackClicked) }
+                )
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) { Snackbar(it) } }
+        ) { padding ->
+            if (state.results.isEmpty()) {
+                EmptyResultsContent(modifier = Modifier.padding(padding))
+            } else {
+                ResultsContent(
+                    state = state,
+                    modifier = Modifier.padding(padding),
+                    onAction = onAction,
+                    onFullScreenClicked = { path -> fullScreenImagePath = path }
+                )
+            }
+        }
+
+        if (fullScreenImagePath != null) {
+            FullScreenImageOverlay(
+                imagePath = fullScreenImagePath!!,
+                onDismiss = { fullScreenImagePath = null }
             )
         }
     }
@@ -180,7 +192,8 @@ private fun EmptyResultsContent(modifier: Modifier = Modifier) {
 private fun ResultsContent(
     state: ResultsUiState,
     modifier: Modifier = Modifier,
-    onAction: (ResultsUiAction) -> Unit
+    onAction: (ResultsUiAction) -> Unit,
+    onFullScreenClicked: (String) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { state.results.size })
 
@@ -220,6 +233,12 @@ private fun ResultsContent(
                     if (result is GenerationResult.Success) {
                         onAction(ResultsUiAction.OnToggleBeforeAfter(result.generationId))
                     }
+                },
+                onFullScreenClicked = {
+                    val result = item.result
+                    if (result is GenerationResult.Success) {
+                        onFullScreenClicked(result.previewUri)
+                    }
                 }
             )
         }
@@ -252,7 +271,8 @@ private fun ResultsContent(
 @Composable
 private fun ResultCard(
     item: ResultItem,
-    onToggleBeforeAfter: () -> Unit
+    onToggleBeforeAfter: () -> Unit,
+    onFullScreenClicked: () -> Unit
 ) {
     val result = item.result
 
@@ -260,7 +280,8 @@ private fun ResultCard(
         is GenerationResult.Success -> SuccessCard(
             result = result,
             showingOriginal = item.showingOriginal,
-            onToggleBeforeAfter = onToggleBeforeAfter
+            onToggleBeforeAfter = onToggleBeforeAfter,
+            onFullScreenClicked = onFullScreenClicked
         )
         is GenerationResult.Failure -> FailureCard(error = result.error)
     }
@@ -270,7 +291,8 @@ private fun ResultCard(
 private fun SuccessCard(
     result: GenerationResult.Success,
     showingOriginal: Boolean,
-    onToggleBeforeAfter: () -> Unit
+    onToggleBeforeAfter: () -> Unit,
+    onFullScreenClicked: () -> Unit
 ) {
     val aspectRatio = if (result.imageWidth > 0 && result.imageHeight > 0) {
         result.imageWidth.toFloat() / result.imageHeight.toFloat()
@@ -292,7 +314,11 @@ private fun SuccessCard(
         StudioSnapCard(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = !showingOriginal, onClick = onFullScreenClicked)
+            ) {
                 AnimatedContent(
                     targetState = showingOriginal,
                     transitionSpec = {
@@ -320,6 +346,24 @@ private fun SuccessCard(
                                 .aspectRatio(aspectRatio)
                                 .clip(RoundedCornerShape(16.dp)),
                             contentScale = ContentScale.Fit
+                        )
+                    }
+                }
+
+                // Zoom hint icon (top-right, only shown when viewing after)
+                if (!showingOriginal) {
+                    IconButton(
+                        onClick = onFullScreenClicked,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(4.dp)
+                            .size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ZoomIn,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -503,20 +547,34 @@ private fun ActionButtons(
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Save button
+        // Gallery save status indicator
         when {
-            currentItem.isSaving -> {
-                GradientButton(
-                    text = stringResource(Res.string.results_saving),
-                    onClick = {},
-                    enabled = false
-                )
-            }
-            currentItem.isSaved -> {
+            state.isAutoSaving -> {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(32.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(Res.string.results_saving),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            currentItem.isSavedToGallery -> {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(32.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -524,69 +582,46 @@ private fun ActionButtons(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
                         tint = AppColors.SuccessGreen,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = stringResource(Res.string.results_saved),
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Medium
                         ),
                         color = AppColors.SuccessGreen
                     )
                 }
             }
             else -> {
-                GradientButton(
-                    text = stringResource(Res.string.results_save),
-                    onClick = { onAction(ResultsUiAction.OnSaveClicked(result.generationId)) }
-                )
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Share + Save All row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // Share button
+        OutlinedButton(
+            onClick = { onAction(ResultsUiAction.OnShareClicked(result.generationId)) },
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            OutlinedButton(
-                onClick = { onAction(ResultsUiAction.OnShareClicked(result.generationId)) },
-                modifier = Modifier.weight(1f).height(48.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Share,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+            Icon(
+                imageVector = Icons.Default.Share,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = stringResource(Res.string.results_share),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.SemiBold
                 )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = stringResource(Res.string.results_share),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-            }
-
-            if (state.results.size > 1) {
-                OutlinedButton(
-                    onClick = { onAction(ResultsUiAction.OnSaveAllClicked) },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = stringResource(Res.string.results_save_all),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
-                }
-            }
+            )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         // Done button
         TextButton(

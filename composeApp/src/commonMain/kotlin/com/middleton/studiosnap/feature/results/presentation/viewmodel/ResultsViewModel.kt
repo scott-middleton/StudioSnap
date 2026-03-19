@@ -35,14 +35,13 @@ class ResultsViewModel(
 
     init {
         loadResults()
+        autoSaveAllToGallery()
     }
 
     fun handleAction(action: ResultsUiAction) {
         when (action) {
-            is ResultsUiAction.OnSaveClicked -> saveResult(action.generationId)
             is ResultsUiAction.OnShareClicked -> shareResult(action.generationId)
             is ResultsUiAction.OnToggleBeforeAfter -> toggleBeforeAfter(action.generationId)
-            ResultsUiAction.OnSaveAllClicked -> saveAll()
             ResultsUiAction.OnBackClicked -> _navigationEvent.value = ResultsNavigationAction.GoBack
             ResultsUiAction.OnDoneClicked -> _navigationEvent.value = ResultsNavigationAction.GoToHome
             ResultsUiAction.OnSnackbarDismissed -> _uiState.update { it.copy(snackbarMessage = null) }
@@ -57,44 +56,35 @@ class ResultsViewModel(
         }
     }
 
+    private fun autoSaveAllToGallery() {
+        val results = _uiState.value.results
+        if (results.isEmpty()) return
+
+        _uiState.update { it.copy(isAutoSaving = true) }
+        viewModelScope.launch {
+            results.forEach { item ->
+                val success = item.result as? GenerationResult.Success ?: return@forEach
+                saveToGalleryUseCase(success.previewUri, "$SAVE_NAME_PREFIX${success.generationId}")
+                    .onSuccess {
+                        updateResultItem(success.generationId) { it.copy(isSavedToGallery = true) }
+                        analyticsService.logEvent(AnalyticsEvents.DOWNLOAD_COMPLETED)
+                    }
+                    .onFailure { throwable ->
+                        analyticsService.logEvent(
+                            AnalyticsEvents.DOWNLOAD_FAILED,
+                            mapOf(AnalyticsParams.ERROR_TYPE to (throwable.message ?: "unknown"))
+                        )
+                        _uiState.update {
+                            it.copy(snackbarMessage = UiText.StringResource(Res.string.results_save_failed))
+                        }
+                    }
+            }
+            _uiState.update { it.copy(isAutoSaving = false) }
+        }
+    }
+
     private fun toggleBeforeAfter(generationId: String) {
         updateResultItem(generationId) { it.copy(showingOriginal = !it.showingOriginal) }
-    }
-
-    private fun saveResult(generationId: String) {
-        val item = findSuccessItem(generationId) ?: return
-        if (item.isSaved || item.isSaving) return
-        val result = item.result as GenerationResult.Success
-
-        setSaving(generationId, true)
-
-        viewModelScope.launch {
-            saveToGalleryUseCase(result.previewUri, "${SAVE_NAME_PREFIX}$generationId")
-                .onSuccess {
-                    updateResultItem(generationId) { it.copy(isSaved = true, isSaving = false) }
-                    analyticsService.logEvent(AnalyticsEvents.DOWNLOAD_COMPLETED)
-                }
-                .onFailure { throwable ->
-                    setSaving(generationId, false)
-                    analyticsService.logEvent(
-                        AnalyticsEvents.DOWNLOAD_FAILED,
-                        mapOf(AnalyticsParams.ERROR_TYPE to (throwable.message ?: "unknown"))
-                    )
-                    _uiState.update { it.copy(snackbarMessage = UiText.StringResource(Res.string.results_save_failed)) }
-                }
-        }
-    }
-
-    private fun saveAll() {
-        val saveable = _uiState.value.results.filter {
-            it.result is GenerationResult.Success && !it.isSaved && !it.isSaving
-        }
-        if (saveable.isEmpty()) return
-
-        saveable.forEach { item ->
-            val id = (item.result as GenerationResult.Success).generationId
-            saveResult(id)
-        }
     }
 
     private fun shareResult(generationId: String) {
@@ -103,17 +93,6 @@ class ResultsViewModel(
             AnalyticsEvents.PREVIEW_SHARED,
             mapOf(AnalyticsParams.GENERATION_ID to generationId)
         )
-    }
-
-    private fun findSuccessItem(generationId: String): ResultItem? {
-        return _uiState.value.results.find {
-            it.result is GenerationResult.Success &&
-                    (it.result as GenerationResult.Success).generationId == generationId
-        }
-    }
-
-    private fun setSaving(generationId: String, saving: Boolean) {
-        updateResultItem(generationId) { it.copy(isSaving = saving) }
     }
 
     private fun updateResultItem(generationId: String, transform: (ResultItem) -> ResultItem) {

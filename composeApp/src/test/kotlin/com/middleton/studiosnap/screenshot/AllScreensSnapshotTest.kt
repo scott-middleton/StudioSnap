@@ -233,7 +233,7 @@ class AllScreensSnapshotTest {
                                 imageWidth = 1024,
                                 imageHeight = 1024
                             ),
-                            isSaved = true
+                            isSavedToGallery = true
                         )
                     )
                 ),

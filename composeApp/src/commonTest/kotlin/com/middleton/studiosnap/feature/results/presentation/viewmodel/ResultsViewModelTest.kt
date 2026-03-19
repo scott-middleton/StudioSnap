@@ -1,7 +1,6 @@
 package com.middleton.studiosnap.feature.results.presentation.viewmodel
 
 import com.middleton.studiosnap.core.domain.model.UiText
-import com.middleton.studiosnap.core.domain.model.UiText.StringResource
 import com.middleton.studiosnap.core.domain.repository.GalleryRepository
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
@@ -56,61 +55,49 @@ class ResultsViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `save success marks item as saved`() {
+    fun `auto save on init marks all items as saved to gallery`() {
         val sut = createSut(results = listOf(successResult))
-
-        sut.handleAction(ResultsUiAction.OnSaveClicked("gen_1"))
-
-        val item = sut.uiState.value.results.first()
-        assertTrue(item.isSaved)
-        assertFalse(item.isSaving)
+        assertTrue(sut.uiState.value.results.first().isSavedToGallery)
     }
 
     @Test
-    fun `save success logs analytics`() {
-        val analytics = FakeAnalyticsService()
-        val sut = createSut(results = listOf(successResult), analyticsService = analytics)
-
-        sut.handleAction(ResultsUiAction.OnSaveClicked("gen_1"))
-
-        assertTrue(analytics.hasEvent(AnalyticsEvents.DOWNLOAD_COMPLETED))
+    fun `auto save on init marks multiple items as saved to gallery`() {
+        val result2 = successResult.copy(generationId = "gen_2")
+        val sut = createSut(results = listOf(successResult, result2))
+        assertTrue(sut.uiState.value.results.all { it.isSavedToGallery })
     }
 
     @Test
-    fun `save failure shows error snackbar`() {
+    fun `auto save failure shows error snackbar`() {
         val sut = createSut(
             results = listOf(successResult),
             galleryRepo = FakeGalleryRepository(shouldFail = true)
         )
-
-        sut.handleAction(ResultsUiAction.OnSaveClicked("gen_1"))
-
         assertIs<UiText.StringResource>(sut.uiState.value.snackbarMessage)
     }
 
     @Test
-    fun `save failure logs analytics`() {
+    fun `auto save failure logs analytics`() {
         val analytics = FakeAnalyticsService()
         val sut = createSut(
             results = listOf(successResult),
             galleryRepo = FakeGalleryRepository(shouldFail = true),
             analyticsService = analytics
         )
-
-        sut.handleAction(ResultsUiAction.OnSaveClicked("gen_1"))
-
         assertTrue(analytics.hasEvent(AnalyticsEvents.DOWNLOAD_FAILED))
     }
 
     @Test
-    fun `save already saved item is no-op`() {
-        val sut = createSut(results = listOf(successResult))
-        sut.handleAction(ResultsUiAction.OnSaveClicked("gen_1"))
-        assertTrue(sut.uiState.value.results.first().isSaved)
+    fun `auto save success logs analytics`() {
+        val analytics = FakeAnalyticsService()
+        val sut = createSut(results = listOf(successResult), analyticsService = analytics)
+        assertTrue(analytics.hasEvent(AnalyticsEvents.DOWNLOAD_COMPLETED))
+    }
 
-        // Save again — should not change state or crash
-        sut.handleAction(ResultsUiAction.OnSaveClicked("gen_1"))
-        assertTrue(sut.uiState.value.results.first().isSaved)
+    @Test
+    fun `isAutoSaving is false after save completes`() {
+        val sut = createSut(results = listOf(successResult))
+        assertFalse(sut.uiState.value.isAutoSaving)
     }
 
     @Test
@@ -155,7 +142,6 @@ class ResultsViewModelTest : BaseViewModelTest() {
             results = listOf(successResult),
             galleryRepo = FakeGalleryRepository(shouldFail = true)
         )
-        sut.handleAction(ResultsUiAction.OnSaveClicked("gen_1"))
         assertIs<UiText.StringResource>(sut.uiState.value.snackbarMessage)
 
         sut.handleAction(ResultsUiAction.OnSnackbarDismissed)
@@ -170,16 +156,6 @@ class ResultsViewModelTest : BaseViewModelTest() {
 
         sut.handleAction(ResultsUiAction.OnNavigationHandled)
         assertNull(sut.navigationEvent.value)
-    }
-
-    @Test
-    fun `save all saves all unsaved results`() {
-        val result2 = successResult.copy(generationId = "gen_2")
-        val sut = createSut(results = listOf(successResult, result2))
-
-        sut.handleAction(ResultsUiAction.OnSaveAllClicked)
-
-        assertTrue(sut.uiState.value.results.all { it.isSaved })
     }
 
     // --- Factory ---

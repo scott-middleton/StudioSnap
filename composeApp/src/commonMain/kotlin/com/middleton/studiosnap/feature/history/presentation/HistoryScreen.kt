@@ -51,6 +51,10 @@ import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryN
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
 import com.middleton.studiosnap.feature.history.presentation.viewmodel.HistoryViewModel
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -233,15 +237,23 @@ private fun HistoryGridItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = item.styleName.asString(),
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Medium
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = item.styleName.asString(),
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = formatRelativeTime(item.createdAt),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 IconButton(
                     onClick = onDelete,
                     modifier = Modifier.size(32.dp)
@@ -254,6 +266,27 @@ private fun HistoryGridItem(
                     )
                 }
             }
+        }
+    }
+}
+
+internal fun formatRelativeTime(createdAt: Long, nowMs: Long = Clock.System.now().toEpochMilliseconds()): String {
+    val diffMs = nowMs - createdAt
+    val diffDays = diffMs / (1000L * 60 * 60 * 24)
+    return when {
+        diffDays == 0L -> "Today"
+        diffDays == 1L -> "Yesterday"
+        diffDays < 7L -> "$diffDays days ago"
+        diffDays < 14L -> "Last week"
+        else -> {
+            val local = Instant.fromEpochMilliseconds(createdAt)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+            val monthName = when (local.monthNumber) {
+                1 -> "Jan"; 2 -> "Feb"; 3 -> "Mar"; 4 -> "Apr"
+                5 -> "May"; 6 -> "Jun"; 7 -> "Jul"; 8 -> "Aug"
+                9 -> "Sep"; 10 -> "Oct"; 11 -> "Nov"; else -> "Dec"
+            }
+            "${local.dayOfMonth} $monthName"
         }
     }
 }

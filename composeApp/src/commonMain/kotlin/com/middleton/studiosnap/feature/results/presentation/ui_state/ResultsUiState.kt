@@ -5,12 +5,12 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 
 data class ResultsUiState(
     val results: List<ResultItem> = emptyList(),
+    val isAutoSaving: Boolean = false,
     val snackbarMessage: UiText? = null
 )
 
 data class ResultItem(
     val result: GenerationResult,
-    val isSaving: Boolean = false,
-    val isSaved: Boolean = false,
+    val isSavedToGallery: Boolean = false,
     val showingOriginal: Boolean = false
 )
