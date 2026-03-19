@@ -11,8 +11,8 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
+import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
-import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
@@ -66,6 +66,8 @@ class HomeViewModel(
             is HomeUiAction.OnSettingsClicked -> navigateTo(HomeNavigationAction.GoToSettings)
             is HomeUiAction.OnHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
             is HomeUiAction.OnViewAllHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
+            // TODO: navigate to ResultDetail(action.generationId) once that screen is built
+            is HomeUiAction.OnRecentGenerationClicked -> navigateTo(HomeNavigationAction.GoToHistory)
             is HomeUiAction.OnCreditBalanceClicked -> navigateTo(HomeNavigationAction.GoToCreditStore)
             is HomeUiAction.OnErrorDismissed -> _uiState.update { it.copy(error = null) }
             is HomeUiAction.OnNavigationHandled -> _navigationEvent.value = null

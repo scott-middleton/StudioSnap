@@ -14,7 +14,7 @@ import app.cash.paparazzi.Paparazzi
 import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.core.presentation.theme.StudioSnapTheme
 import com.middleton.studiosnap.feature.history.presentation.HistoryScreenContent
-import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
+import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult

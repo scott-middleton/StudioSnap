@@ -1,6 +1,6 @@
 package com.middleton.studiosnap.feature.history.presentation.ui_state
 
-import com.middleton.studiosnap.core.domain.model.UiText
+import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 
 data class HistoryUiState(
     val items: List<HistoryItem> = emptyList(),
@@ -8,10 +8,3 @@ data class HistoryUiState(
 ) {
     val isEmpty: Boolean get() = items.isEmpty() && !isLoading
 }
-
-data class HistoryItem(
-    val id: String,
-    val previewUri: String,
-    val styleName: UiText,
-    val createdAt: Long
-)

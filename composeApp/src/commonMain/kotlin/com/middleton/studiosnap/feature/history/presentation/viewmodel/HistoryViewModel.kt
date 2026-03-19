@@ -7,7 +7,7 @@ import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
 import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryNavigationAction
-import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
+import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

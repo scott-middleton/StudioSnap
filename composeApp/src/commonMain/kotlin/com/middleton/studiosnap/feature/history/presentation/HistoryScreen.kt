@@ -46,15 +46,12 @@ import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.core.presentation.util.asString
+import com.middleton.studiosnap.core.presentation.util.formatRelativeTime
+import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
 import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryNavigationAction
-import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
 import com.middleton.studiosnap.feature.history.presentation.viewmodel.HistoryViewModel
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -270,24 +267,3 @@ private fun HistoryGridItem(
     }
 }
 
-// TODO: Replace hardcoded English strings with localized string resources when i18n is added
-internal fun formatRelativeTime(createdAt: Long, nowMs: Long = Clock.System.now().toEpochMilliseconds()): String {
-    val diffMs = nowMs - createdAt
-    val diffDays = diffMs / (1000L * 60 * 60 * 24)
-    return when {
-        diffDays == 0L -> "Today"
-        diffDays == 1L -> "Yesterday"
-        diffDays < 7L -> "$diffDays days ago"
-        diffDays < 14L -> "Last week"
-        else -> {
-            val local = Instant.fromEpochMilliseconds(createdAt)
-                .toLocalDateTime(TimeZone.currentSystemDefault())
-            val monthName = when (local.monthNumber) {
-                1 -> "Jan"; 2 -> "Feb"; 3 -> "Mar"; 4 -> "Apr"
-                5 -> "May"; 6 -> "Jun"; 7 -> "Jul"; 8 -> "Aug"
-                9 -> "Sep"; 10 -> "Oct"; 11 -> "Nov"; else -> "Dec"
-            }
-            "${local.dayOfMonth} $monthName"
-        }
-    }
-}

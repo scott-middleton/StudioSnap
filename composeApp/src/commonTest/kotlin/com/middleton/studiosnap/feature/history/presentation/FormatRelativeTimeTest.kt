@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.history.presentation
 
+import com.middleton.studiosnap.core.presentation.util.formatRelativeTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

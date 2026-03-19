@@ -73,8 +73,9 @@ import com.middleton.studiosnap.core.presentation.components.GalleryImage
 import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.util.asString
-import com.middleton.studiosnap.feature.history.presentation.formatRelativeTime
-import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
+import androidx.compose.ui.text.style.TextOverflow
+import com.middleton.studiosnap.core.presentation.util.formatRelativeTime
+import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
@@ -280,7 +281,8 @@ fun HomeScreenContent(
             if (state.recentGenerations.isNotEmpty()) {
                 RecentGenerationsSection(
                     items = state.recentGenerations,
-                    onViewAll = { onAction(HomeUiAction.OnViewAllHistoryClicked) }
+                    onViewAll = { onAction(HomeUiAction.OnViewAllHistoryClicked) },
+                    onItemClicked = { onAction(HomeUiAction.OnRecentGenerationClicked(it)) }
                 )
             }
         }
@@ -798,7 +800,8 @@ private fun exportFormatDisplayName(format: ExportFormat): String {
 @Composable
 private fun RecentGenerationsSection(
     items: List<HistoryItem>,
-    onViewAll: () -> Unit
+    onViewAll: () -> Unit,
+    onItemClicked: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(
@@ -839,7 +842,7 @@ private fun RecentGenerationsSection(
             contentPadding = PaddingValues(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
         ) {
             items(items, key = { it.id }) { item ->
-                RecentGenerationCard(item = item, onClick = onViewAll)
+                RecentGenerationCard(item = item, onClick = { onItemClicked(item.id) })
             }
         }
     }
@@ -854,26 +857,28 @@ private fun RecentGenerationCard(
         modifier = Modifier.width(RECENT_CARD_WIDTH.dp),
         onClick = onClick
     ) {
-        Box {
+        Box(
+            modifier = Modifier
+                .width(RECENT_CARD_WIDTH.dp)
+                .height(RECENT_CARD_HEIGHT.dp)
+        ) {
             RestorationImage(
                 imagePath = item.previewUri,
                 contentDescription = null,
                 modifier = Modifier
-                    .width(RECENT_CARD_WIDTH.dp)
-                    .height(RECENT_CARD_HEIGHT.dp)
+                    .matchParentSize()
                     .clip(RoundedCornerShape(16.dp)),
                 contentScale = ContentScale.Crop
             )
-            // Gradient overlay with text at bottom
+            // Gradient overlay — fraction-based so it's density-independent
             Box(
                 modifier = Modifier
-                    .width(RECENT_CARD_WIDTH.dp)
-                    .height(RECENT_CARD_HEIGHT.dp)
+                    .matchParentSize()
                     .clip(RoundedCornerShape(16.dp))
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.65f)),
-                            startY = 80f
+                            0.4f to Color.Transparent,
+                            1.0f to Color.Black.copy(alpha = 0.65f)
                         )
                     )
             )
@@ -889,7 +894,7 @@ private fun RecentGenerationCard(
                     ),
                     color = Color.White,
                     maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = formatRelativeTime(item.createdAt),

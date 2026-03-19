@@ -16,6 +16,7 @@ sealed interface HomeUiAction {
     data object OnSettingsClicked : HomeUiAction
     data object OnHistoryClicked : HomeUiAction
     data object OnViewAllHistoryClicked : HomeUiAction
+    data class OnRecentGenerationClicked(val generationId: String) : HomeUiAction
     data object OnCreditBalanceClicked : HomeUiAction
     data object OnErrorDismissed : HomeUiAction
     data object OnNavigationHandled : HomeUiAction

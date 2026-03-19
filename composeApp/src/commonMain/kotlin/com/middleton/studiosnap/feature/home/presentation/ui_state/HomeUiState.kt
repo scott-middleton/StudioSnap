@@ -1,6 +1,6 @@
 package com.middleton.studiosnap.feature.home.presentation.ui_state
 
-import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryItem
+import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style

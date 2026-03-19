@@ -14,6 +14,7 @@ import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
 import com.middleton.studiosnap.feature.home.data.repository.GenerationConfigHolderImpl
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
+import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
@@ -238,6 +239,21 @@ class HomeViewModelTest : BaseViewModelTest() {
     fun `recent generations empty when no history`() {
         val viewModel = createViewModel(historyItems = emptyList())
         assertTrue(viewModel.uiState.value.recentGenerations.isEmpty())
+    }
+
+    @Test
+    fun `recent generations capped at 5 when history has more`() {
+        val items = (1..8).map { i ->
+            GenerationResult.Success(
+                generationId = "gen_$i",
+                inputPhoto = ProductPhoto(id = "p$i", localUri = "content://p$i"),
+                previewUri = "/cache/preview_$i.jpg",
+                style = testStyles.first(),
+                createdAt = 1000L * i
+            )
+        }
+        val viewModel = createViewModel(historyItems = items)
+        assertEquals(5, viewModel.uiState.value.recentGenerations.size)
     }
 
     @Test
