@@ -21,7 +21,8 @@ interface GenerationRepository {
         shadow: Boolean,
         reflection: Boolean,
         exportFormat: ExportFormat,
-        quality: GenerationQuality
+        quality: GenerationQuality,
+        onProgress: (suspend (Float) -> Unit)? = null
     ): Result<GenerationResult.Success>
 
     /**

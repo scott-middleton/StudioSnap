@@ -23,6 +23,7 @@ import com.middleton.studiosnap.feature.processing.domain.usecase.GeneratePrevie
 import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationResultsHolder
 import com.middleton.studiosnap.feature.processing.presentation.action.ProcessingUiAction
 import com.middleton.studiosnap.feature.processing.presentation.navigation.ProcessingNavigationAction
+import com.middleton.studiosnap.feature.processing.presentation.ui_state.ProcessingStatus
 import com.middleton.studiosnap.feature.processing.presentation.ui_state.ProcessingUiState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -157,10 +158,11 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val repo = object : FakeGenerationRepository() {
             override suspend fun generateImage(
                 photo: ProductPhoto, style: Style, shadow: Boolean,
-                reflection: Boolean, exportFormat: ExportFormat, quality: GenerationQuality
+                reflection: Boolean, exportFormat: ExportFormat, quality: GenerationQuality,
+                onProgress: (suspend (Float) -> Unit)?
             ): Result<GenerationResult.Success> {
                 callCount++
-                return super.generateImage(photo, style, shadow, reflection, exportFormat, quality)
+                return super.generateImage(photo, style, shadow, reflection, exportFormat, quality, onProgress)
             }
         }
 
@@ -178,6 +180,17 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         assertIs<ProcessingNavigationAction.GoToResults>(vm.navigationEvent.value)
         vm.handleAction(ProcessingUiAction.OnNavigationHandled)
         assertNull(vm.navigationEvent.value)
+    }
+
+    @Test
+    fun `onProgress callback is wired end-to-end from batch use case to repository`() {
+        // Verifies that the onPhotoProgress callback passed to GenerateBatchPreviewsUseCase
+        // propagates all the way through GeneratePreviewUseCase → GenerationRepository.
+        val repo = ProgressEmittingRepository(listOf(0.1f, 0.55f, 0.9f))
+        val vm = createViewModel(generationRepo = repo)
+
+        assertIs<ProcessingUiState.Complete>(vm.uiState.value)
+        assertEquals(listOf(0.1f, 0.55f, 0.9f), repo.reportedProgress)
     }
 
     @Test
@@ -206,7 +219,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
             generationConfigHolder = configHolder,
             generationResultsHolder = resultsHolder,
             generateBatchPreviewsUseCase = batchUseCase,
-            analyticsService = analyticsService
+            analyticsService = analyticsService,
+            completionDelayMs = 0L
         )
     }
 
@@ -222,7 +236,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
             generationConfigHolder = FakeGenerationConfigHolder(config),
             generationResultsHolder = resultsHolder,
             generateBatchPreviewsUseCase = batchUseCase,
-            analyticsService = analyticsService
+            analyticsService = analyticsService,
+            completionDelayMs = 0L
         )
     }
 
@@ -244,7 +259,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
 
         override suspend fun generateImage(
             photo: ProductPhoto, style: Style, shadow: Boolean,
-            reflection: Boolean, exportFormat: ExportFormat, quality: GenerationQuality
+            reflection: Boolean, exportFormat: ExportFormat, quality: GenerationQuality,
+            onProgress: (suspend (Float) -> Unit)?
         ): Result<GenerationResult.Success> {
             val index = counter++
             if (shouldFail || index == failOnIndex) {
@@ -263,6 +279,25 @@ class ProcessingViewModelTest : BaseViewModelTest() {
 
         override suspend fun downloadFullRes(generationId: String) =
             Result.success("/path/full_$generationId.jpg")
+    }
+
+    /** Invokes onProgress with a fixed list of values, then succeeds. */
+    private class ProgressEmittingRepository(
+        private val progressToEmit: List<Float>
+    ) : FakeGenerationRepository() {
+        val reportedProgress = mutableListOf<Float>()
+
+        override suspend fun generateImage(
+            photo: ProductPhoto, style: Style, shadow: Boolean,
+            reflection: Boolean, exportFormat: ExportFormat, quality: GenerationQuality,
+            onProgress: (suspend (Float) -> Unit)?
+        ): Result<GenerationResult.Success> {
+            progressToEmit.forEach { value ->
+                reportedProgress.add(value)
+                onProgress?.invoke(value)
+            }
+            return super.generateImage(photo, style, shadow, reflection, exportFormat, quality, onProgress)
+        }
     }
 
     private class FakeHistoryRepository : HistoryRepository {
@@ -297,7 +332,10 @@ class ProcessingViewModelTest : BaseViewModelTest() {
             FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter()
         )
     ) {
-        override fun invoke(config: GenerationConfig): Flow<BatchProgress> = flow {
+        override fun invoke(
+            config: GenerationConfig,
+            onPhotoProgress: (suspend (photoIndex: Int, progress: Float) -> Unit)?
+        ): Flow<BatchProgress> = flow {
             throw exception
         }
     }

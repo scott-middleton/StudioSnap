@@ -18,11 +18,16 @@ open class GenerateBatchPreviewsUseCase(
      * Returns a Flow that emits [BatchProgress] after each photo is processed.
      * Consumer can cancel the flow to abort remaining images.
      */
-    open operator fun invoke(config: GenerationConfig): Flow<BatchProgress> = flow {
+    open operator fun invoke(
+        config: GenerationConfig,
+        onPhotoProgress: (suspend (photoIndex: Int, progress: Float) -> Unit)? = null
+    ): Flow<BatchProgress> = flow {
         val results = mutableListOf<GenerationResult>()
 
         config.photos.forEachIndexed { index, photo ->
-            val result = generatePreviewUseCase(photo, config)
+            val result = generatePreviewUseCase(photo, config) { progress ->
+                onPhotoProgress?.invoke(index, progress)
+            }
             results.add(result)
 
             emit(
@@ -35,6 +40,12 @@ open class GenerateBatchPreviewsUseCase(
             )
         }
     }
+}
+
+object GenerationProgressStages {
+    const val GENERATING_START = 0.30f  // Preparing ends / Generating begins
+    const val DOWNLOADING_START = 0.80f // Generating ends / Downloading begins
+    // Stages sum: 0.30 preparing + 0.50 generating + 0.20 downloading = 1.00
 }
 
 data class BatchProgress(

@@ -25,6 +25,7 @@ class KontextRemoteDataSourceImpl(
 
     companion object {
         private const val BUFFER_SIZE = 8192L
+        private const val ASSUMED_IMAGE_SIZE_BYTES = 500_000L // ~500KB; used for chunked pseudo-progress
     }
 
     override suspend fun createPrediction(
@@ -55,11 +56,16 @@ class KontextRemoteDataSourceImpl(
         response.body()
     }
 
-    override suspend fun downloadImageToFile(url: String): Result<String> = runCatching {
+    override suspend fun downloadImageToFile(
+        url: String,
+        onProgress: (suspend (Float) -> Unit)?
+    ): Result<String> = runCatching {
         val timestamp = Clock.System.now().epochSeconds
         val fileName = "generated_$timestamp.jpg"
 
         httpClient.prepareGet(url).execute { response ->
+            val contentLength = response.headers["Content-Length"]?.toLongOrNull() ?: -1L
+            var bytesRead = 0L
             val channel: ByteReadChannel = response.body()
 
             imageCacheManager.saveImageStreamToCache(fileName) { sink ->
@@ -68,6 +74,15 @@ class KontextRemoteDataSourceImpl(
                     while (!packet.exhausted()) {
                         val bytes = packet.readByteArray()
                         sink.write(bytes)
+                        bytesRead += bytes.size
+                        if (contentLength > 0) {
+                            onProgress?.invoke((bytesRead.toFloat() / contentLength).coerceIn(0f, 1f))
+                        } else {
+                            // No Content-Length (chunked transfer) — emit pseudo-progress so the
+                            // bar keeps moving. Assumes ~500KB; caps at 0.95 until truly complete.
+                            val pseudoProgress = (bytesRead.toFloat() / ASSUMED_IMAGE_SIZE_BYTES).coerceAtMost(0.95f)
+                            onProgress?.invoke(pseudoProgress)
+                        }
                     }
                 }
             }

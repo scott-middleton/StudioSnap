@@ -20,6 +20,9 @@ sealed interface ProcessingUiState {
         val currentPhotoIndex: Int,
         val totalPhotos: Int,
         val styleName: UiText,
+        // Invariant: status must always reflect the current progress value.
+        // When progress is non-null, status is derived from it by ProcessingViewModel.
+        // When progress is null (between photos), status resets to Preparing.
         val status: ProcessingStatus = ProcessingStatus.Preparing,
         val progress: Float? = null,
         val currentPhotoUri: String? = null
@@ -29,12 +32,12 @@ sealed interface ProcessingUiState {
                 if (totalPhotos == 0) return 0f
                 val baseProgress = currentPhotoIndex.toFloat() / totalPhotos
                 val perPhotoWeight = 1f / totalPhotos
-                val stageProgress = when (status) {
+                val intraPhotoProgress = progress ?: when (status) {
                     ProcessingStatus.Preparing -> 0f
                     ProcessingStatus.Generating -> 0.3f
                     ProcessingStatus.Downloading -> 0.8f
                 }
-                return baseProgress + (perPhotoWeight * stageProgress)
+                return baseProgress + (perPhotoWeight * intraPhotoProgress)
             }
     }
 

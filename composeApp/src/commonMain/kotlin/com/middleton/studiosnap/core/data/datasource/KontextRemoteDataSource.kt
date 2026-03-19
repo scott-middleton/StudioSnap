@@ -16,5 +16,8 @@ interface KontextRemoteDataSource {
 
     suspend fun downloadImage(url: String): Result<ByteArray>
 
-    suspend fun downloadImageToFile(url: String): Result<String>
+    suspend fun downloadImageToFile(
+        url: String,
+        onProgress: (suspend (Float) -> Unit)? = null
+    ): Result<String>
 }

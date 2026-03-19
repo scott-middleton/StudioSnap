@@ -78,7 +78,8 @@ class DownloadFullResUseCaseTest {
     ) : GenerationRepository {
         override suspend fun generateImage(
             photo: ProductPhoto, style: Style, shadow: Boolean,
-            reflection: Boolean, exportFormat: ExportFormat, quality: GenerationQuality
+            reflection: Boolean, exportFormat: ExportFormat, quality: GenerationQuality,
+            onProgress: (suspend (Float) -> Unit)?
         ) = Result.success(
             GenerationResult.Success(
                 generationId = "gen_1", inputPhoto = photo,

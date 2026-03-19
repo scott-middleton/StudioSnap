@@ -19,6 +19,7 @@ import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationRepository
 import com.middleton.studiosnap.feature.home.domain.usecase.BuildKontextPromptUseCase
+import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationProgressStages
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.jsonPrimitive
@@ -36,7 +37,8 @@ class GenerationRepositoryImpl(
         shadow: Boolean,
         reflection: Boolean,
         exportFormat: ExportFormat,
-        quality: GenerationQuality
+        quality: GenerationQuality,
+        onProgress: (suspend (Float) -> Unit)?
     ): Result<GenerationResult.Success> = runCatching {
         // 1. Read and compress the input image
         // readBytesFromUri handles content:// URIs on Android (via ContentResolver)
@@ -69,14 +71,16 @@ class GenerationRepositoryImpl(
         val createResponse = kontextDataSource.createPrediction(request).getOrThrow()
 
         // 4. Poll for completion
-        val completedResponse = pollForCompletion(createResponse.id)
+        val completedResponse = pollForCompletion(createResponse.id, onProgress)
 
         // 5. Extract output URL
         val outputUrl = completedResponse.output?.jsonPrimitive?.content
             ?: throw IllegalStateException("No output URL in completed prediction")
 
         // 6. Download the generated image
-        val filePath = kontextDataSource.downloadImageToFile(outputUrl).getOrThrow()
+        val filePath = kontextDataSource.downloadImageToFile(outputUrl) { downloadFraction ->
+            onProgress?.invoke(STAGE_DOWNLOAD_START + downloadFraction * STAGE_DOWNLOAD_WIDTH)
+        }.getOrThrow()
 
         // 7. Get image dimensions
         val downloadedBytes = imageCacheManager.readImageFromCache(filePath)
@@ -108,7 +112,8 @@ class GenerationRepositoryImpl(
     }
 
     private suspend fun pollForCompletion(
-        predictionId: String
+        predictionId: String,
+        onProgress: (suspend (Float) -> Unit)?
     ): ReplicatePredictionResponse {
         var attempts = 0
         while (attempts < MAX_POLL_ATTEMPTS) {
@@ -121,7 +126,11 @@ class GenerationRepositoryImpl(
                     val errorMsg = response.error ?: "Prediction ${response.status}"
                     throw PredictionFailedException(errorMsg)
                 }
-                else -> attempts++
+                else -> {
+                    attempts++
+                    val pollFraction = (attempts.toFloat() / MAX_POLL_ATTEMPTS).coerceAtMost(0.95f)
+                    onProgress?.invoke(STAGE_GENERATING_START + pollFraction * STAGE_GENERATING_WIDTH)
+                }
             }
         }
         throw PredictionTimeoutException("Prediction timed out after $MAX_POLL_ATTEMPTS attempts")
@@ -132,6 +141,11 @@ class GenerationRepositoryImpl(
         private const val MAX_INPUT_HEIGHT = 1024
         private const val POLL_INTERVAL_MS = 2000L
         private const val MAX_POLL_ATTEMPTS = 60
+
+        private val STAGE_GENERATING_START get() = GenerationProgressStages.GENERATING_START
+        private const val STAGE_GENERATING_WIDTH = 0.50f  // 0.30 → 0.80
+        private val STAGE_DOWNLOAD_START get() = GenerationProgressStages.DOWNLOADING_START
+        private const val STAGE_DOWNLOAD_WIDTH = 0.20f    // 0.80 → 1.00
 
         /**
          * Flux Kontext [dev] model version hash.

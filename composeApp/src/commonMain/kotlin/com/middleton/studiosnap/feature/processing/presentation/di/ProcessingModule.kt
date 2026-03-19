@@ -8,7 +8,7 @@ import com.middleton.studiosnap.feature.processing.domain.usecase.GeneratePrevie
 import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationResultsHolder
 import com.middleton.studiosnap.feature.processing.presentation.navigation.ProcessingNavigationAction
 import com.middleton.studiosnap.feature.processing.presentation.viewmodel.ProcessingViewModel
-import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val processingModule = module {
@@ -33,5 +33,12 @@ val processingModule = module {
         SharedNavigationStrategy(get())
     }
 
-    viewModelOf(::ProcessingViewModel)
+    viewModel {
+        ProcessingViewModel(
+            generationConfigHolder = get(),
+            generationResultsHolder = get(),
+            generateBatchPreviewsUseCase = get(),
+            analyticsService = get()
+        )
+    }
 }

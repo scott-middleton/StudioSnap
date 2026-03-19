@@ -291,7 +291,7 @@ private fun ProcessingContent(
             ) {
                 val animatedProgress by animateFloatAsState(
                     targetValue = state.overallProgress,
-                    animationSpec = tween(300),
+                    animationSpec = tween(1800, easing = LinearEasing),
                     label = "progress"
                 )
                 Text(
