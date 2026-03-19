@@ -52,6 +52,7 @@ class GenerationRepositoryImpl(
         ) ?: imageBytes
 
         val base64DataUri = resizedBytes.toBase64DataUri()
+        onProgress?.invoke(STAGE_PREPARING_IMAGE_READY)
 
         // 2. Build the Kontext prompt
         val prompt = buildKontextPromptUseCase(style, shadow, reflection)
@@ -69,6 +70,7 @@ class GenerationRepositoryImpl(
         )
 
         val createResponse = kontextDataSource.createPrediction(request).getOrThrow()
+        onProgress?.invoke(STAGE_PREPARING_REQUEST_SENT)
 
         // 4. Poll for completion
         val completedResponse = pollForCompletion(createResponse.id, onProgress)
@@ -141,6 +143,10 @@ class GenerationRepositoryImpl(
         private const val MAX_INPUT_HEIGHT = 1024
         private const val POLL_INTERVAL_MS = 2000L
         private const val MAX_POLL_ATTEMPTS = 60
+
+        // Preparing sub-stage ticks (0.00 → 0.30)
+        private const val STAGE_PREPARING_IMAGE_READY = 0.10f  // image read + resized
+        private const val STAGE_PREPARING_REQUEST_SENT = 0.25f // prediction created, about to poll
 
         private val STAGE_GENERATING_START get() = GenerationProgressStages.GENERATING_START
         private const val STAGE_GENERATING_WIDTH = 0.50f  // 0.30 → 0.80
