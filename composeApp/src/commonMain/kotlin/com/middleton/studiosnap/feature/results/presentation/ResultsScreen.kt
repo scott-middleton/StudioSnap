@@ -230,6 +230,12 @@ private fun ResultsContent(
             ResultCard(
                 item = item,
                 isAutoSaving = state.isAutoSaving,
+                onToggleBeforeAfter = {
+                    val result = item.result
+                    if (result is GenerationResult.Success) {
+                        onAction(ResultsUiAction.OnToggleBeforeAfter(result.generationId))
+                    }
+                },
                 onFullScreenClicked = {
                     val result = item.result
                     if (result is GenerationResult.Success) {
@@ -240,24 +246,6 @@ private fun ResultsContent(
                     }
                 }
             )
-        }
-
-        // Before/After pill lives outside the pager so it can't be clipped by height constraints.
-        // Use a fixed-height placeholder for failure results to keep the layout stable.
-        val currentItem = state.results.getOrNull(pagerState.currentPage)
-        val currentResult = currentItem?.result as? GenerationResult.Success
-        if (currentResult != null) {
-            Spacer(modifier = Modifier.height(12.dp))
-            BeforeAfterToggle(
-                showingOriginal = currentItem.showingOriginal,
-                onToggle = {
-                    onAction(ResultsUiAction.OnToggleBeforeAfter(currentResult.generationId))
-                },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-        } else {
-            // Placeholder keeps layout stable when current page is a failure result
-            Spacer(modifier = Modifier.height(60.dp))
         }
 
         // Page indicator
@@ -289,6 +277,7 @@ private fun ResultsContent(
 private fun ResultCard(
     item: ResultItem,
     isAutoSaving: Boolean,
+    onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
     val result = item.result
@@ -299,6 +288,7 @@ private fun ResultCard(
             showingOriginal = item.showingOriginal,
             isSavedToGallery = item.isSavedToGallery,
             isAutoSaving = isAutoSaving,
+            onToggleBeforeAfter = onToggleBeforeAfter,
             onFullScreenClicked = onFullScreenClicked
         )
         is GenerationResult.Failure -> FailureCard(error = result.error)
@@ -311,6 +301,7 @@ private fun SuccessCard(
     showingOriginal: Boolean,
     isSavedToGallery: Boolean,
     isAutoSaving: Boolean,
+    onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
     val aspectRatio = if (result.imageWidth > 0 && result.imageHeight > 0) {
@@ -394,6 +385,16 @@ private fun SuccessCard(
                         )
                     }
                 }
+
+                // Before/After pill — overlaid at the bottom of the image so it stays
+                // anchored to the image regardless of aspect ratio
+                BeforeAfterToggle(
+                    showingOriginal = showingOriginal,
+                    onToggle = onToggleBeforeAfter,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 12.dp)
+                )
             }
         }
 
