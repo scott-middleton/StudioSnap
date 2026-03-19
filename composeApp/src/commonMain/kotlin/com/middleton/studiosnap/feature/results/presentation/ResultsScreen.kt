@@ -230,12 +230,6 @@ private fun ResultsContent(
             ResultCard(
                 item = item,
                 isAutoSaving = state.isAutoSaving,
-                onToggleBeforeAfter = {
-                    val result = item.result
-                    if (result is GenerationResult.Success) {
-                        onAction(ResultsUiAction.OnToggleBeforeAfter(result.generationId))
-                    }
-                },
                 onFullScreenClicked = {
                     val result = item.result
                     if (result is GenerationResult.Success) {
@@ -248,9 +242,24 @@ private fun ResultsContent(
             )
         }
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Before/After pill lives outside the pager so it can't be clipped by height constraints
+        val currentItem = state.results.getOrNull(pagerState.currentPage)
+        val currentResult = currentItem?.result as? GenerationResult.Success
+        if (currentResult != null) {
+            BeforeAfterToggle(
+                showingOriginal = currentItem.showingOriginal,
+                onToggle = {
+                    onAction(ResultsUiAction.OnToggleBeforeAfter(currentResult.generationId))
+                },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
+
         // Page indicator
         if (state.results.size > 1) {
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             PageIndicator(
                 pagerState = pagerState,
                 pageCount = state.results.size,
@@ -277,7 +286,6 @@ private fun ResultsContent(
 private fun ResultCard(
     item: ResultItem,
     isAutoSaving: Boolean,
-    onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
     val result = item.result
@@ -288,7 +296,6 @@ private fun ResultCard(
             showingOriginal = item.showingOriginal,
             isSavedToGallery = item.isSavedToGallery,
             isAutoSaving = isAutoSaving,
-            onToggleBeforeAfter = onToggleBeforeAfter,
             onFullScreenClicked = onFullScreenClicked
         )
         is GenerationResult.Failure -> FailureCard(error = result.error)
@@ -301,7 +308,6 @@ private fun SuccessCard(
     showingOriginal: Boolean,
     isSavedToGallery: Boolean,
     isAutoSaving: Boolean,
-    onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
     val aspectRatio = if (result.imageWidth > 0 && result.imageHeight > 0) {
@@ -388,13 +394,6 @@ private fun SuccessCard(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Before/After toggle pill — below the card so it doesn't overlap the image
-        BeforeAfterToggle(
-            showingOriginal = showingOriginal,
-            onToggle = onToggleBeforeAfter
-        )
     }
 }
 
