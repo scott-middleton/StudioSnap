@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -486,7 +486,6 @@ private fun BeforeAfterToggle(
 
     Row(
         modifier = modifier
-            .wrapContentWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onToggle)
@@ -517,6 +516,7 @@ private fun TogglePill(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
+            .defaultMinSize(minHeight = 36.dp)
             .padding(horizontal = 16.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
