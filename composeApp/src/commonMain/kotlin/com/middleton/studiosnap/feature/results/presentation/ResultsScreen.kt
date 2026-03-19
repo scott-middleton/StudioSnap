@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -197,6 +198,8 @@ private fun ResultsContent(
     onFullScreenClicked: (path: String, aspectRatio: Float?) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { state.results.size })
+    val currentItem = state.results.getOrNull(pagerState.currentPage)
+    val currentResult = currentItem?.result as? GenerationResult.Success
 
     Column(modifier = modifier.fillMaxSize()) {
         // Photo counter
@@ -220,35 +223,42 @@ private fun ResultsContent(
             Spacer(modifier = Modifier.height(4.dp))
         }
 
-        // Pager — each page is a self-contained unit (save indicator + image + pill + dots)
-        // centered vertically so the pill is always directly below the image
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.weight(1f),
-            pageSpacing = 16.dp
-        ) { page ->
-            val item = state.results[page]
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+        // Save indicator — driven by current page, outside pager so it doesn't swipe
+        GallerySaveIndicator(
+            isSavedToGallery = currentItem?.isSavedToGallery ?: false,
+            isAutoSaving = state.isAutoSaving
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Pager height = min(available space, image height derived from aspect ratio + width).
+        // This eliminates dead space below the image so the pill sits flush under it.
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val imageWidthDp = maxWidth - 40.dp // account for horizontal padding in card
+            val imageAspectRatio = currentResult?.let {
+                if (it.imageWidth > 0 && it.imageHeight > 0)
+                    it.imageWidth.toFloat() / it.imageHeight.toFloat()
+                else 1f
+            } ?: 1f
+            // Cap at reasonable maximum so portrait images don't dominate the screen
+            val pagerHeight = (imageWidthDp / imageAspectRatio).coerceAtMost(maxWidth * 1.4f)
+
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(pagerHeight),
+                pageSpacing = 16.dp
+            ) { page ->
+                val item = state.results[page]
                 ResultCard(
                     item = item,
-                    isAutoSaving = state.isAutoSaving,
-                    pageCount = state.results.size,
-                    currentPage = pagerState.currentPage,
-                    onToggleBeforeAfter = {
-                        val result = item.result
-                        if (result is GenerationResult.Success) {
-                            onAction(ResultsUiAction.OnToggleBeforeAfter(result.generationId))
-                        }
-                    },
                     onFullScreenClicked = {
                         val result = item.result
                         if (result is GenerationResult.Success) {
-                            val ar = if (result.imageWidth > 0 && result.imageHeight > 0) {
+                            val ar = if (result.imageWidth > 0 && result.imageHeight > 0)
                                 result.imageWidth.toFloat() / result.imageHeight.toFloat()
-                            } else null
+                            else null
                             onFullScreenClicked(result.previewUri, ar)
                         }
                     }
@@ -256,7 +266,29 @@ private fun ResultsContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Pill and dots are outside the pager — they never swipe, always anchored below image
+        if (currentResult != null) {
+            BeforeAfterToggle(
+                showingOriginal = currentItem.showingOriginal,
+                onToggle = { onAction(ResultsUiAction.OnToggleBeforeAfter(currentResult.generationId)) },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        } else {
+            Spacer(modifier = Modifier.height(48.dp))
+        }
+
+        if (state.results.size > 1) {
+            Spacer(modifier = Modifier.height(10.dp))
+            PageIndicator(
+                currentPage = pagerState.currentPage,
+                pageCount = state.results.size,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
 
         // Action buttons
         ActionButtons(
@@ -274,21 +306,12 @@ private fun ResultsContent(
 @Composable
 private fun ResultCard(
     item: ResultItem,
-    isAutoSaving: Boolean,
-    pageCount: Int,
-    currentPage: Int,
-    onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
     when (val result = item.result) {
         is GenerationResult.Success -> SuccessCard(
             result = result,
             showingOriginal = item.showingOriginal,
-            isSavedToGallery = item.isSavedToGallery,
-            isAutoSaving = isAutoSaving,
-            pageCount = pageCount,
-            currentPage = currentPage,
-            onToggleBeforeAfter = onToggleBeforeAfter,
             onFullScreenClicked = onFullScreenClicked
         )
         is GenerationResult.Failure -> FailureCard(error = result.error)
@@ -299,104 +322,72 @@ private fun ResultCard(
 private fun SuccessCard(
     result: GenerationResult.Success,
     showingOriginal: Boolean,
-    isSavedToGallery: Boolean,
-    isAutoSaving: Boolean,
-    pageCount: Int,
-    currentPage: Int,
-    onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
     val aspectRatio = if (result.imageWidth > 0 && result.imageHeight > 0) {
         result.imageWidth.toFloat() / result.imageHeight.toFloat()
-    } else {
-        1f
-    }
+    } else 1f
     val inputAspectRatio = if (result.inputPhoto.width > 0 && result.inputPhoto.height > 0) {
         result.inputPhoto.width.toFloat() / result.inputPhoto.height.toFloat()
-    } else {
-        aspectRatio
-    }
+    } else aspectRatio
 
-    // Self-contained column: save indicator + image + pill + dots.
-    // wrapContentHeight so it sizes to its content and the centering Box in the pager
-    // vertically centres the whole unit — pill and dots always directly below the image.
-    Column(
+    StudioSnapCard(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 20.dp)
     ) {
-        GallerySaveIndicator(isSavedToGallery = isSavedToGallery, isAutoSaving = isAutoSaving)
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        StudioSnapCard(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = !showingOriginal, onClick = onFullScreenClicked)
-            ) {
-                AnimatedContent(
-                    targetState = showingOriginal,
-                    transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
-                    label = "before_after"
-                ) { isOriginal ->
-                    if (isOriginal) {
-                        GalleryImage(
-                            galleryUri = result.inputPhoto.localUri,
-                            contentDescription = stringResource(Res.string.results_product_photo),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(inputAspectRatio)
-                                .clip(RoundedCornerShape(16.dp)),
-                            contentScale = ContentScale.Fit,
-                            knownAspectRatio = inputAspectRatio
-                        )
-                    } else {
-                        RestorationImage(
-                            imagePath = result.previewUri,
-                            contentDescription = stringResource(Res.string.results_product_photo),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(aspectRatio)
-                                .clip(RoundedCornerShape(16.dp)),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-                }
-
-                if (!showingOriginal) {
-                    Box(
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = !showingOriginal, onClick = onFullScreenClicked)
+        ) {
+            AnimatedContent(
+                targetState = showingOriginal,
+                transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
+                label = "before_after"
+            ) { isOriginal ->
+                if (isOriginal) {
+                    GalleryImage(
+                        galleryUri = result.inputPhoto.localUri,
+                        contentDescription = stringResource(Res.string.results_product_photo),
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color.Black.copy(alpha = 0.35f))
-                            .padding(4.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ZoomIn,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+                            .fillMaxWidth()
+                            .aspectRatio(inputAspectRatio)
+                            .clip(RoundedCornerShape(16.dp)),
+                        contentScale = ContentScale.Fit,
+                        knownAspectRatio = inputAspectRatio
+                    )
+                } else {
+                    RestorationImage(
+                        imagePath = result.previewUri,
+                        contentDescription = stringResource(Res.string.results_product_photo),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(aspectRatio)
+                            .clip(RoundedCornerShape(16.dp)),
+                        contentScale = ContentScale.Fit
+                    )
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        BeforeAfterToggle(
-            showingOriginal = showingOriginal,
-            onToggle = onToggleBeforeAfter
-        )
-
-        if (pageCount > 1) {
-            Spacer(modifier = Modifier.height(10.dp))
-            PageIndicator(currentPage = currentPage, pageCount = pageCount)
+            if (!showingOriginal) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color.Black.copy(alpha = 0.35f))
+                        .padding(4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ZoomIn,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
         }
     }
 }
