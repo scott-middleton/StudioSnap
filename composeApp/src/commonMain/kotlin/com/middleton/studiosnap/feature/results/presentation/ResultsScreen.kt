@@ -29,7 +29,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.ImageSearch
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,7 +40,6 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,12 +50,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.middleton.studiosnap.core.presentation.components.FullScreenImageOverlay
 import com.middleton.studiosnap.core.presentation.components.GalleryImage
+import com.middleton.studiosnap.core.presentation.components.GradientButton
 import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
@@ -448,7 +448,7 @@ private fun BeforeAfterToggle(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onToggle)
             .padding(horizontal = 4.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.Center
@@ -470,17 +470,8 @@ private fun TogglePill(
     text: String,
     selected: Boolean
 ) {
-    val backgroundColor = if (selected) {
-        AppColors.PrimaryGreen
-    } else {
-        MaterialTheme.colorScheme.surface.copy(alpha = 0f)
-    }
-
-    val textColor = if (selected) {
-        MaterialTheme.colorScheme.onPrimary
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
+    val backgroundColor = if (selected) AppColors.PrimaryGreen else Color.Transparent
+    val textColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurface
 
     Box(
         modifier = Modifier
@@ -605,38 +596,25 @@ private fun ActionButtons(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Share button
+        // Share — primary gradient button
+        GradientButton(
+            text = stringResource(Res.string.results_share),
+            onClick = { onAction(ResultsUiAction.OnShareClicked(result.generationId)) }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Done — outlined so it has visible weight but is clearly secondary
         OutlinedButton(
-            onClick = { onAction(ResultsUiAction.OnShareClicked(result.generationId)) },
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Share,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = stringResource(Res.string.results_share),
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Done button
-        TextButton(
-            onClick = { onAction(ResultsUiAction.OnDoneClicked) }
+            onClick = { onAction(ResultsUiAction.OnDoneClicked) },
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = RoundedCornerShape(16.dp)
         ) {
             Text(
                 text = stringResource(Res.string.results_done),
-                style = MaterialTheme.typography.bodyMedium.copy(
+                style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.SemiBold
-                ),
-                color = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     }
