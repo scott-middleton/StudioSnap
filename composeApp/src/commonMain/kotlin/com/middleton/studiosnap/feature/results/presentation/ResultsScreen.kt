@@ -26,7 +26,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.ZoomIn
@@ -229,6 +228,7 @@ private fun ResultsContent(
             val item = state.results[page]
             ResultCard(
                 item = item,
+                isAutoSaving = state.isAutoSaving,
                 onToggleBeforeAfter = {
                     val result = item.result
                     if (result is GenerationResult.Success) {
@@ -275,6 +275,7 @@ private fun ResultsContent(
 @Composable
 private fun ResultCard(
     item: ResultItem,
+    isAutoSaving: Boolean,
     onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
@@ -284,6 +285,8 @@ private fun ResultCard(
         is GenerationResult.Success -> SuccessCard(
             result = result,
             showingOriginal = item.showingOriginal,
+            isSavedToGallery = item.isSavedToGallery,
+            isAutoSaving = isAutoSaving,
             onToggleBeforeAfter = onToggleBeforeAfter,
             onFullScreenClicked = onFullScreenClicked
         )
@@ -295,6 +298,8 @@ private fun ResultCard(
 private fun SuccessCard(
     result: GenerationResult.Success,
     showingOriginal: Boolean,
+    isSavedToGallery: Boolean,
+    isAutoSaving: Boolean,
     onToggleBeforeAfter: () -> Unit,
     onFullScreenClicked: () -> Unit
 ) {
@@ -315,6 +320,11 @@ private fun SuccessCard(
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Save status — above the image card
+        GallerySaveIndicator(isSavedToGallery = isSavedToGallery, isAutoSaving = isAutoSaving)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         StudioSnapCard(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -354,21 +364,23 @@ private fun SuccessCard(
                     }
                 }
 
-                // Zoom hint icon (top-right, only shown when viewing after).
+                // Zoom hint — scrim background ensures visibility over any image colour.
                 // The entire Box is already tappable — this is a visual affordance only.
                 if (!showingOriginal) {
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(8.dp)
-                            .size(24.dp),
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color.Black.copy(alpha = 0.35f))
+                            .padding(4.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.ZoomIn,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.size(20.dp)
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
@@ -381,17 +393,6 @@ private fun SuccessCard(
         BeforeAfterToggle(
             showingOriginal = showingOriginal,
             onToggle = onToggleBeforeAfter
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Style name
-        Text(
-            text = result.styleDisplayName.asString(),
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.SemiBold
-            ),
-            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -431,6 +432,43 @@ private fun FailureCard(error: GenerationError) {
                 )
             }
         }
+    }
+}
+
+// ─── Gallery Save Indicator ──────────────────────────────────────────────────
+
+@Composable
+private fun GallerySaveIndicator(isSavedToGallery: Boolean, isAutoSaving: Boolean) {
+    val height = Modifier.fillMaxWidth().height(28.dp)
+    when {
+        isAutoSaving -> Row(
+            modifier = height,
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(14.dp),
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = stringResource(Res.string.results_saving),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        isSavedToGallery -> Box(
+            modifier = height,
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(Res.string.results_saved),
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                color = AppColors.SuccessGreen
+            )
+        }
+        else -> Spacer(modifier = height)
     }
 }
 
@@ -542,60 +580,6 @@ private fun ActionButtons(
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Gallery save status indicator
-        when {
-            state.isAutoSaving -> {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(32.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(Res.string.results_saving),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            currentItem.isSavedToGallery -> {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(32.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = AppColors.SuccessGreen,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = stringResource(Res.string.results_saved),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontWeight = FontWeight.Medium
-                        ),
-                        color = AppColors.SuccessGreen
-                    )
-                }
-            }
-            else -> {
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
         // Share — primary gradient button
         GradientButton(
             text = stringResource(Res.string.results_share),
