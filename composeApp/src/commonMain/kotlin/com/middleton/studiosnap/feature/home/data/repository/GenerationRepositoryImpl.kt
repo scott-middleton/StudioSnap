@@ -72,7 +72,9 @@ class GenerationRepositoryImpl(
         val createResponse = kontextDataSource.createPrediction(request).getOrThrow()
         onProgress?.invoke(STAGE_PREPARING_REQUEST_SENT)
 
-        // 4. Poll for completion
+        // 4. Poll for completion — emit generating start so there's no silent gap
+        // between the last preparing tick (0.25) and the first poll tick (0.30+)
+        onProgress?.invoke(STAGE_GENERATING_START)
         val completedResponse = pollForCompletion(createResponse.id, onProgress)
 
         // 5. Extract output URL
