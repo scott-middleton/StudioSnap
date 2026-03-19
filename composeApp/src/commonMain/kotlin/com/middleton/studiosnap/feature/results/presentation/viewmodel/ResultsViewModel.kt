@@ -3,6 +3,7 @@ package com.middleton.studiosnap.feature.results.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.middleton.studiosnap.core.domain.model.UiText
+import com.middleton.studiosnap.core.presentation.util.shareImage
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsParams
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
@@ -88,11 +89,26 @@ class ResultsViewModel(
     }
 
     private fun shareResult(generationId: String) {
-        // TODO: Wire platform share sheet via expect/actual (Phase 5)
-        analyticsService.logEvent(
-            AnalyticsEvents.PREVIEW_SHARED,
-            mapOf(AnalyticsParams.GENERATION_ID to generationId)
-        )
+        val item = _uiState.value.results.find {
+            it.result is GenerationResult.Success &&
+                    (it.result as GenerationResult.Success).generationId == generationId
+        } ?: return
+        val result = item.result as GenerationResult.Success
+
+        viewModelScope.launch {
+            shareImage(result.previewUri)
+                .onSuccess {
+                    analyticsService.logEvent(
+                        AnalyticsEvents.PREVIEW_SHARED,
+                        mapOf(AnalyticsParams.GENERATION_ID to generationId)
+                    )
+                }
+                .onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(snackbarMessage = UiText.DynamicString(throwable.message ?: "Share failed"))
+                    }
+                }
+        }
     }
 
     private fun updateResultItem(generationId: String, transform: (ResultItem) -> ResultItem) {
