@@ -242,12 +242,12 @@ private fun ResultsContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Before/After pill lives outside the pager so it can't be clipped by height constraints
+        // Before/After pill lives outside the pager so it can't be clipped by height constraints.
+        // Use a fixed-height placeholder for failure results to keep the layout stable.
         val currentItem = state.results.getOrNull(pagerState.currentPage)
         val currentResult = currentItem?.result as? GenerationResult.Success
         if (currentResult != null) {
+            Spacer(modifier = Modifier.height(12.dp))
             BeforeAfterToggle(
                 showingOriginal = currentItem.showingOriginal,
                 onToggle = {
@@ -255,6 +255,9 @@ private fun ResultsContent(
                 },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+        } else {
+            // Placeholder keeps layout stable when current page is a failure result
+            Spacer(modifier = Modifier.height(60.dp))
         }
 
         // Page indicator
