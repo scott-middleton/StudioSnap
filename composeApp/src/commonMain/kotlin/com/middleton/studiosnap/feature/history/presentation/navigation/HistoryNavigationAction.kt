@@ -6,9 +6,9 @@ import com.middleton.studiosnap.core.presentation.navigation.Route
 
 sealed class HistoryNavigationAction : NavigationAction {
 
-    data class GoToResultDetail(val resultId: String) : HistoryNavigationAction() {
+    data class GoToSessionDetail(val sessionId: String) : HistoryNavigationAction() {
         override val navigationCommand = NavigationCommand.Navigate(
-            Route.ResultDetail(resultId)
+            Route.SessionDetail(sessionId)
         )
     }
 

@@ -13,8 +13,8 @@ import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
 import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.core.presentation.theme.StudioSnapTheme
+import com.middleton.studiosnap.feature.history.domain.model.HistorySession
 import com.middleton.studiosnap.feature.history.presentation.HistoryScreenContent
-import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
@@ -261,16 +261,20 @@ class AllScreensSnapshotTest {
         snapshot {
             HistoryScreenContent(
                 state = HistoryUiState(
-                    items = listOf(
-                        HistoryItem(
-                            id = "h1",
-                            previewUri = "file:///fake/preview1.jpg",
+                    sessions = listOf(
+                        HistorySession(
+                            batchId = "s1",
+                            thumbnailUris = listOf("file:///fake/preview1.jpg"),
+                            imageCount = 3,
+                            sessionLabel = null,
                             styleName = "Rustic Wood",
                             createdAt = 1710000000000L
                         ),
-                        HistoryItem(
-                            id = "h2",
-                            previewUri = "file:///fake/preview2.jpg",
+                        HistorySession(
+                            batchId = "s2",
+                            thumbnailUris = listOf("file:///fake/preview2.jpg"),
+                            imageCount = 1,
+                            sessionLabel = "My custom label",
                             styleName = "Marble Luxe",
                             createdAt = 1709913600000L
                         )

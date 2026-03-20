@@ -29,6 +29,8 @@ import com.middleton.studiosnap.feature.onboarding.presentation.OnboardingCarous
 import com.middleton.studiosnap.feature.paywall.presentation.PaywallScreen
 import com.middleton.studiosnap.feature.processing.presentation.ProcessingScreen
 import com.middleton.studiosnap.feature.results.presentation.ResultsScreen
+import com.middleton.studiosnap.feature.sessiondetail.presentation.SessionDetailScreen
+import com.middleton.studiosnap.feature.sessiondetail.presentation.viewmodel.SessionDetailViewModel
 import com.middleton.studiosnap.feature.settings.presentation.SettingsScreen
 import com.middleton.studiosnap.feature.splash.presentation.SplashScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -59,6 +61,7 @@ fun App() {
             addResultsScreen()
             addCreditStoreScreen()
             addHistoryScreen()
+            addSessionDetailScreen()
             addSettingsScreen()
         }
     }
@@ -141,6 +144,16 @@ private fun NavGraphBuilder.addCreditStoreScreen() {
 private fun NavGraphBuilder.addHistoryScreen() {
     composable<Route.History> {
         HistoryScreen()
+    }
+}
+
+private fun NavGraphBuilder.addSessionDetailScreen() {
+    composable<Route.SessionDetail> { backStackEntry ->
+        val route = backStackEntry.toRoute<Route.SessionDetail>()
+        val viewModel: SessionDetailViewModel = koinViewModel(
+            parameters = { org.koin.core.parameter.parametersOf(route.sessionId) }
+        )
+        SessionDetailScreen(viewModel = viewModel)
     }
 }
 

@@ -39,5 +39,8 @@ sealed interface Route {
     data class ResultDetail(val resultId: String) : Route
 
     @Serializable
+    data class SessionDetail(val sessionId: String) : Route
+
+    @Serializable
     data class StylePicker(val currentStyleId: String? = null) : Route
 }

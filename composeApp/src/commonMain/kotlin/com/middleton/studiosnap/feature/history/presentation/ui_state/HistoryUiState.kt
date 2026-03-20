@@ -1,10 +1,10 @@
 package com.middleton.studiosnap.feature.history.presentation.ui_state
 
-import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
+import com.middleton.studiosnap.feature.history.domain.model.HistorySession
 
 data class HistoryUiState(
-    val items: List<HistoryItem> = emptyList(),
+    val sessions: List<HistorySession> = emptyList(),
     val isLoading: Boolean = true
 ) {
-    val isEmpty: Boolean get() = items.isEmpty() && !isLoading
+    val isEmpty: Boolean get() = sessions.isEmpty() && !isLoading
 }

@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.history.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,9 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -46,7 +48,7 @@ import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.core.presentation.util.formatRelativeTime
-import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
+import com.middleton.studiosnap.feature.history.domain.model.HistorySession
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
 import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryNavigationAction
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
@@ -91,7 +93,7 @@ fun HistoryScreenContent(
     state: HistoryUiState,
     onAction: (HistoryUiAction) -> Unit
 ) {
-    var deleteDialogItemId by remember { mutableStateOf<String?>(null) }
+    var deleteDialogSessionId by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -114,32 +116,31 @@ fun HistoryScreenContent(
                 EmptyHistoryContent(modifier = Modifier.padding(padding))
             }
             else -> {
-                HistoryGrid(
-                    items = state.items,
+                SessionList(
+                    sessions = state.sessions,
                     modifier = Modifier.padding(padding),
-                    onItemClicked = { onAction(HistoryUiAction.OnItemClicked(it)) },
-                    onDeleteClicked = { deleteDialogItemId = it }
+                    onSessionClicked = { onAction(HistoryUiAction.OnSessionClicked(it)) },
+                    onDeleteClicked = { deleteDialogSessionId = it }
                 )
             }
         }
     }
 
-    // Delete confirmation dialog
-    deleteDialogItemId?.let { itemId ->
+    deleteDialogSessionId?.let { sessionId ->
         AlertDialog(
-            onDismissRequest = { deleteDialogItemId = null },
+            onDismissRequest = { deleteDialogSessionId = null },
             title = { Text(stringResource(Res.string.history_delete_title)) },
             text = { Text(stringResource(Res.string.history_delete_message)) },
             confirmButton = {
                 TextButton(onClick = {
-                    onAction(HistoryUiAction.OnDeleteClicked(itemId))
-                    deleteDialogItemId = null
+                    onAction(HistoryUiAction.OnDeleteSessionClicked(sessionId))
+                    deleteDialogSessionId = null
                 }) {
                     Text(stringResource(Res.string.history_delete_confirm))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { deleteDialogItemId = null }) {
+                TextButton(onClick = { deleteDialogSessionId = null }) {
                     Text(stringResource(Res.string.history_delete_cancel))
                 }
             }
@@ -181,34 +182,34 @@ private fun EmptyHistoryContent(modifier: Modifier = Modifier) {
     }
 }
 
-// ─── History Grid ───────────────────────────────────────────────────────────
+// ─── Session List ────────────────────────────────────────────────────────────
 
 @Composable
-private fun HistoryGrid(
-    items: List<HistoryItem>,
+private fun SessionList(
+    sessions: List<HistorySession>,
     modifier: Modifier = Modifier,
-    onItemClicked: (String) -> Unit,
+    onSessionClicked: (String) -> Unit,
     onDeleteClicked: (String) -> Unit
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 150.dp),
+    LazyColumn(
         modifier = modifier.fillMaxSize().padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(items, key = { it.id }) { item ->
-            HistoryGridItem(
-                item = item,
-                onClick = { onItemClicked(item.id) },
-                onDelete = { onDeleteClicked(item.id) }
+        item { Spacer(Modifier.height(4.dp)) }
+        items(sessions, key = { it.batchId }) { session ->
+            SessionCard(
+                session = session,
+                onClick = { onSessionClicked(session.batchId) },
+                onDelete = { onDeleteClicked(session.batchId) }
             )
         }
+        item { Spacer(Modifier.height(8.dp)) }
     }
 }
 
 @Composable
-private fun HistoryGridItem(
-    item: HistoryItem,
+private fun SessionCard(
+    session: HistorySession,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -216,48 +217,69 @@ private fun HistoryGridItem(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick
     ) {
-        Column {
-            RestorationImage(
-                imagePath = item.previewUri,
-                contentDescription = stringResource(Res.string.history_product_photo),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                contentScale = ContentScale.Crop
-            )
+        Column(modifier = Modifier.padding(12.dp)) {
+            // Thumbnail strip
+            if (session.thumbnailUris.isNotEmpty()) {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(session.thumbnailUris) { uri ->
+                        RestorationImage(
+                            imagePath = uri,
+                            contentDescription = stringResource(Res.string.history_product_photo),
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+            }
+
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = item.styleName,
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.Medium
+                        text = session.displayLabel,
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.SemiBold
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = formatRelativeTime(item.createdAt),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Spacer(Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${session.imageCount} photo${if (session.imageCount != 1) "s" else ""}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "  ·  ",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Text(
+                            text = formatRelativeTime(session.createdAt),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
+                Spacer(Modifier.width(8.dp))
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = stringResource(Res.string.history_delete),
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -265,4 +287,3 @@ private fun HistoryGridItem(
         }
     }
 }
-

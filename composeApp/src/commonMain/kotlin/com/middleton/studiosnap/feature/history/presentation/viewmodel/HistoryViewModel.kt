@@ -7,8 +7,6 @@ import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
 import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryNavigationAction
-import com.middleton.studiosnap.core.presentation.util.asDisplayString
-import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.presentation.ui_state.HistoryUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,40 +26,32 @@ class HistoryViewModel(
     val navigationEvent: StateFlow<HistoryNavigationAction?> = _navigationEvent.asStateFlow()
 
     init {
-        observeHistory()
+        observeSessions()
         analyticsService.logEvent(AnalyticsEvents.HISTORY_VIEWED)
     }
 
     fun handleAction(action: HistoryUiAction) {
         when (action) {
-            is HistoryUiAction.OnItemClicked ->
-                _navigationEvent.value = HistoryNavigationAction.GoToResultDetail(action.itemId)
-            is HistoryUiAction.OnDeleteClicked -> deleteItem(action.itemId)
+            is HistoryUiAction.OnSessionClicked ->
+                _navigationEvent.value = HistoryNavigationAction.GoToSessionDetail(action.sessionId)
+            is HistoryUiAction.OnDeleteSessionClicked -> deleteSession(action.sessionId)
             HistoryUiAction.OnBackClicked ->
                 _navigationEvent.value = HistoryNavigationAction.GoBack
             HistoryUiAction.OnNavigationHandled -> _navigationEvent.value = null
         }
     }
 
-    private fun observeHistory() {
+    private fun observeSessions() {
         viewModelScope.launch {
-            historyRepository.getAll().collect { results ->
-                val items = results.map { result ->
-                    HistoryItem(
-                        id = result.generationId,
-                        previewUri = result.previewUri,
-                        styleName = result.styleDisplayName.asDisplayString(),
-                        createdAt = result.createdAt
-                    )
-                }
-                _uiState.update { it.copy(items = items, isLoading = false) }
+            historyRepository.getSessions().collect { sessions ->
+                _uiState.update { it.copy(sessions = sessions, isLoading = false) }
             }
         }
     }
 
-    private fun deleteItem(itemId: String) {
+    private fun deleteSession(sessionId: String) {
         viewModelScope.launch {
-            historyRepository.delete(itemId)
+            historyRepository.deleteSession(sessionId)
         }
     }
 }
