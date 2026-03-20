@@ -139,10 +139,30 @@ class HomeViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `generate does nothing without photos`() {
-        val viewModel = createViewModel()
+    fun `generate shows sign in sheet when not signed in`() {
+        val viewModel = createViewModel(isSignedIn = false)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
         viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
         viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+        assertTrue(viewModel.uiState.value.showSignIn)
+        assertNull(viewModel.navigationEvent.value)
+    }
+
+    @Test
+    fun `generate navigates to credit store when not enough credits`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 0)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+        assertTrue(viewModel.navigationEvent.value is HomeNavigationAction.GoToCreditStore)
+    }
+
+    @Test
+    fun `generate does nothing without photos when signed in`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 5)
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+        // No photos → style is set but no navigation occurs (canAffordGeneration=true, photos empty)
         assertNull(viewModel.navigationEvent.value)
     }
 

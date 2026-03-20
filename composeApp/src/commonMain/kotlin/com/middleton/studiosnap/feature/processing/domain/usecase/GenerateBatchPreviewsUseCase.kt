@@ -27,6 +27,7 @@ open class GenerateBatchPreviewsUseCase(
     ): Flow<BatchProgress> = flow {
         val photoCount = config.photos.size
         creditDeductor.deductCredits(photoCount, DEDUCT_REASON)
+            .getOrElse { throw it }
 
         val results = mutableListOf<GenerationResult>()
         var refundedCredits = 0

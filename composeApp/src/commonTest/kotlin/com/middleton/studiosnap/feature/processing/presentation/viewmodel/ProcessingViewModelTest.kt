@@ -194,6 +194,17 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun `deduction failure shows error state`() {
+        val failingDeductor = FakeCreditDeductor(deductShouldFail = true)
+        val errorReporter = FakeErrorReporter()
+        val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), errorReporter)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor)
+        val vm = createViewModelWithBatchUseCase(batchUseCase = batchUseCase)
+
+        assertIs<ProcessingUiState.Error>(vm.uiState.value)
+    }
+
+    @Test
     fun `retry restarts processing`() {
         var callCount = 0
         val repo = object : FakeGenerationRepository() {
@@ -294,13 +305,16 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         override var refundedCredits: Int = 0
     }
 
-    private class FakeCreditDeductor : CreditDeductor {
+    private class FakeCreditDeductor(
+        private val deductShouldFail: Boolean = false
+    ) : CreditDeductor {
         var deductCalled = 0
         var refundCalled = 0
 
         override suspend fun deductCredits(amount: Int, reason: String): Result<UserCredits> {
             deductCalled += amount
-            return Result.success(UserCredits(100 - amount))
+            return if (deductShouldFail) Result.failure(RuntimeException("Insufficient credits"))
+            else Result.success(UserCredits(100 - amount))
         }
 
         override suspend fun refundCredits(amount: Int, reason: String): Result<UserCredits> {

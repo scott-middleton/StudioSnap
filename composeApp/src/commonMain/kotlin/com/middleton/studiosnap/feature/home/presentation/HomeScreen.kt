@@ -934,10 +934,6 @@ private fun GenerateBottomBar(
     }
 
     // Button is always tappable (signs in, buys credits, or generates) unless loading credits
-    val buttonEnabled = !state.isLoadingCredits && (
-        !state.isSignedIn || state.hasPhotos && state.selectedStyle != null || !state.canAffordGeneration
-    )
-
     val isActionable = !state.isLoadingCredits
     val containerColor = when {
         !state.isSignedIn -> AppColors.PrimaryGreen
