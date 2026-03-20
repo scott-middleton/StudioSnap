@@ -331,7 +331,7 @@ class HomeViewModelTest : BaseViewModelTest() {
     ) : HistoryRepository {
         override fun getAll(): Flow<List<GenerationResult.Success>> = flowOf(items)
         override fun getSessions() = flowOf(emptyList<com.middleton.studiosnap.feature.history.domain.model.HistorySession>())
-        override fun getByBatchId(batchId: String): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
+        override fun getBySessionId(sessionId: String): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
         override suspend fun save(result: GenerationResult.Success) {}
         override suspend fun saveAll(results: List<GenerationResult.Success>) {}
         override suspend fun getById(id: String) = items.find { it.generationId == id }

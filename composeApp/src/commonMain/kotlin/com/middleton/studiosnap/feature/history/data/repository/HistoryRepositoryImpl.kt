@@ -39,8 +39,8 @@ class HistoryRepositoryImpl(
         }
     }
 
-    override fun getByBatchId(batchId: String): Flow<List<GenerationResult.Success>> {
-        return generationDao.getByBatchId(batchId).map { entities ->
+    override fun getBySessionId(sessionId: String): Flow<List<GenerationResult.Success>> {
+        return generationDao.getBySessionId(sessionId).map { entities ->
             entities.map { it.toDomainModel(styleRepository) }
         }
     }

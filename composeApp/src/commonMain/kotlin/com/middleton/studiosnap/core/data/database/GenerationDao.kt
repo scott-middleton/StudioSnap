@@ -54,22 +54,13 @@ interface GenerationDao {
     """)
     fun getSessions(): Flow<List<SessionSummaryEntity>>
 
-    /** Returns up to [limit] preview URIs for a session, for thumbnail strips. */
-    @Query("""
-        SELECT previewUri FROM generations
-        WHERE COALESCE(NULLIF(batchId,''), id) = :sessionId
-        ORDER BY createdAt ASC
-        LIMIT :limit
-    """)
-    suspend fun getPreviewUrisBySessionId(sessionId: String, limit: Int): List<String>
-
     /**
      * Returns all rows belonging to a session, ordered by creation time.
      * Uses the same COALESCE key as getSessions() so legacy rows (batchId='')
      * are correctly matched by their own id.
      */
     @Query("SELECT * FROM generations WHERE COALESCE(NULLIF(batchId,''), id) = :sessionId ORDER BY createdAt ASC")
-    fun getByBatchId(sessionId: String): Flow<List<GenerationEntity>>
+    fun getBySessionId(sessionId: String): Flow<List<GenerationEntity>>
 
     @Query("UPDATE generations SET sessionLabel = :label WHERE COALESCE(NULLIF(batchId,''), id) = :sessionId")
     suspend fun updateSessionLabel(sessionId: String, label: String)

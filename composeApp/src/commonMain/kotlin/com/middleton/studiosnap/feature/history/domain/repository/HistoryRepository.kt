@@ -15,8 +15,8 @@ interface HistoryRepository {
     /** Emits one [HistorySession] per batch, newest first. */
     fun getSessions(): Flow<List<HistorySession>>
 
-    /** All results belonging to a single batch, ordered by creation time. */
-    fun getByBatchId(batchId: String): Flow<List<GenerationResult.Success>>
+    /** All results belonging to a session, ordered by creation time. */
+    fun getBySessionId(sessionId: String): Flow<List<GenerationResult.Success>>
 
     suspend fun save(result: GenerationResult.Success)
 

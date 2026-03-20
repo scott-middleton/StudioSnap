@@ -135,7 +135,7 @@ class HistoryViewModelTest : BaseViewModelTest() {
 
         override fun getAll(): Flow<List<GenerationResult.Success>> = items
         override fun getSessions() = kotlinx.coroutines.flow.flowOf(emptyList<com.middleton.studiosnap.feature.history.domain.model.HistorySession>())
-        override fun getByBatchId(batchId: String): Flow<List<GenerationResult.Success>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getBySessionId(sessionId: String): Flow<List<GenerationResult.Success>> = kotlinx.coroutines.flow.flowOf(emptyList())
         override suspend fun save(result: GenerationResult.Success) {
             items.value = items.value + result
         }

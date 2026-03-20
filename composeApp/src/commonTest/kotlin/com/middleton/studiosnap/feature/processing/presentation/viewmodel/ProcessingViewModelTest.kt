@@ -378,7 +378,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
 
         override fun getAll(): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
         override fun getSessions() = flowOf(emptyList<com.middleton.studiosnap.feature.history.domain.model.HistorySession>())
-        override fun getByBatchId(batchId: String): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
+        override fun getBySessionId(sessionId: String): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
         override suspend fun save(result: GenerationResult.Success) {
             savedResults.add(result)
         }
