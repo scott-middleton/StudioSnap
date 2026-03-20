@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Brush
 import com.middleton.studiosnap.core.presentation.components.GalleryImage
+import com.middleton.studiosnap.core.presentation.components.NativeSignInEffect
 import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.util.asString
@@ -108,6 +109,9 @@ import studiosnap.composeapp.generated.resources.home_export_format
 import studiosnap.composeapp.generated.resources.home_export_original
 import studiosnap.composeapp.generated.resources.home_export_vinted
 import studiosnap.composeapp.generated.resources.home_generate_preview
+import studiosnap.composeapp.generated.resources.home_get_credits
+import studiosnap.composeapp.generated.resources.home_loading_credits
+import studiosnap.composeapp.generated.resources.home_sign_in_to_generate
 import studiosnap.composeapp.generated.resources.home_photos_header
 import studiosnap.composeapp.generated.resources.home_remove_photo
 import studiosnap.composeapp.generated.resources.home_style_choose
@@ -143,6 +147,11 @@ fun HomeScreen(
             viewModel.handleAction(HomeUiAction.OnNavigationHandled)
         }
     }
+
+    NativeSignInEffect(
+        showSignIn = uiState.showSignIn,
+        onResult = { success -> viewModel.handleAction(HomeUiAction.OnSignInResult(success)) }
+    )
 
     HomeScreenContent(
         state = uiState,
@@ -220,12 +229,12 @@ fun HomeScreenContent(
         },
         bottomBar = {
             AnimatedVisibility(
-                visible = state.photos.isNotEmpty(),
+                visible = state.photos.isNotEmpty() || !state.isSignedIn,
                 enter = slideInVertically { it },
                 exit = slideOutVertically { it }
             ) {
                 GenerateBottomBar(
-                    canGenerate = state.canGenerate,
+                    state = state,
                     onGenerate = { onAction(HomeUiAction.OnGenerateClicked) }
                 )
             }
@@ -913,9 +922,29 @@ private fun RecentGenerationCard(
 
 @Composable
 private fun GenerateBottomBar(
-    canGenerate: Boolean,
+    state: HomeUiState,
     onGenerate: () -> Unit
 ) {
+    val buttonLabel = when {
+        !state.isSignedIn -> stringResource(Res.string.home_sign_in_to_generate)
+        state.isLoadingCredits -> stringResource(Res.string.home_loading_credits)
+        !state.canAffordGeneration && state.hasPhotos ->
+            stringResource(Res.string.home_get_credits, state.generationCost)
+        else -> stringResource(Res.string.home_generate_preview, state.generationCost)
+    }
+
+    // Button is always tappable (signs in, buys credits, or generates) unless loading credits
+    val buttonEnabled = !state.isLoadingCredits && (
+        !state.isSignedIn || state.hasPhotos && state.selectedStyle != null || !state.canAffordGeneration
+    )
+
+    val isActionable = !state.isLoadingCredits
+    val containerColor = when {
+        !state.isSignedIn -> AppColors.PrimaryGreen
+        !state.canAffordGeneration && state.hasPhotos -> MaterialTheme.colorScheme.tertiary
+        else -> AppColors.PrimaryGreen
+    }
+
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp
@@ -924,22 +953,22 @@ private fun GenerateBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 16.dp)
-                .padding(bottom = 16.dp) // Safe area
+                .padding(bottom = 16.dp)
         ) {
             Button(
                 onClick = onGenerate,
-                enabled = canGenerate,
+                enabled = isActionable,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.PrimaryGreen,
+                    containerColor = containerColor,
                     contentColor = Color.White,
                     disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
-                elevation = if (canGenerate) {
+                elevation = if (isActionable) {
                     ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                 } else {
                     ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
@@ -952,7 +981,7 @@ private fun GenerateBottomBar(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = stringResource(Res.string.home_generate_preview),
+                    text = buttonLabel,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = (-0.2).sp

@@ -180,7 +180,8 @@ class ResultsViewModelTest : BaseViewModelTest() {
     // --- Fakes ---
 
     private class FakeGenerationResultsHolder(
-        override var currentResults: List<GenerationResult>? = null
+        override var currentResults: List<GenerationResult>? = null,
+        override var refundedCredits: Int = 0
     ) : GenerationResultsHolder
 
     private class FakeGalleryRepository(

@@ -5,4 +5,5 @@ import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationResu
 
 class GenerationResultsHolderImpl : GenerationResultsHolder {
     override var currentResults: List<GenerationResult>? = null
+    override var refundedCredits: Int = 0
 }

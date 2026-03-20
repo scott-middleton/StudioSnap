@@ -100,6 +100,7 @@ class ProcessingViewModel(
                 }.collect { batchProgress ->
                     if (batchProgress.isComplete) {
                         generationResultsHolder.currentResults = batchProgress.results
+                        generationResultsHolder.refundedCredits = batchProgress.refundedCredits
                         analyticsService.logEvent(
                             AnalyticsEvents.BATCH_GENERATION_COMPLETED,
                             mapOf(

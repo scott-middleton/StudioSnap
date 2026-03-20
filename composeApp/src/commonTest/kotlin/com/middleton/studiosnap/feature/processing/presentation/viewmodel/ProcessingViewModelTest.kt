@@ -3,7 +3,9 @@ package com.middleton.studiosnap.feature.processing.presentation.viewmodel
 import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
+import com.middleton.studiosnap.core.domain.service.CreditDeductor
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
+import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.FakeAnalyticsService
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
@@ -153,6 +155,45 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun `credits deducted upfront equal photo count`() {
+        val creditDeductor = FakeCreditDeductor()
+        val errorReporter = FakeErrorReporter()
+        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
+        val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), errorReporter)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor)
+        ProcessingViewModel(
+            generationConfigHolder = FakeGenerationConfigHolder(twoPhotoConfig),
+            generationResultsHolder = FakeGenerationResultsHolder(),
+            generateBatchPreviewsUseCase = batchUseCase,
+            analyticsService = FakeAnalyticsService(),
+            completionDelayMs = 0L
+        )
+
+        assertEquals(2, creditDeductor.deductCalled)
+    }
+
+    @Test
+    fun `failed photos trigger credit refund`() {
+        val creditDeductor = FakeCreditDeductor()
+        val errorReporter = FakeErrorReporter()
+        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
+        val repo = FakeGenerationRepository(failOnIndex = 1)
+        val generatePreview = GeneratePreviewUseCase(repo, FakeHistoryRepository(), errorReporter)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor)
+        val resultsHolder = FakeGenerationResultsHolder()
+        ProcessingViewModel(
+            generationConfigHolder = FakeGenerationConfigHolder(twoPhotoConfig),
+            generationResultsHolder = resultsHolder,
+            generateBatchPreviewsUseCase = batchUseCase,
+            analyticsService = FakeAnalyticsService(),
+            completionDelayMs = 0L
+        )
+
+        assertEquals(1, creditDeductor.refundCalled)
+        assertEquals(1, resultsHolder.refundedCredits)
+    }
+
+    @Test
     fun `retry restarts processing`() {
         var callCount = 0
         val repo = object : FakeGenerationRepository() {
@@ -213,7 +254,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val configHolder = FakeGenerationConfigHolder(config)
         val errorReporter = FakeErrorReporter()
         val generatePreview = GeneratePreviewUseCase(generationRepo, historyRepo, errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, FakeCreditDeductor())
 
         return ProcessingViewModel(
             generationConfigHolder = configHolder,
@@ -228,7 +269,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         config: GenerationConfig? = testConfig,
         resultsHolder: GenerationResultsHolder = FakeGenerationResultsHolder(),
         batchUseCase: GenerateBatchPreviewsUseCase = GenerateBatchPreviewsUseCase(
-            GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter())
+            GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter()),
+            FakeCreditDeductor()
         ),
         analyticsService: AnalyticsService = FakeAnalyticsService()
     ): ProcessingViewModel {
@@ -249,6 +291,22 @@ class ProcessingViewModelTest : BaseViewModelTest() {
 
     private class FakeGenerationResultsHolder : GenerationResultsHolder {
         override var currentResults: List<GenerationResult>? = null
+        override var refundedCredits: Int = 0
+    }
+
+    private class FakeCreditDeductor : CreditDeductor {
+        var deductCalled = 0
+        var refundCalled = 0
+
+        override suspend fun deductCredits(amount: Int, reason: String): Result<UserCredits> {
+            deductCalled += amount
+            return Result.success(UserCredits(100 - amount))
+        }
+
+        override suspend fun refundCredits(amount: Int, reason: String): Result<UserCredits> {
+            refundCalled += amount
+            return Result.success(UserCredits(100))
+        }
     }
 
     private open class FakeGenerationRepository(
@@ -330,7 +388,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     ) : GenerateBatchPreviewsUseCase(
         GeneratePreviewUseCase(
             FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter()
-        )
+        ),
+        FakeCreditDeductor()
     ) {
         override fun invoke(
             config: GenerationConfig,

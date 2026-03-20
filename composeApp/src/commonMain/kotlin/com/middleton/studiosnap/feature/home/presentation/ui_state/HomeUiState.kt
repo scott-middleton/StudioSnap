@@ -14,11 +14,17 @@ data class HomeUiState(
     val exportFormat: ExportFormat = ExportFormat.DEFAULT,
     val creditBalance: Int = 0,
     val isSignedIn: Boolean = false,
+    val isLoadingCredits: Boolean = true,
+    val showSignIn: Boolean = false,
     val recentGenerations: List<HistoryItem> = emptyList(),
     val error: HomeError? = null
 ) {
+    val generationCost: Int get() = photos.size
+
+    val canAffordGeneration: Boolean get() = creditBalance >= generationCost
+
     val canGenerate: Boolean
-        get() = photos.isNotEmpty() && selectedStyle != null
+        get() = photos.isNotEmpty() && selectedStyle != null && isSignedIn && canAffordGeneration
 
     val hasPhotos: Boolean
         get() = photos.isNotEmpty()

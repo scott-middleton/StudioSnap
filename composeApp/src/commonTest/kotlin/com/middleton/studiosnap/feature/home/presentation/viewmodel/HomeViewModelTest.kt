@@ -121,8 +121,8 @@ class HomeViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `canGenerate is true with photos and style`() {
-        val viewModel = createViewModel()
+    fun `canGenerate is true with photos and style when signed in with credits`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 5)
         viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
         viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
         assertTrue(viewModel.uiState.value.canGenerate)
@@ -130,7 +130,7 @@ class HomeViewModelTest : BaseViewModelTest() {
 
     @Test
     fun `generate navigates to processing when valid`() {
-        val viewModel = createViewModel()
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 5)
         viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
         viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
         viewModel.handleAction(HomeUiAction.OnGenerateClicked)
@@ -196,8 +196,8 @@ class HomeViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `credit balance loaded from credit queries`() {
-        val viewModel = createViewModel(creditBalance = 42)
+    fun `credit balance loaded from credit queries when signed in`() {
+        val viewModel = createViewModel(creditBalance = 42, isSignedIn = true)
         assertEquals(42, viewModel.uiState.value.creditBalance)
     }
 

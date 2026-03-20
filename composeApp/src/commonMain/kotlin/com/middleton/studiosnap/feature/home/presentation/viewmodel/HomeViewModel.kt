@@ -22,6 +22,7 @@ import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -42,8 +43,7 @@ class HomeViewModel(
     val navigationEvent: StateFlow<HomeNavigationAction?> = _navigationEvent.asStateFlow()
 
     init {
-        loadInitialState()
-        observeCredits()
+        observeAuthAndCredits()
         observeRecentGenerations()
     }
 
@@ -63,7 +63,8 @@ class HomeViewModel(
             is HomeUiAction.OnStylePickerClicked -> navigateTo(
                 HomeNavigationAction.GoToStylePicker(_uiState.value.selectedStyle?.id)
             )
-            is HomeUiAction.OnGenerateClicked -> onGenerate()
+            is HomeUiAction.OnGenerateClicked -> onGenerateClicked()
+            is HomeUiAction.OnSignInResult -> onSignInResult(action.success)
             is HomeUiAction.OnSettingsClicked -> navigateTo(HomeNavigationAction.GoToSettings)
             is HomeUiAction.OnHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
             is HomeUiAction.OnViewAllHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
@@ -75,18 +76,18 @@ class HomeViewModel(
         }
     }
 
-    private fun loadInitialState() {
+    private fun observeAuthAndCredits() {
+        // Observe auth state reactively — updates whenever user signs in/out
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(isSignedIn = authService.isSignedIn.value)
-            }
-        }
-    }
-
-    private fun observeCredits() {
-        viewModelScope.launch {
-            creditQueries.observeCredits().collect { credits ->
-                _uiState.update { it.copy(creditBalance = credits.amount) }
+            authService.isSignedIn.collectLatest { signedIn ->
+                _uiState.update { it.copy(isSignedIn = signedIn, isLoadingCredits = signedIn) }
+                if (signedIn) {
+                    creditQueries.observeCredits().collect { credits ->
+                        _uiState.update { it.copy(creditBalance = credits.amount, isLoadingCredits = false) }
+                    }
+                } else {
+                    _uiState.update { it.copy(creditBalance = 0, isLoadingCredits = false) }
+                }
             }
         }
     }
@@ -169,10 +170,22 @@ class HomeViewModel(
         )
     }
 
-    private fun onGenerate() {
+    private fun onGenerateClicked() {
         val state = _uiState.value
-        val style = state.selectedStyle ?: return
 
+        // Not signed in — show native sign-in sheet
+        if (!state.isSignedIn) {
+            _uiState.update { it.copy(showSignIn = true) }
+            return
+        }
+
+        // Not enough credits — go to credit store
+        if (!state.canAffordGeneration) {
+            navigateTo(HomeNavigationAction.GoToCreditStore)
+            return
+        }
+
+        val style = state.selectedStyle ?: return
         if (state.photos.isEmpty()) return
 
         val config = GenerationConfig(
@@ -197,6 +210,11 @@ class HomeViewModel(
         )
 
         _navigationEvent.value = HomeNavigationAction.GoToProcessing
+    }
+
+    private fun onSignInResult(success: Boolean) {
+        _uiState.update { it.copy(showSignIn = false) }
+        // Auth state observer will pick up the sign-in automatically
     }
 
     private fun navigateTo(action: HomeNavigationAction) {

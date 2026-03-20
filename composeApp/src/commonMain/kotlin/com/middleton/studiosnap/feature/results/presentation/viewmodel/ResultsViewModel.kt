@@ -13,6 +13,7 @@ import com.middleton.studiosnap.feature.results.domain.usecase.SaveToGalleryUseC
 import com.middleton.studiosnap.feature.results.presentation.action.ResultsUiAction
 import com.middleton.studiosnap.feature.results.presentation.navigation.ResultsNavigationAction
 import studiosnap.composeapp.generated.resources.Res
+import studiosnap.composeapp.generated.resources.home_credits_refunded
 import studiosnap.composeapp.generated.resources.results_save_failed
 import com.middleton.studiosnap.feature.results.presentation.ui_state.ResultItem
 import com.middleton.studiosnap.feature.results.presentation.ui_state.ResultsUiState
@@ -52,8 +53,23 @@ class ResultsViewModel(
 
     private fun loadResults() {
         val results = generationResultsHolder.currentResults ?: return
+        val refunded = generationResultsHolder.refundedCredits
+        val totalCount = results.size
         _uiState.update {
-            it.copy(results = results.map { result -> ResultItem(result = result) })
+            it.copy(
+                results = results.map { result -> ResultItem(result = result) },
+                creditsRefunded = refunded
+            )
+        }
+        if (refunded > 0) {
+            _uiState.update {
+                it.copy(
+                    snackbarMessage = UiText.StringResource(
+                        Res.string.home_credits_refunded,
+                        arrayOf(refunded, totalCount)
+                    )
+                )
+            }
         }
     }
 

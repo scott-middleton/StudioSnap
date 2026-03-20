@@ -55,7 +55,11 @@
     <string name="home_export_ebay">eBay Landscape</string>
     <string name="home_export_vinted">Vinted Portrait</string>
     <string name="home_export_original">Original</string>
-    <string name="home_generate_preview">Generate</string>
+    <string name="home_generate_preview">Generate (%1$d credits)</string>
+    <string name="home_sign_in_to_generate">Sign In to Generate</string>
+    <string name="home_get_credits">Get Credits (%1$d needed)</string>
+    <string name="home_loading_credits">Loading…</string>
+    <string name="home_credits_refunded">%1$d of %2$d images failed — %1$d credits refunded</string>
     <string name="home_before_label">Before</string>
     <string name="home_after_label">After</string>
     <string name="home_select_style_first">Select a style first</string>

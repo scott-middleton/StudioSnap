@@ -11,7 +11,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun UiText.asString(): String = when (this) {
     is UiText.DynamicString -> value
-    is UiText.StringResource -> stringResource(resId)
+    is UiText.StringResource -> if (args.isEmpty()) stringResource(resId) else stringResource(resId, *args)
 }
 
 /**

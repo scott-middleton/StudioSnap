@@ -6,7 +6,8 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 data class ResultsUiState(
     val results: List<ResultItem> = emptyList(),
     val isAutoSaving: Boolean = false,
-    val snackbarMessage: UiText? = null
+    val snackbarMessage: UiText? = null,
+    val creditsRefunded: Int = 0
 )
 
 data class ResultItem(
