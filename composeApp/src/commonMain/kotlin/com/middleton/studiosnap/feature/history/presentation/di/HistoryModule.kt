@@ -6,7 +6,7 @@ import com.middleton.studiosnap.feature.history.data.repository.HistoryRepositor
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.history.presentation.navigation.HistoryNavigationAction
 import com.middleton.studiosnap.feature.history.presentation.viewmodel.HistoryViewModel
-import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val historyModule = module {
@@ -22,5 +22,5 @@ val historyModule = module {
         SharedNavigationStrategy(get())
     }
 
-    viewModelOf(::HistoryViewModel)
+    viewModel { HistoryViewModel(get(), get()) }
 }

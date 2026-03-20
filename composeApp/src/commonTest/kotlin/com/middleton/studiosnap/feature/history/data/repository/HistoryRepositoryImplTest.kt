@@ -3,6 +3,7 @@ package com.middleton.studiosnap.feature.history.data.repository
 import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.data.database.GenerationDao
 import com.middleton.studiosnap.core.data.database.GenerationEntity
+import com.middleton.studiosnap.core.data.database.SessionSummaryEntity
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
@@ -116,12 +117,70 @@ class HistoryRepositoryImplTest {
 
     // endregion
 
+    // region session queries
+
+    @Test
+    fun `getSessions groups results by batchId`() = runTest {
+        sut.save(testResult("gen-1", batchId = "batch-A"))
+        sut.save(testResult("gen-2", batchId = "batch-A"))
+        sut.save(testResult("gen-3", batchId = "batch-B"))
+
+        val sessions = sut.getSessions().first()
+        assertEquals(2, sessions.size)
+    }
+
+    @Test
+    fun `getSessions treats legacy empty batchId rows as individual sessions`() = runTest {
+        sut.save(testResult("gen-1", batchId = ""))
+        sut.save(testResult("gen-2", batchId = ""))
+
+        val sessions = sut.getSessions().first()
+        assertEquals(2, sessions.size)
+    }
+
+    @Test
+    fun `getByBatchId returns only results for that batch`() = runTest {
+        sut.save(testResult("gen-1", batchId = "batch-A"))
+        sut.save(testResult("gen-2", batchId = "batch-A"))
+        sut.save(testResult("gen-3", batchId = "batch-B"))
+
+        val results = sut.getByBatchId("batch-A").first()
+        assertEquals(2, results.size)
+        assertTrue(results.all { it.batchId == "batch-A" })
+    }
+
+    @Test
+    fun `updateSessionLabel persists label for the session`() = runTest {
+        sut.save(testResult("gen-1", batchId = "batch-A"))
+        sut.updateSessionLabel("batch-A", "My Product Shoot")
+
+        val entity = fakeDao.getById("gen-1")
+        assertNotNull(entity)
+        assertEquals("My Product Shoot", entity.sessionLabel)
+    }
+
+    @Test
+    fun `deleteSession removes all rows for that batch`() = runTest {
+        sut.save(testResult("gen-1", batchId = "batch-A"))
+        sut.save(testResult("gen-2", batchId = "batch-A"))
+        sut.save(testResult("gen-3", batchId = "batch-B"))
+
+        sut.deleteSession("batch-A")
+
+        assertNull(sut.getById("gen-1"))
+        assertNull(sut.getById("gen-2"))
+        assertNotNull(sut.getById("gen-3"))
+    }
+
+    // endregion
+
     // region helpers
 
     private fun testResult(
         id: String,
         styleId: String = "clean_white",
-        fullResUri: String? = null
+        fullResUri: String? = null,
+        batchId: String = "batch-default"
     ) = GenerationResult.Success(
         generationId = id,
         inputPhoto = ProductPhoto(id = "photo-1", localUri = "/path/to/photo.jpg"),
@@ -137,7 +196,8 @@ class HistoryRepositoryImplTest {
         ),
         createdAt = 1000L,
         imageWidth = 1024,
-        imageHeight = 1024
+        imageHeight = 1024,
+        batchId = batchId
     )
 
     // endregion
@@ -175,6 +235,45 @@ private class FakeGenerationDao : GenerationDao {
 
     override suspend fun getPurchasedCount(): Int =
         entities.value.count { it.isPurchased }
+
+    override fun getSessions(): Flow<List<SessionSummaryEntity>> =
+        entities.map { list ->
+            list.groupBy { if (it.batchId.isEmpty()) it.id else it.batchId }
+                .map { (sessionId, rows) ->
+                    SessionSummaryEntity(
+                        sessionId = sessionId,
+                        imageCount = rows.size,
+                        sessionLabel = rows.first().sessionLabel,
+                        styleName = rows.first().styleName,
+                        latestCreatedAt = rows.maxOf { it.createdAt }
+                    )
+                }
+                .sortedByDescending { it.latestCreatedAt }
+        }
+
+    override suspend fun getPreviewUrisBySessionId(sessionId: String, limit: Int): List<String> =
+        entities.value
+            .filter { (if (it.batchId.isEmpty()) it.id else it.batchId) == sessionId }
+            .sortedBy { it.createdAt }
+            .take(limit)
+            .map { it.previewUri }
+
+    override fun getByBatchId(batchId: String): Flow<List<GenerationEntity>> =
+        entities.map { list -> list.filter { it.batchId == batchId }.sortedBy { it.createdAt } }
+
+    override suspend fun updateSessionLabel(sessionId: String, label: String) {
+        entities.value = entities.value.map { entity ->
+            val entitySessionId = if (entity.batchId.isEmpty()) entity.id else entity.batchId
+            if (entitySessionId == sessionId) entity.copy(sessionLabel = label) else entity
+        }
+    }
+
+    override suspend fun deleteSession(sessionId: String) {
+        entities.value = entities.value.filter { entity ->
+            val entitySessionId = if (entity.batchId.isEmpty()) entity.id else entity.batchId
+            entitySessionId != sessionId
+        }
+    }
 }
 
 private class FakeStyleRepository : StyleRepository {

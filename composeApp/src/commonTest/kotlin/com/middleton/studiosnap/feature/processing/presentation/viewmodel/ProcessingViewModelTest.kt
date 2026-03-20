@@ -55,7 +55,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         shadow = false,
         reflection = false,
         exportFormat = ExportFormat.DEFAULT,
-        quality = GenerationQuality.STANDARD
+        quality = GenerationQuality.STANDARD,
+        batchId = "test-batch-id"
     )
 
     @Test
@@ -376,6 +377,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val savedResults = mutableListOf<GenerationResult.Success>()
 
         override fun getAll(): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
+        override fun getSessions() = flowOf(emptyList<com.middleton.studiosnap.feature.history.domain.model.HistorySession>())
+        override fun getByBatchId(batchId: String): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
         override suspend fun save(result: GenerationResult.Success) {
             savedResults.add(result)
         }
@@ -387,6 +390,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
             savedResults.removeAll { it.generationId == id }
         }
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
+        override suspend fun updateSessionLabel(sessionId: String, label: String) {}
+        override suspend fun deleteSession(sessionId: String) {}
     }
 
     private class FakeErrorReporter : ErrorReporter {

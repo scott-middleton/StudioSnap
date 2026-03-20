@@ -33,7 +33,8 @@ fun GenerationEntity.toDomainModel(styleRepository: StyleRepository): Generation
         style = style,
         createdAt = createdAt,
         imageWidth = imageWidth,
-        imageHeight = imageHeight
+        imageHeight = imageHeight,
+        batchId = batchId
     )
 }
 
@@ -51,7 +52,12 @@ fun GenerationResult.Success.toEntity(): GenerationEntity {
         id = generationId,
         inputPhotoUri = inputPhoto.localUri,
         styleId = style.id,
-        styleName = style.id,
+        styleName = style.displayName.let {
+            when (it) {
+                is com.middleton.studiosnap.core.domain.model.UiText.DynamicString -> it.value
+                is com.middleton.studiosnap.core.domain.model.UiText.StringResource -> style.id
+            }
+        },
         previewUri = previewUri,
         fullResUrl = fullResUrl,
         fullResLocalUri = fullResUri,
@@ -61,6 +67,7 @@ fun GenerationResult.Success.toEntity(): GenerationEntity {
         exportFormat = "jpg", // TODO: Thread from GenerationConfig if needed for re-export
         createdAt = createdAt,
         imageWidth = imageWidth,
-        imageHeight = imageHeight
+        imageHeight = imageHeight,
+        batchId = batchId
     )
 }

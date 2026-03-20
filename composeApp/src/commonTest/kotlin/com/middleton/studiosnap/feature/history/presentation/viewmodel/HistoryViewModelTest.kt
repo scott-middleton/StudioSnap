@@ -134,6 +134,8 @@ class HistoryViewModelTest : BaseViewModelTest() {
         val items = MutableStateFlow<List<GenerationResult.Success>>(emptyList())
 
         override fun getAll(): Flow<List<GenerationResult.Success>> = items
+        override fun getSessions() = kotlinx.coroutines.flow.flowOf(emptyList<com.middleton.studiosnap.feature.history.domain.model.HistorySession>())
+        override fun getByBatchId(batchId: String): Flow<List<GenerationResult.Success>> = kotlinx.coroutines.flow.flowOf(emptyList())
         override suspend fun save(result: GenerationResult.Success) {
             items.value = items.value + result
         }
@@ -145,5 +147,7 @@ class HistoryViewModelTest : BaseViewModelTest() {
             items.value = items.value.filter { it.generationId != id }
         }
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
+        override suspend fun updateSessionLabel(sessionId: String, label: String) {}
+        override suspend fun deleteSession(sessionId: String) {}
     }
 }

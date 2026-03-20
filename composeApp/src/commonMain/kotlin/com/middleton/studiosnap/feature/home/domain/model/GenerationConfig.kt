@@ -10,5 +10,6 @@ data class GenerationConfig(
     val shadow: Boolean,
     val reflection: Boolean,
     val exportFormat: ExportFormat,
-    val quality: GenerationQuality
+    val quality: GenerationQuality,
+    val batchId: String
 )

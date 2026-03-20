@@ -93,6 +93,8 @@ class DownloadFullResUseCaseTest {
         val purchasedIds = mutableListOf<String>()
 
         override fun getAll(): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
+        override fun getSessions() = flowOf(emptyList<com.middleton.studiosnap.feature.history.domain.model.HistorySession>())
+        override fun getByBatchId(batchId: String): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
         override suspend fun save(result: GenerationResult.Success) {}
         override suspend fun saveAll(results: List<GenerationResult.Success>) {}
         override suspend fun getById(id: String): GenerationResult.Success? = null
@@ -100,6 +102,8 @@ class DownloadFullResUseCaseTest {
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {
             purchasedIds.add(id)
         }
+        override suspend fun updateSessionLabel(sessionId: String, label: String) {}
+        override suspend fun deleteSession(sessionId: String) {}
     }
 
     private class FakeCreditDeductor(private val shouldSucceed: Boolean) : CreditDeductor {

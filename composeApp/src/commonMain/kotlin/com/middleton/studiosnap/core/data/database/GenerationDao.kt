@@ -29,4 +29,40 @@ interface GenerationDao {
 
     @Query("SELECT COUNT(*) FROM generations WHERE isPurchased = 1")
     suspend fun getPurchasedCount(): Int
+
+    /**
+     * Returns one row per session, ordered newest first.
+     * COALESCE(NULLIF(batchId,''), id) groups legacy rows (batchId='') by their own id,
+     * so each pre-v3 row appears as its own single-image session.
+     */
+    @Query("""
+        SELECT COALESCE(NULLIF(batchId,''), id) AS sessionId,
+               COUNT(*) AS imageCount,
+               sessionLabel,
+               styleName,
+               MAX(createdAt) AS latestCreatedAt
+        FROM generations
+        GROUP BY sessionId
+        ORDER BY latestCreatedAt DESC
+    """)
+    fun getSessions(): Flow<List<SessionSummaryEntity>>
+
+    /** Returns up to [limit] preview URIs for a session, for thumbnail strips. */
+    @Query("""
+        SELECT previewUri FROM generations
+        WHERE COALESCE(NULLIF(batchId,''), id) = :sessionId
+        ORDER BY createdAt ASC
+        LIMIT :limit
+    """)
+    suspend fun getPreviewUrisBySessionId(sessionId: String, limit: Int): List<String>
+
+    /** Returns all rows belonging to a batch, ordered by creation time. */
+    @Query("SELECT * FROM generations WHERE batchId = :batchId ORDER BY createdAt ASC")
+    fun getByBatchId(batchId: String): Flow<List<GenerationEntity>>
+
+    @Query("UPDATE generations SET sessionLabel = :label WHERE COALESCE(NULLIF(batchId,''), id) = :sessionId")
+    suspend fun updateSessionLabel(sessionId: String, label: String)
+
+    @Query("DELETE FROM generations WHERE COALESCE(NULLIF(batchId,''), id) = :sessionId")
+    suspend fun deleteSession(sessionId: String)
 }

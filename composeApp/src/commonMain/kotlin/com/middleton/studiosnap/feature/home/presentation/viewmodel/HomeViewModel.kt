@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import kotlinx.datetime.Clock
 
 class HomeViewModel(
@@ -188,13 +190,15 @@ class HomeViewModel(
         val style = state.selectedStyle ?: return
         if (state.photos.isEmpty()) return
 
+        @OptIn(ExperimentalUuidApi::class)
         val config = GenerationConfig(
             photos = state.photos,
             style = style,
             shadow = state.shadow,
             reflection = state.reflection,
             exportFormat = state.exportFormat,
-            quality = GenerationQuality.DEFAULT
+            quality = GenerationQuality.DEFAULT,
+            batchId = Uuid.random().toString()
         )
 
         generationConfigHolder.currentConfig = config
