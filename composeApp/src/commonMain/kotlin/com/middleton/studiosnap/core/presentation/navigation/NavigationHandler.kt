@@ -6,10 +6,23 @@ interface NavigationHandler {
     fun handleNavigation(command: NavigationCommand)
 }
 
-class NavControllerNavigationHandler(
-    private val navController: NavHostController
-) : NavigationHandler {
+/**
+ * NavigationHandler backed by a NavHostController.
+ * The controller is injected lazily via [setNavController] rather than
+ * via constructor so that this singleton can be registered in Koin at
+ * Application start (before the Compose NavHost is created).
+ *
+ * Both setNavController and handleNavigation are called on the main thread.
+ */
+class NavControllerNavigationHandler : NavigationHandler {
+    private var navController: NavHostController? = null
+
+    fun setNavController(controller: NavHostController) {
+        navController = controller
+    }
+
     override fun handleNavigation(command: NavigationCommand) {
+        val navController = navController ?: return
         when (command) {
             is NavigationCommand.Navigate -> {
                 navController.navigate(command.destination) {

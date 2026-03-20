@@ -13,6 +13,10 @@ fun MainViewController() = ComposeUIViewController(
         enableBackGesture = false
     }
 ) {
+    // Initialize Koin before any composables run.
+    // Safe to call multiple times — skips if already started.
+    initKoin()
+
     // Initialize RevenueCat SDK
     PurchasesManager.configure()
 
