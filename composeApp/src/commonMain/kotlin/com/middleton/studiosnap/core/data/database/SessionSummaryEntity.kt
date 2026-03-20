@@ -14,5 +14,7 @@ data class SessionSummaryEntity(
     @ColumnInfo(name = "imageCount") val imageCount: Int,
     @ColumnInfo(name = "sessionLabel") val sessionLabel: String?,
     @ColumnInfo(name = "styleName") val styleName: String,
-    @ColumnInfo(name = "latestCreatedAt") val latestCreatedAt: Long
+    @ColumnInfo(name = "latestCreatedAt") val latestCreatedAt: Long,
+    /** Comma-separated preview URIs (up to 4, oldest first). Null if none. */
+    @ColumnInfo(name = "thumbnailUris") val thumbnailUris: String?
 )

@@ -139,6 +139,27 @@ class HistoryRepositoryImplTest {
     }
 
     @Test
+    fun `getSessions orders sessions newest first`() = runTest {
+        sut.save(testResult("gen-1", batchId = "batch-A", createdAt = 1000L))
+        sut.save(testResult("gen-2", batchId = "batch-B", createdAt = 2000L))
+
+        val sessions = sut.getSessions().first()
+        assertEquals("batch-B", sessions[0].batchId)
+        assertEquals("batch-A", sessions[1].batchId)
+    }
+
+    @Test
+    fun `getSessions includes thumbnail URIs for each session`() = runTest {
+        sut.save(testResult("gen-1", batchId = "batch-A", previewUri = "preview_1.jpg", createdAt = 1000L))
+        sut.save(testResult("gen-2", batchId = "batch-A", previewUri = "preview_2.jpg", createdAt = 2000L))
+
+        val session = sut.getSessions().first().first()
+        assertEquals(2, session.thumbnailUris.size)
+        assertEquals("preview_1.jpg", session.thumbnailUris[0])
+        assertEquals("preview_2.jpg", session.thumbnailUris[1])
+    }
+
+    @Test
     fun `getByBatchId returns only results for that batch`() = runTest {
         sut.save(testResult("gen-1", batchId = "batch-A"))
         sut.save(testResult("gen-2", batchId = "batch-A"))
@@ -147,6 +168,16 @@ class HistoryRepositoryImplTest {
         val results = sut.getByBatchId("batch-A").first()
         assertEquals(2, results.size)
         assertTrue(results.all { it.batchId == "batch-A" })
+    }
+
+    @Test
+    fun `getByBatchId works for legacy rows using row id as session key`() = runTest {
+        sut.save(testResult("gen-legacy", batchId = ""))
+
+        // For legacy rows, HistorySession.batchId == the row's own id
+        val results = sut.getByBatchId("gen-legacy").first()
+        assertEquals(1, results.size)
+        assertEquals("gen-legacy", results.first().generationId)
     }
 
     @Test
@@ -180,11 +211,13 @@ class HistoryRepositoryImplTest {
         id: String,
         styleId: String = "clean_white",
         fullResUri: String? = null,
-        batchId: String = "batch-default"
+        batchId: String = "batch-default",
+        previewUri: String = "/path/to/preview.jpg",
+        createdAt: Long = 1000L
     ) = GenerationResult.Success(
         generationId = id,
         inputPhoto = ProductPhoto(id = "photo-1", localUri = "/path/to/photo.jpg"),
-        previewUri = "/path/to/preview.jpg",
+        previewUri = previewUri,
         fullResUrl = "https://replicate.com/output.jpg",
         fullResUri = fullResUri,
         style = fakeStyleRepository.getStyleById(styleId) ?: Style(
@@ -194,7 +227,7 @@ class HistoryRepositoryImplTest {
             thumbnail = null,
             kontextPrompt = ""
         ),
-        createdAt = 1000L,
+        createdAt = createdAt,
         imageWidth = 1024,
         imageHeight = 1024,
         batchId = batchId
@@ -240,12 +273,14 @@ private class FakeGenerationDao : GenerationDao {
         entities.map { list ->
             list.groupBy { if (it.batchId.isEmpty()) it.id else it.batchId }
                 .map { (sessionId, rows) ->
+                    val thumbnails = rows.sortedBy { it.createdAt }.take(4).map { it.previewUri }
                     SessionSummaryEntity(
                         sessionId = sessionId,
                         imageCount = rows.size,
                         sessionLabel = rows.first().sessionLabel,
                         styleName = rows.first().styleName,
-                        latestCreatedAt = rows.maxOf { it.createdAt }
+                        latestCreatedAt = rows.maxOf { it.createdAt },
+                        thumbnailUris = thumbnails.joinToString(",").ifEmpty { null }
                     )
                 }
                 .sortedByDescending { it.latestCreatedAt }
@@ -258,8 +293,11 @@ private class FakeGenerationDao : GenerationDao {
             .take(limit)
             .map { it.previewUri }
 
-    override fun getByBatchId(batchId: String): Flow<List<GenerationEntity>> =
-        entities.map { list -> list.filter { it.batchId == batchId }.sortedBy { it.createdAt } }
+    override fun getByBatchId(sessionId: String): Flow<List<GenerationEntity>> =
+        entities.map { list ->
+            list.filter { (if (it.batchId.isEmpty()) it.id else it.batchId) == sessionId }
+                .sortedBy { it.createdAt }
+        }
 
     override suspend fun updateSessionLabel(sessionId: String, label: String) {
         entities.value = entities.value.map { entity ->

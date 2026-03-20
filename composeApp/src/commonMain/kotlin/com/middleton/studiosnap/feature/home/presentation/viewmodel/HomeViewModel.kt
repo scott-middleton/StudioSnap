@@ -172,6 +172,7 @@ class HomeViewModel(
         )
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     private fun onGenerateClicked() {
         val state = _uiState.value
 
@@ -190,7 +191,6 @@ class HomeViewModel(
         val style = state.selectedStyle ?: return
         if (state.photos.isEmpty()) return
 
-        @OptIn(ExperimentalUuidApi::class)
         val config = GenerationConfig(
             photos = state.photos,
             style = style,

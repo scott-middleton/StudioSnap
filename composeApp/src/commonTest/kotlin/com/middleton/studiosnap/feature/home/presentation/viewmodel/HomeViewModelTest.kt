@@ -60,13 +60,14 @@ class HomeViewModelTest : BaseViewModelTest() {
         styles: List<Style> = testStyles,
         creditBalance: Int = 10,
         isSignedIn: Boolean = false,
-        historyItems: List<GenerationResult.Success> = emptyList()
+        historyItems: List<GenerationResult.Success> = emptyList(),
+        configHolder: GenerationConfigHolder = GenerationConfigHolderImpl()
     ): HomeViewModel {
         return HomeViewModel(
             styleRepository = FakeStyleRepository(styles),
             creditQueries = FakeCreditQueries(creditBalance),
             authService = FakeAuthService(isSignedIn),
-            generationConfigHolder = GenerationConfigHolderImpl(),
+            generationConfigHolder = configHolder,
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(historyItems)
         )
@@ -136,6 +137,18 @@ class HomeViewModelTest : BaseViewModelTest() {
         viewModel.handleAction(HomeUiAction.OnGenerateClicked)
         val nav = viewModel.navigationEvent.value
         assertTrue(nav is HomeNavigationAction.GoToProcessing)
+    }
+
+    @Test
+    fun `generate sets a non-empty batchId on the config`() {
+        val holder = GenerationConfigHolderImpl()
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 5, configHolder = holder)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+        val config = holder.currentConfig
+        assertNotNull(config)
+        assertTrue(config!!.batchId.isNotEmpty())
     }
 
     @Test

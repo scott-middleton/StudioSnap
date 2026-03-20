@@ -24,10 +24,12 @@ class HistoryRepositoryImpl(
     override fun getSessions(): Flow<List<HistorySession>> {
         return generationDao.getSessions().map { summaries ->
             summaries.map { summary ->
-                val thumbnails = generationDao.getPreviewUrisBySessionId(summary.sessionId, limit = 4)
                 HistorySession(
                     batchId = summary.sessionId,
-                    thumbnailUris = thumbnails,
+                    thumbnailUris = summary.thumbnailUris
+                        ?.split(",")
+                        ?.filter { it.isNotEmpty() }
+                        ?: emptyList(),
                     imageCount = summary.imageCount,
                     sessionLabel = summary.sessionLabel,
                     styleName = summary.styleName,

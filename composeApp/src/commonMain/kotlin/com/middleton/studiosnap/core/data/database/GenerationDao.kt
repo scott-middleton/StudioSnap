@@ -34,13 +34,20 @@ interface GenerationDao {
      * Returns one row per session, ordered newest first.
      * COALESCE(NULLIF(batchId,''), id) groups legacy rows (batchId='') by their own id,
      * so each pre-v3 row appears as its own single-image session.
+     *
+     * thumbnailUris is a comma-separated list of up to 4 preview URIs (oldest first),
+     * embedded here to avoid an N+1 query per session.
      */
     @Query("""
         SELECT COALESCE(NULLIF(batchId,''), id) AS sessionId,
                COUNT(*) AS imageCount,
                sessionLabel,
                styleName,
-               MAX(createdAt) AS latestCreatedAt
+               MAX(createdAt) AS latestCreatedAt,
+               (SELECT GROUP_CONCAT(p.previewUri, ',')
+                FROM (SELECT previewUri FROM generations g2
+                      WHERE COALESCE(NULLIF(g2.batchId,''), g2.id) = COALESCE(NULLIF(generations.batchId,''), generations.id)
+                      ORDER BY g2.createdAt ASC LIMIT 4) p) AS thumbnailUris
         FROM generations
         GROUP BY sessionId
         ORDER BY latestCreatedAt DESC
@@ -56,9 +63,13 @@ interface GenerationDao {
     """)
     suspend fun getPreviewUrisBySessionId(sessionId: String, limit: Int): List<String>
 
-    /** Returns all rows belonging to a batch, ordered by creation time. */
-    @Query("SELECT * FROM generations WHERE batchId = :batchId ORDER BY createdAt ASC")
-    fun getByBatchId(batchId: String): Flow<List<GenerationEntity>>
+    /**
+     * Returns all rows belonging to a session, ordered by creation time.
+     * Uses the same COALESCE key as getSessions() so legacy rows (batchId='')
+     * are correctly matched by their own id.
+     */
+    @Query("SELECT * FROM generations WHERE COALESCE(NULLIF(batchId,''), id) = :sessionId ORDER BY createdAt ASC")
+    fun getByBatchId(sessionId: String): Flow<List<GenerationEntity>>
 
     @Query("UPDATE generations SET sessionLabel = :label WHERE COALESCE(NULLIF(batchId,''), id) = :sessionId")
     suspend fun updateSessionLabel(sessionId: String, label: String)

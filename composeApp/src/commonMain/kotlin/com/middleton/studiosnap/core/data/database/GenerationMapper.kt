@@ -12,8 +12,6 @@ import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
  */
 fun GenerationEntity.toDomainModel(styleRepository: StyleRepository): GenerationResult.Success {
     val style = styleRepository.getStyleById(styleId) ?: run {
-        // Style was removed or renamed since this generation was saved.
-        // Create a minimal placeholder so history entries remain visible.
         // Style was removed or renamed — use placeholder so history stays visible
         Style(
             id = styleId,
@@ -54,8 +52,11 @@ fun GenerationResult.Success.toEntity(): GenerationEntity {
         styleId = style.id,
         styleName = style.displayName.let {
             when (it) {
-                is com.middleton.studiosnap.core.domain.model.UiText.DynamicString -> it.value
-                is com.middleton.studiosnap.core.domain.model.UiText.StringResource -> style.id
+                is UiText.DynamicString -> it.value
+                // StringResource styles are localised — no string context available here.
+                // Store the style id as a fallback; it will display in history if the style
+                // is later removed from the repository.
+                is UiText.StringResource -> style.id
             }
         },
         previewUri = previewUri,
