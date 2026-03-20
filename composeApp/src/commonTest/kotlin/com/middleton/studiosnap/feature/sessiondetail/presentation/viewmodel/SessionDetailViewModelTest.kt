@@ -126,7 +126,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
     @Test
     fun `delete session clicked shows confirm dialog`() {
         val sut = createSut()
-        sut.handleAction(SessionDetailUiAction.OnDeleteSessionClicked("batch-A"))
+        sut.handleAction(SessionDetailUiAction.OnDeleteSessionClicked)
 
         val state = assertIs<SessionDetailUiState.Success>(sut.uiState.value)
         assertTrue(state.showDeleteConfirm)
@@ -135,7 +135,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
     @Test
     fun `delete dismissed hides confirm dialog`() {
         val sut = createSut()
-        sut.handleAction(SessionDetailUiAction.OnDeleteSessionClicked("batch-A"))
+        sut.handleAction(SessionDetailUiAction.OnDeleteSessionClicked)
         sut.handleAction(SessionDetailUiAction.OnDeleteDismissed)
 
         val state = assertIs<SessionDetailUiState.Success>(sut.uiState.value)
@@ -150,7 +150,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
         )
         val sut = SessionDetailViewModel(sessionId = "batch-A", historyRepository = repo)
 
-        sut.handleAction(SessionDetailUiAction.OnDeleteSessionClicked("batch-A"))
+        sut.handleAction(SessionDetailUiAction.OnDeleteSessionClicked)
         sut.handleAction(SessionDetailUiAction.OnDeleteConfirmed)
 
         assertTrue(repo.deletedSessionIds.contains("batch-A"))

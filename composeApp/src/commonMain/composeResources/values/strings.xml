@@ -124,6 +124,9 @@
 
     <!-- Session Detail Screen -->
     <string name="session_detail_open_gallery">Open in Gallery</string>
+    <string name="session_detail_not_found">Session not found</string>
+    <string name="session_detail_photo_count">%1$d photos</string>
+    <string name="session_detail_photo_count_one">1 photo</string>
     <string name="session_detail_delete_title">Delete Session?</string>
     <string name="session_detail_delete_message">This will permanently remove all images in this session.</string>
     <string name="session_detail_delete_confirm">Delete</string>
@@ -224,6 +227,8 @@
 
     <!-- History (additional) -->
     <string name="history_product_photo">Product photo</string>
+    <string name="history_photo_count">%1$d photos</string>
+    <string name="history_photo_count_one">1 photo</string>
 
     <!-- Style Picker -->
     <string name="style_picker_title">Choose Style</string>

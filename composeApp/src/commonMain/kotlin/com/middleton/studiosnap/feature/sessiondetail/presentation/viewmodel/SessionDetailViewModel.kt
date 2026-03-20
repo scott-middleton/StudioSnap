@@ -2,7 +2,9 @@ package com.middleton.studiosnap.feature.sessiondetail.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.middleton.studiosnap.core.presentation.util.openInGallery
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
+import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.sessiondetail.presentation.action.SessionDetailUiAction
 import com.middleton.studiosnap.feature.sessiondetail.presentation.navigation.SessionDetailNavigationAction
 import com.middleton.studiosnap.feature.sessiondetail.presentation.ui_state.SessionDetailUiState
@@ -24,6 +26,9 @@ class SessionDetailViewModel(
     private val _navigationEvent = MutableStateFlow<SessionDetailNavigationAction?>(null)
     val navigationEvent: StateFlow<SessionDetailNavigationAction?> = _navigationEvent.asStateFlow()
 
+    /** Separate flow so combine() picks up confirm-dialog toggles without a race. */
+    private val _showDeleteConfirm = MutableStateFlow(false)
+
     init {
         observeSession()
     }
@@ -31,17 +36,17 @@ class SessionDetailViewModel(
     fun handleAction(action: SessionDetailUiAction) {
         when (action) {
             SessionDetailUiAction.OnBackClicked ->
-                _navigationEvent.value = SessionDetailNavigationAction.GoBack
+                _navigationEvent.update { SessionDetailNavigationAction.GoBack }
             SessionDetailUiAction.OnNavigationHandled ->
-                _navigationEvent.value = null
+                _navigationEvent.update { null }
             SessionDetailUiAction.OnOpenInGalleryClicked ->
                 openInGallery()
             is SessionDetailUiAction.OnDeleteSessionClicked ->
-                showDeleteConfirm()
+                _showDeleteConfirm.update { true }
             SessionDetailUiAction.OnDeleteConfirmed ->
                 confirmDelete()
             SessionDetailUiAction.OnDeleteDismissed ->
-                dismissDelete()
+                _showDeleteConfirm.update { false }
         }
     }
 
@@ -49,11 +54,11 @@ class SessionDetailViewModel(
         viewModelScope.launch {
             combine(
                 historyRepository.getSessions(),
-                historyRepository.getBySessionId(sessionId)
-            ) { sessions, results ->
+                historyRepository.getBySessionId(sessionId),
+                _showDeleteConfirm
+            ) { sessions, results, showDelete ->
                 val session = sessions.find { it.batchId == sessionId }
                     ?: return@combine SessionDetailUiState.Error
-                val showDelete = (_uiState.value as? SessionDetailUiState.Success)?.showDeleteConfirm ?: false
                 SessionDetailUiState.Success(
                     sessionId = sessionId,
                     displayLabel = session.displayLabel,
@@ -61,33 +66,25 @@ class SessionDetailViewModel(
                     showDeleteConfirm = showDelete
                 )
             }.collect { state ->
-                _uiState.value = state
+                _uiState.update { state }
             }
         }
     }
 
     private fun openInGallery() {
+        val results = (_uiState.value as? SessionDetailUiState.Success)?.results
+            ?: return
+        val firstUri = results.filterIsInstance<GenerationResult.Success>()
+            .firstOrNull()?.previewUri ?: return
         viewModelScope.launch {
-            com.middleton.studiosnap.core.presentation.util.openInGallery("")
-        }
-    }
-
-    private fun showDeleteConfirm() {
-        _uiState.update { current ->
-            (current as? SessionDetailUiState.Success)?.copy(showDeleteConfirm = true) ?: current
-        }
-    }
-
-    private fun dismissDelete() {
-        _uiState.update { current ->
-            (current as? SessionDetailUiState.Success)?.copy(showDeleteConfirm = false) ?: current
+            openInGallery(firstUri)
         }
     }
 
     private fun confirmDelete() {
         viewModelScope.launch {
             historyRepository.deleteSession(sessionId)
-            _navigationEvent.value = SessionDetailNavigationAction.GoBack
+            _navigationEvent.update { SessionDetailNavigationAction.GoBack }
         }
     }
 }

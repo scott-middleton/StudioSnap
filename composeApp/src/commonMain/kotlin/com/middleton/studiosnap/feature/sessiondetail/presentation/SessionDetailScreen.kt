@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -49,6 +48,7 @@ import studiosnap.composeapp.generated.resources.session_detail_delete_cancel
 import studiosnap.composeapp.generated.resources.session_detail_delete_confirm
 import studiosnap.composeapp.generated.resources.session_detail_delete_message
 import studiosnap.composeapp.generated.resources.session_detail_delete_title
+import studiosnap.composeapp.generated.resources.session_detail_not_found
 import studiosnap.composeapp.generated.resources.session_detail_open_gallery
 import studiosnap.composeapp.generated.resources.session_detail_product_photo
 
@@ -80,7 +80,7 @@ fun SessionDetailScreenContent(
 ) {
     when (state) {
         SessionDetailUiState.Loading -> SessionDetailLoadingContent()
-        SessionDetailUiState.Error -> SessionDetailErrorContent()
+        SessionDetailUiState.Error -> SessionDetailErrorContent(onBack = { onAction(SessionDetailUiAction.OnBackClicked) })
         is SessionDetailUiState.Success -> SessionDetailSuccessContent(state = state, onAction = onAction)
     }
 }
@@ -93,13 +93,20 @@ private fun SessionDetailLoadingContent() {
 }
 
 @Composable
-private fun SessionDetailErrorContent() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(
-            text = "Session not found",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+private fun SessionDetailErrorContent(onBack: () -> Unit) {
+    Scaffold(
+        topBar = { StudioSnapTopBar(title = "", onBack = onBack) }
+    ) { padding ->
+        Box(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(Res.string.session_detail_not_found),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -121,7 +128,7 @@ private fun SessionDetailSuccessContent(
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
-                    IconButton(onClick = { onAction(SessionDetailUiAction.OnDeleteSessionClicked(state.sessionId)) }) {
+                    IconButton(onClick = { onAction(SessionDetailUiAction.OnDeleteSessionClicked) }) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = stringResource(Res.string.session_detail_delete_title),

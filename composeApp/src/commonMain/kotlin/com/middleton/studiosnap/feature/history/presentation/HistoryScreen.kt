@@ -1,6 +1,5 @@
 package com.middleton.studiosnap.feature.history.presentation
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,6 +64,8 @@ import studiosnap.composeapp.generated.resources.history_delete_title
 import studiosnap.composeapp.generated.resources.history_empty_subtitle
 import studiosnap.composeapp.generated.resources.history_empty_title
 import studiosnap.composeapp.generated.resources.history_product_photo
+import studiosnap.composeapp.generated.resources.history_photo_count
+import studiosnap.composeapp.generated.resources.history_photo_count_one
 import studiosnap.composeapp.generated.resources.history_title
 
 @Composable
@@ -254,13 +255,18 @@ private fun SessionCard(
                     )
                     Spacer(Modifier.height(2.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        val photoCountText = if (session.imageCount == 1) {
+                            stringResource(Res.string.history_photo_count_one)
+                        } else {
+                            stringResource(Res.string.history_photo_count, session.imageCount)
+                        }
                         Text(
-                            text = "${session.imageCount} photo${if (session.imageCount != 1) "s" else ""}",
+                            text = photoCountText,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "  ·  ",
+                            text = " · ",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
