@@ -304,6 +304,70 @@ class HomeViewModelTest : BaseViewModelTest() {
         assertTrue(viewModel.navigationEvent.value is HomeNavigationAction.GoToHistory)
     }
 
+    // --- Credit state tests ---
+
+    @Test
+    fun `credit state is Error when credits fetch fails after sign-in`() {
+        val authService = FakeAuthService(signedIn = true)
+        val creditManager = FakeCreditManager(balance = 10, shouldFail = true)
+        val viewModel = HomeViewModel(
+            styleRepository = FakeStyleRepository(testStyles),
+            observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
+            generationConfigHolder = GenerationConfigHolderImpl(),
+            analyticsService = FakeAnalyticsService(),
+            historyRepository = FakeHistoryRepository()
+        )
+        // Signed in, but credits failed to load
+        assertTrue(viewModel.uiState.value.isSignedIn)
+        assertFalse(viewModel.uiState.value.isLoadingCredits)
+        assertEquals(0, viewModel.uiState.value.creditBalance)
+        assertFalse(viewModel.uiState.value.canAffordGeneration)
+    }
+
+    @Test
+    fun `credit state transitions from LoggedOut to Loaded after sign-in`() {
+        val authService = MutableFakeAuthService()
+        val creditManager = FakeCreditManager(balance = 15)
+        val viewModel = HomeViewModel(
+            styleRepository = FakeStyleRepository(testStyles),
+            observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
+            generationConfigHolder = GenerationConfigHolderImpl(),
+            analyticsService = FakeAnalyticsService(),
+            historyRepository = FakeHistoryRepository()
+        )
+
+        // Initially logged out
+        assertFalse(viewModel.uiState.value.isSignedIn)
+        assertEquals(0, viewModel.uiState.value.creditBalance)
+
+        // Simulate sign-in — UnconfinedTestDispatcher runs the flow update eagerly
+        authService.setSignedIn(true)
+
+        assertTrue(viewModel.uiState.value.isSignedIn)
+        assertEquals(15, viewModel.uiState.value.creditBalance)
+        assertFalse(viewModel.uiState.value.isLoadingCredits)
+    }
+
+    @Test
+    fun `credit state resets to LoggedOut on sign-out`() {
+        val authService = MutableFakeAuthService()
+        val creditManager = FakeCreditManager(balance = 10)
+        val viewModel = HomeViewModel(
+            styleRepository = FakeStyleRepository(testStyles),
+            observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
+            generationConfigHolder = GenerationConfigHolderImpl(),
+            analyticsService = FakeAnalyticsService(),
+            historyRepository = FakeHistoryRepository()
+        )
+
+        authService.setSignedIn(true)
+        assertTrue(viewModel.uiState.value.isSignedIn)
+
+        authService.setSignedIn(false)
+        assertFalse(viewModel.uiState.value.isSignedIn)
+        assertEquals(0, viewModel.uiState.value.creditBalance)
+    }
+
     // --- Fakes ---
 
     private class FakeStyleRepository(private val styles: List<Style>) : StyleRepository {
@@ -324,14 +388,41 @@ class HomeViewModelTest : BaseViewModelTest() {
         override suspend fun getCurrentUser(): AuthUser? = null
     }
 
-    private class FakeCreditManager(private val balance: Int) : CreditManager {
-        private val _credits = MutableStateFlow<UserCredits?>(UserCredits(balance))
+    /**
+     * Mirrors [CreditManagerImpl]: starts with credits=null, populates on loadCredits().
+     * [shouldFail] simulates a network error — loadCredits() returns failure and leaves
+     * credits null, which causes ObserveCreditStateUseCase to emit Error.
+     *
+     * Note: Loading state is unreachable in ObserveCreditStateUseCase because loadCredits()
+     * is fully awaited before combine() subscribes. Loading exists for potential future use.
+     */
+    private class FakeCreditManager(
+        private val balance: Int,
+        private val shouldFail: Boolean = false
+    ) : CreditManager {
+        private val _credits = MutableStateFlow<UserCredits?>(null)
         override val credits: StateFlow<UserCredits?> = _credits
         private val _isLoading = MutableStateFlow(false)
         override val isLoading: StateFlow<Boolean> = _isLoading
-        override suspend fun loadCredits(): Result<UserCredits> = Result.success(UserCredits(balance))
-        override suspend fun refreshCredits(): Result<UserCredits> = Result.success(UserCredits(balance))
+        override suspend fun loadCredits(): Result<UserCredits> {
+            if (shouldFail) return Result.failure(Exception("Credit fetch failed"))
+            val userCredits = UserCredits(balance)
+            _credits.value = userCredits
+            return Result.success(userCredits)
+        }
+        override suspend fun refreshCredits(): Result<UserCredits> = loadCredits()
         override fun clearCredits() { _credits.value = null }
+    }
+
+    private class MutableFakeAuthService : AuthService {
+        private val _isSignedIn = MutableStateFlow(false)
+        override val isSignedIn: StateFlow<Boolean> = _isSignedIn
+        fun setSignedIn(value: Boolean) { _isSignedIn.value = value }
+        override suspend fun awaitInitialized(): Boolean = _isSignedIn.value
+        override suspend fun signIn(): Result<AuthUser> = Result.failure(Exception("Not implemented"))
+        override suspend fun signOut(): Result<Unit> = Result.success(Unit)
+        override suspend fun deleteAccount(): Result<Unit> = Result.success(Unit)
+        override suspend fun getCurrentUser(): AuthUser? = null
     }
 
     private class FakeAnalyticsService : AnalyticsService {

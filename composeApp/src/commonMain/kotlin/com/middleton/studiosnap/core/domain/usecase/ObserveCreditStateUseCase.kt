@@ -13,8 +13,12 @@ import kotlinx.coroutines.flow.flowOf
  * Observes the user's credit loading state, reacting to auth changes automatically.
  *
  * When signed out: emits [UserCreditLoadingState.LoggedOut].
- * When signed in: triggers a credits fetch, then emits Loading → Loaded/Error
- * based on [CreditManager.isLoading] and [CreditManager.credits].
+ * When signed in: calls [CreditManager.loadCredits] (suspending), then subscribes to
+ * [CreditManager.credits] + [CreditManager.isLoading] via combine.
+ *
+ * Note: [UserCreditLoadingState.Loading] is unreachable in practice because loadCredits()
+ * is fully awaited before combine() subscribes — by the time we observe, loading is done.
+ * The Loading state exists for future use (e.g. background refresh scenarios).
  */
 class ObserveCreditStateUseCase(
     private val authService: AuthService,
