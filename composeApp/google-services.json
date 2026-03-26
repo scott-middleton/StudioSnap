@@ -12,7 +12,28 @@
           "package_name": "com.middleton.studiosnap"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "193571090503-42jtc22kti57qnru2uvvqn5hvrmnevmc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.middleton.studiosnap",
+            "certificate_hash": "749223a7f57c08a226a80aae61c356803ac3fc4d"
+          }
+        },
+        {
+          "client_id": "193571090503-mhacfcg0f141qjsk7bp1gj8066v5146p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.middleton.studiosnap",
+            "certificate_hash": "4c1ff571c89d110069e2bef712ba02d103e50001"
+          }
+        },
+        {
+          "client_id": "193571090503-9l3vn290n8ubmeqobtmqtf0pf75ts7bv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCNXgP8eEWCjSGVNmHGPLNR-FDZVOZLofA"
@@ -20,7 +41,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "193571090503-9l3vn290n8ubmeqobtmqtf0pf75ts7bv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "193571090503-emrn2qmlj69oqgd84nf3jqoqvcfbolh6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.middleton.studiosnap"
+              }
+            }
+          ]
         }
       }
     }

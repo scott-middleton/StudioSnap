@@ -45,9 +45,9 @@ class PaywallViewModel(
         // Maps RevenueCat product IDs → credit grants
         private val CREDIT_GRANTS = mapOf(
             "studiosnap_pack_starter" to 5,
-            "studiosnap_pack_standard" to 25,
-            "studiosnap_pack_pro" to 75,
-            "studiosnap_pack_studio" to 200
+            "studiosnap_pack_standard" to 20,
+            "studiosnap_pack_pro" to 50,
+            "studiosnap_pack_studio" to 120
         )
     }
 
@@ -104,7 +104,7 @@ class PaywallViewModel(
                 }
                 .sortedBy { it.grantedCredits }
 
-            // Assign badges: "Most Popular" = 2nd smallest pack (Standard 25 credits),
+            // Assign badges: "Most Popular" = 2nd smallest pack (Standard 20 credits),
             // "Best Value" = largest pack. Indices assume packs sorted by grantedCredits ascending.
             // If pack lineup changes, review these assignments.
             val packs = sortedPacks.mapIndexed { index, pack ->

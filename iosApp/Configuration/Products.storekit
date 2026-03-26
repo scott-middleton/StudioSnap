@@ -5,24 +5,69 @@
   ],
   "products" : [
     {
-      "displayPrice" : "0.99",
+      "displayPrice" : "1.99",
       "familyShareable" : false,
-      "internalID" : "6503086157",
+      "internalID" : "6761027089",
       "localizations" : [
         {
-          "description" : "Purchase 5 AI image generation credits",
-          "displayName" : "5 Credits",
+          "description" : "5 AI photo generation credits",
+          "displayName" : "Starter Pack",
           "locale" : "en_US"
         }
       ],
-      "productID" : "five_credits_store_kit_config_file",
-      "referenceName" : "5 Credits",
+      "productID" : "studiosnap_pack_starter",
+      "referenceName" : "Starter Pack",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "6.99",
+      "familyShareable" : false,
+      "internalID" : "6761027035",
+      "localizations" : [
+        {
+          "description" : "20 AI photo generation credits",
+          "displayName" : "Standard Pack",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "studiosnap_pack_standard",
+      "referenceName" : "Standard Pack",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "14.99",
+      "familyShareable" : false,
+      "internalID" : "6761027174",
+      "localizations" : [
+        {
+          "description" : "50 AI photo generation credits",
+          "displayName" : "Pro Pack",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "studiosnap_pack_pro",
+      "referenceName" : "Pro Pack",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "34.99",
+      "familyShareable" : false,
+      "internalID" : "6761026951",
+      "localizations" : [
+        {
+          "description" : "120 AI photo generation credits",
+          "displayName" : "Studio Pack",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "studiosnap_pack_studio",
+      "referenceName" : "Studio Pack",
       "type" : "Consumable"
     }
   ],
   "settings" : {
-    "_applicationInternalID" : "6503086157",
-    "_developerTeamID" : "LZXMNHSP49",
+    "_applicationInternalID" : "6761026965",
+    "_developerTeamID" : "X5SLMU3Z9V",
     "_failTransactionsEnabled" : false,
     "_lastSynchronizedDate" : 756835227.04576802,
     "_locale" : "en_US",

@@ -1,6 +1,7 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.BOOLEAN
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -13,6 +14,11 @@ plugins {
     alias(libs.plugins.room)
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.paparazzi)
+}
+
+val localProperties = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) load(f.inputStream())
 }
 
 // Only apply google-services if the config file exists (allows VPS compilation without it)
@@ -156,9 +162,19 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    signingConfigs {
+        create("release") {
+            storeFile = file(localProperties.getProperty("KEYSTORE_PATH", ""))
+            storePassword = localProperties.getProperty("KEYSTORE_PASSWORD", "")
+            keyAlias = localProperties.getProperty("KEY_ALIAS", "")
+            keyPassword = localProperties.getProperty("KEY_PASSWORD", "")
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -179,13 +195,13 @@ buildkonfig {
         buildConfigField(
             STRING,
             "REVENUE_CAT_ANDROID_KEY",
-            "TODO_REVENUE_CAT_ANDROID_KEY"
+            localProperties.getProperty("REVENUE_CAT_ANDROID_KEY", "")
         )
 
         buildConfigField(
             STRING,
             "REVENUE_CAT_IOS_KEY",
-            "TODO_REVENUE_CAT_IOS_KEY"
+            localProperties.getProperty("REVENUE_CAT_IOS_KEY", "")
         )
 
         buildConfigField(
@@ -197,7 +213,7 @@ buildkonfig {
         buildConfigField(
             STRING,
             "GOOGLE_SERVER_CLIENT_ID",
-            "TODO_GOOGLE_SERVER_CLIENT_ID"
+            localProperties.getProperty("GOOGLE_SERVER_CLIENT_ID", "")
         )
     }
 }

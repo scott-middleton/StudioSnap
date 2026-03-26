@@ -19,3 +19,11 @@ captures
 
 # Apple auth secret key (.p8 is a private key - never commit)
 apple_auth/*.p8
+
+# Signing keystores - never commit private keys
+*.jks
+*.keystore
+
+# Firebase Cloud Functions build artifacts and dependencies
+functions/lib/
+functions/node_modules/

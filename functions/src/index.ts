@@ -63,7 +63,7 @@ async function fetchWithRetry(
 
 // ─── Replicate: Create Model Prediction (Nano Banana) ─────────────────────
 
-export const createModelPrediction = onCall({enforceAppCheck: false}, async (request) => {
+export const createModelPrediction = onCall({enforceAppCheck: true}, async (request) => {
   const apiToken = process.env.REPLICATE_API_TOKEN;
   if (!apiToken) {
     throw new HttpsError("internal", "Replicate API token not configured");
@@ -92,7 +92,7 @@ export const createModelPrediction = onCall({enforceAppCheck: false}, async (req
 
 // ─── Replicate: Create Version Prediction (Real-ESRGAN) ──────────────────
 
-export const createVersionPrediction = onCall({enforceAppCheck: false}, async (request) => {
+export const createVersionPrediction = onCall({enforceAppCheck: true}, async (request) => {
   const apiToken = process.env.REPLICATE_API_TOKEN;
   if (!apiToken) {
     throw new HttpsError("internal", "Replicate API token not configured");
@@ -121,7 +121,7 @@ export const createVersionPrediction = onCall({enforceAppCheck: false}, async (r
 
 // ─── Replicate: Get Prediction Status ─────────────────────────────────────
 
-export const getPrediction = onCall({enforceAppCheck: false}, async (request) => {
+export const getPrediction = onCall({enforceAppCheck: true}, async (request) => {
   const apiToken = process.env.REPLICATE_API_TOKEN;
   if (!apiToken) {
     throw new HttpsError("internal", "Replicate API token not configured");
@@ -147,7 +147,7 @@ export const getPrediction = onCall({enforceAppCheck: false}, async (request) =>
 
 // ─── RevenueCat: Fetch User Credits ───────────────────────────────────────
 
-export const fetchUserCredits = onCall({enforceAppCheck: false}, async (request) => {
+export const fetchUserCredits = onCall({enforceAppCheck: true}, async (request) => {
   const secretKey = process.env.REVENUECAT_SECRET_KEY;
   if (!secretKey) {
     throw new HttpsError("internal", "RevenueCat secret key not configured");
@@ -195,7 +195,7 @@ export const fetchUserCredits = onCall({enforceAppCheck: false}, async (request)
 
 // ─── RevenueCat: Deduct Credits ───────────────────────────────────────────
 
-export const deductCredits = onCall({enforceAppCheck: false}, async (request) => {
+export const deductCredits = onCall({enforceAppCheck: true}, async (request) => {
   const secretKey = process.env.REVENUECAT_SECRET_KEY;
   if (!secretKey) {
     throw new HttpsError("internal", "RevenueCat secret key not configured");
@@ -246,7 +246,7 @@ export const deductCredits = onCall({enforceAppCheck: false}, async (request) =>
 
 // ─── RevenueCat: Add Credits (Refund) ─────────────────────────────────────
 
-export const addCredits = onCall({enforceAppCheck: false}, async (request) => {
+export const addCredits = onCall({enforceAppCheck: true}, async (request) => {
   const secretKey = process.env.REVENUECAT_SECRET_KEY;
   if (!secretKey) {
     throw new HttpsError("internal", "RevenueCat secret key not configured");
