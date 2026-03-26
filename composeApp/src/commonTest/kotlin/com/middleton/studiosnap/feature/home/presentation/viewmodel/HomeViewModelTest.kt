@@ -1,24 +1,25 @@
 package com.middleton.studiosnap.feature.home.presentation.viewmodel
 
+import com.middleton.studiosnap.core.domain.model.AuthUser
 import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
-import com.middleton.studiosnap.core.domain.service.CreditQueries
+import com.middleton.studiosnap.core.domain.service.CreditManager
+import com.middleton.studiosnap.core.domain.usecase.ObserveCreditStateUseCase
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
+import com.middleton.studiosnap.feature.history.domain.model.HistorySession
+import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
+import com.middleton.studiosnap.feature.home.data.repository.GenerationConfigHolderImpl
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
-import com.middleton.studiosnap.feature.home.data.repository.GenerationConfigHolderImpl
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
-import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
-import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
-import com.middleton.studiosnap.core.domain.model.AuthUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,10 +64,11 @@ class HomeViewModelTest : BaseViewModelTest() {
         historyItems: List<GenerationResult.Success> = emptyList(),
         configHolder: GenerationConfigHolder = GenerationConfigHolderImpl()
     ): HomeViewModel {
+        val authService = FakeAuthService(isSignedIn)
+        val creditManager = FakeCreditManager(creditBalance)
         return HomeViewModel(
             styleRepository = FakeStyleRepository(styles),
-            creditQueries = FakeCreditQueries(creditBalance),
-            authService = FakeAuthService(isSignedIn),
+            observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
             generationConfigHolder = configHolder,
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(historyItems)
@@ -175,7 +177,6 @@ class HomeViewModelTest : BaseViewModelTest() {
         val viewModel = createViewModel(isSignedIn = true, creditBalance = 5)
         viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
         viewModel.handleAction(HomeUiAction.OnGenerateClicked)
-        // No photos → style is set but no navigation occurs (canAffordGeneration=true, photos empty)
         assertNull(viewModel.navigationEvent.value)
     }
 
@@ -229,9 +230,16 @@ class HomeViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `credit balance loaded from credit queries when signed in`() {
+    fun `credit balance loaded from credit manager when signed in`() {
         val viewModel = createViewModel(creditBalance = 42, isSignedIn = true)
         assertEquals(42, viewModel.uiState.value.creditBalance)
+    }
+
+    @Test
+    fun `credit balance is zero when signed out`() {
+        val viewModel = createViewModel(creditBalance = 42, isSignedIn = false)
+        assertEquals(0, viewModel.uiState.value.creditBalance)
+        assertFalse(viewModel.uiState.value.isSignedIn)
     }
 
     @Test
@@ -307,12 +315,6 @@ class HomeViewModelTest : BaseViewModelTest() {
         override fun getStyleById(id: String): Style? = styles.find { it.id == id }
     }
 
-    private class FakeCreditQueries(private val balance: Int) : CreditQueries {
-        override suspend fun getUserCredits() = Result.success(UserCredits(balance))
-        override suspend fun refreshCredits() = Result.success(UserCredits(balance))
-        override fun observeCredits(): Flow<UserCredits> = flowOf(UserCredits(balance))
-    }
-
     private class FakeAuthService(private val signedIn: Boolean) : AuthService {
         override val isSignedIn: StateFlow<Boolean> = MutableStateFlow(signedIn)
         override suspend fun awaitInitialized(): Boolean = signedIn
@@ -320,6 +322,16 @@ class HomeViewModelTest : BaseViewModelTest() {
         override suspend fun signOut(): Result<Unit> = Result.success(Unit)
         override suspend fun deleteAccount(): Result<Unit> = Result.success(Unit)
         override suspend fun getCurrentUser(): AuthUser? = null
+    }
+
+    private class FakeCreditManager(private val balance: Int) : CreditManager {
+        private val _credits = MutableStateFlow<UserCredits?>(UserCredits(balance))
+        override val credits: StateFlow<UserCredits?> = _credits
+        private val _isLoading = MutableStateFlow(false)
+        override val isLoading: StateFlow<Boolean> = _isLoading
+        override suspend fun loadCredits(): Result<UserCredits> = Result.success(UserCredits(balance))
+        override suspend fun refreshCredits(): Result<UserCredits> = Result.success(UserCredits(balance))
+        override fun clearCredits() { _credits.value = null }
     }
 
     private class FakeAnalyticsService : AnalyticsService {
@@ -330,7 +342,7 @@ class HomeViewModelTest : BaseViewModelTest() {
         private val items: List<GenerationResult.Success> = emptyList()
     ) : HistoryRepository {
         override fun getAll(): Flow<List<GenerationResult.Success>> = flowOf(items)
-        override fun getSessions() = flowOf(emptyList<com.middleton.studiosnap.feature.history.domain.model.HistorySession>())
+        override fun getSessions() = flowOf(emptyList<HistorySession>())
         override fun getBySessionId(sessionId: String): Flow<List<GenerationResult.Success>> = flowOf(emptyList())
         override suspend fun save(result: GenerationResult.Success) {}
         override suspend fun saveAll(results: List<GenerationResult.Success>) {}

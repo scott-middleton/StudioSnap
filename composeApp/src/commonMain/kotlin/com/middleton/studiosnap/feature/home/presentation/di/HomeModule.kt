@@ -8,6 +8,7 @@ import com.middleton.studiosnap.feature.home.data.repository.StyleRepositoryImpl
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationRepository
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
+import com.middleton.studiosnap.core.domain.usecase.ObserveCreditStateUseCase
 import com.middleton.studiosnap.feature.home.domain.usecase.BuildKontextPromptUseCase
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
@@ -34,6 +35,8 @@ val homeModule = module {
 
     factory { BuildKontextPromptUseCase() }
 
+    factory { ObserveCreditStateUseCase(authService = get(), creditManager = get()) }
+
     factory<NavigationStrategy<HomeNavigationAction>> {
         SharedNavigationStrategy(get())
     }
@@ -41,8 +44,7 @@ val homeModule = module {
     viewModel {
         HomeViewModel(
             styleRepository = get(),
-            creditQueries = get(),
-            authService = get(),
+            observeCreditStateUseCase = get(),
             generationConfigHolder = get(),
             analyticsService = get(),
             historyRepository = get<HistoryRepository>()

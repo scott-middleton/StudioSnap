@@ -1,6 +1,8 @@
 package com.middleton.studiosnap.screenshot
 
 import com.middleton.studiosnap.core.domain.model.UiText
+import com.middleton.studiosnap.core.domain.model.UserCredits
+import com.middleton.studiosnap.core.presentation.state.UserCreditLoadingState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -54,7 +56,7 @@ class HomeScreenSnapshotTest {
     fun emptyState_defaultCredits() {
         snapshotWithResources {
             HomeScreenContent(
-                state = HomeUiState(creditBalance = 0),
+                state = HomeUiState(creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(0))),
                 onAction = {}
             )
         }
@@ -64,7 +66,7 @@ class HomeScreenSnapshotTest {
     fun emptyState_withCredits() {
         snapshotWithResources {
             HomeScreenContent(
-                state = HomeUiState(creditBalance = 25),
+                state = HomeUiState(creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(25))),
                 onAction = {}
             )
         }
@@ -80,7 +82,7 @@ class HomeScreenSnapshotTest {
             HomeScreenContent(
                 state = HomeUiState(
                     photos = fakePhotos(1),
-                    creditBalance = 10
+                    creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(10))
                 ),
                 onAction = {}
             )
@@ -93,7 +95,7 @@ class HomeScreenSnapshotTest {
             HomeScreenContent(
                 state = HomeUiState(
                     photos = fakePhotos(3),
-                    creditBalance = 10
+                    creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(10))
                 ),
                 onAction = {}
             )
@@ -107,7 +109,7 @@ class HomeScreenSnapshotTest {
                 state = HomeUiState(
                     photos = fakePhotos(3),
                     selectedStyle = fakeStyle(),
-                    creditBalance = 10
+                    creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(10))
                 ),
                 onAction = {}
             )
@@ -126,7 +128,7 @@ class HomeScreenSnapshotTest {
                     photos = fakePhotos(HomeUiState.MAX_PHOTOS),
                     selectedStyle = fakeStyle(),
                     exportFormat = ExportFormat.ETSY_SQUARE,
-                    creditBalance = 50
+                    creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(50))
                 ),
                 onAction = {}
             )
@@ -145,7 +147,7 @@ class HomeScreenSnapshotTest {
                     photos = fakePhotos(2),
                     selectedStyle = fakeStyle(),
                     exportFormat = ExportFormat.ETSY_SQUARE,
-                    creditBalance = 10
+                    creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(10))
                 ),
                 onAction = {}
             )
@@ -160,7 +162,7 @@ class HomeScreenSnapshotTest {
     fun emptyState_darkTheme() {
         snapshotWithResources(darkTheme = true) {
             HomeScreenContent(
-                state = HomeUiState(creditBalance = 15),
+                state = HomeUiState(creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(15))),
                 onAction = {}
             )
         }
@@ -173,7 +175,7 @@ class HomeScreenSnapshotTest {
                 state = HomeUiState(
                     photos = fakePhotos(3),
                     selectedStyle = fakeStyle(),
-                    creditBalance = 25
+                    creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(25))
                 ),
                 onAction = {}
             )

@@ -4,14 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
-import com.middleton.studiosnap.core.domain.service.AuthService
-import com.middleton.studiosnap.core.domain.service.CreditQueries
+import com.middleton.studiosnap.core.domain.usecase.ObserveCreditStateUseCase
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
 import com.middleton.studiosnap.core.presentation.util.asDisplayString
+import com.middleton.studiosnap.core.presentation.state.UserCreditLoadingState
 import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
@@ -22,7 +22,8 @@ import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
@@ -31,8 +32,7 @@ import kotlinx.datetime.Clock
 
 class HomeViewModel(
     private val styleRepository: StyleRepository,
-    private val creditQueries: CreditQueries,
-    private val authService: AuthService,
+    private val observeCreditStateUseCase: ObserveCreditStateUseCase,
     private val generationConfigHolder: GenerationConfigHolder,
     private val analyticsService: AnalyticsService,
     private val historyRepository: HistoryRepository
@@ -45,7 +45,7 @@ class HomeViewModel(
     val navigationEvent: StateFlow<HomeNavigationAction?> = _navigationEvent.asStateFlow()
 
     init {
-        observeAuthAndCredits()
+        observeCreditState()
         observeRecentGenerations()
     }
 
@@ -70,7 +70,6 @@ class HomeViewModel(
             is HomeUiAction.OnSettingsClicked -> navigateTo(HomeNavigationAction.GoToSettings)
             is HomeUiAction.OnHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
             is HomeUiAction.OnViewAllHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
-            // TODO: navigate to ResultDetail(action.generationId) once that screen is built
             is HomeUiAction.OnRecentGenerationClicked -> navigateTo(HomeNavigationAction.GoToHistory)
             is HomeUiAction.OnCreditBalanceClicked -> navigateTo(HomeNavigationAction.GoToCreditStore)
             is HomeUiAction.OnErrorDismissed -> _uiState.update { it.copy(error = null) }
@@ -78,20 +77,12 @@ class HomeViewModel(
         }
     }
 
-    private fun observeAuthAndCredits() {
-        // Observe auth state reactively — updates whenever user signs in/out
-        viewModelScope.launch {
-            authService.isSignedIn.collectLatest { signedIn ->
-                _uiState.update { it.copy(isSignedIn = signedIn, isLoadingCredits = signedIn) }
-                if (signedIn) {
-                    creditQueries.observeCredits().collect { credits ->
-                        _uiState.update { it.copy(creditBalance = credits.amount, isLoadingCredits = false) }
-                    }
-                } else {
-                    _uiState.update { it.copy(creditBalance = 0, isLoadingCredits = false) }
-                }
+    private fun observeCreditState() {
+        observeCreditStateUseCase()
+            .onEach { creditState ->
+                _uiState.update { it.copy(creditLoadingState = creditState) }
             }
-        }
+            .launchIn(viewModelScope)
     }
 
     private fun observeRecentGenerations() {
@@ -176,13 +167,11 @@ class HomeViewModel(
     private fun onGenerateClicked() {
         val state = _uiState.value
 
-        // Not signed in — show native sign-in sheet
         if (!state.isSignedIn) {
             _uiState.update { it.copy(showSignIn = true) }
             return
         }
 
-        // Not enough credits — go to credit store
         if (!state.canAffordGeneration) {
             navigateTo(HomeNavigationAction.GoToCreditStore)
             return
@@ -218,7 +207,7 @@ class HomeViewModel(
 
     private fun onSignInResult(success: Boolean) {
         _uiState.update { it.copy(showSignIn = false) }
-        // Auth state observer will pick up the sign-in automatically
+        // Auth state observer (ObserveCreditStateUseCase) picks up sign-in automatically
     }
 
     private fun navigateTo(action: HomeNavigationAction) {
