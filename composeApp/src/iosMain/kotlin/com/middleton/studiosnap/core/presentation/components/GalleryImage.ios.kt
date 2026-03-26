@@ -27,6 +27,7 @@ import platform.Photos.PHImageRequestOptionsDeliveryModeHighQualityFormat
 import platform.Photos.PHImageRequestOptionsResizeModeExact
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
+import com.middleton.studiosnap.core.presentation.imagepicker.IosImageCache
 import com.middleton.studiosnap.core.presentation.util.toByteArray
 import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.Photos.PHImageContentModeAspectFit
@@ -113,10 +114,15 @@ actual fun GalleryImage(
 
     if (bitmap == null) {
         LaunchedEffect(cacheKey) {
-            val loaded = loadImageFromPhotoLibrary(galleryUri, targetSizePx)
-            if (loaded != null) {
-                GalleryImageCache.put(cacheKey, loaded)
+            // IosImageCache is populated by the picker and doesn't require Photos permission.
+            // PHAsset fallback handles images loaded from history (saved file paths).
+            val pickerCached = IosImageCache.getImage(galleryUri)
+            val loaded = if (pickerCached != null) {
+                withContext(Dispatchers.IO) { loadBitmapFromUIImage(pickerCached) }
+            } else {
+                loadImageFromPhotoLibrary(galleryUri, targetSizePx)
             }
+            if (loaded != null) GalleryImageCache.put(cacheKey, loaded)
             bitmap = loaded
             isLoading = false
             isError = loaded == null
@@ -142,6 +148,17 @@ actual fun GalleryImage(
             contentScale = contentScale
         )
         isError -> error?.invoke() ?: Box(sizedModifier)
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun loadBitmapFromUIImage(uiImage: UIImage): ImageBitmap? {
+    return try {
+        val data = UIImageJPEGRepresentation(uiImage, 0.85) ?: return null
+        val bytes = data.toByteArray()
+        SkiaImage.makeFromEncoded(bytes).toComposeImageBitmap()
+    } catch (_: Exception) {
+        null
     }
 }
 
