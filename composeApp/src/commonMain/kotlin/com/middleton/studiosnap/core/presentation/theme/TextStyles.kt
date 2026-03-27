@@ -28,11 +28,11 @@ fun studioSnapTextStyles(): StudioSnapTextStyles {
             lineHeight = 40.sp,
             letterSpacing = 0.sp
         ),
-        onboardingHeadline = TextStyle(
+        onboardingHeadline = TextStyle( // 22sp keeps large screens readable without dominating small phones
             fontFamily = interFamily,
             fontWeight = FontWeight.Bold,
-            fontSize = 28.sp,
-            lineHeight = 36.sp,
+            fontSize = 22.sp,
+            lineHeight = 30.sp,
             letterSpacing = 0.sp
         ),
         onboardingSubheadline = TextStyle(

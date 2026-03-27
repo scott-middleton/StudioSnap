@@ -102,7 +102,7 @@ fun OnboardingStyleShowcasePage(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = stringResource(Res.string.onboarding_showcase_headline),
@@ -140,7 +140,7 @@ fun OnboardingStyleShowcasePage(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(100.dp))
         }
 
         Button(

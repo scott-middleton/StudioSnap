@@ -103,7 +103,7 @@ fun OnboardingBeforeAfterPage(
                     .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = stringResource(Res.string.onboarding_before_after_headline),
@@ -146,7 +146,7 @@ fun OnboardingBeforeAfterPage(
                     )
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(100.dp))
             }
 
             // Next button
