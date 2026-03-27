@@ -2,12 +2,10 @@ package com.middleton.studiosnap.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditQueries
-import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.settings.presentation.action.SettingsUiAction
 import com.middleton.studiosnap.feature.settings.presentation.navigation.SettingsNavigationAction
 import com.middleton.studiosnap.feature.settings.presentation.ui_state.SettingsUiState
@@ -20,7 +18,6 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
     private val creditQueries: CreditQueries,
     private val authService: AuthService,
-    private val userPreferencesRepository: UserPreferencesRepository,
     private val analyticsService: AnalyticsService
 ) : ViewModel() {
 
@@ -45,22 +42,13 @@ class SettingsViewModel(
             SettingsUiAction.OnPrivacyPolicyClicked -> { /* Handled by screen — opens URL */ }
             SettingsUiAction.OnTermsClicked -> { /* Handled by screen — opens URL */ }
             SettingsUiAction.OnNavigationHandled -> _navigationEvent.value = null
-            is SettingsUiAction.OnQualityChanged -> updateQuality(action.quality)
         }
     }
 
     private fun loadSettings() {
         viewModelScope.launch {
-            val qualityString = userPreferencesRepository.getPreferredQuality()
-            val quality = GenerationQuality.entries.find { it.name == qualityString }
-                ?: GenerationQuality.DEFAULT
             val isSignedIn = authService.isSignedIn.value
-            _uiState.update {
-                it.copy(
-                    preferredQuality = quality,
-                    isSignedIn = isSignedIn
-                )
-            }
+            _uiState.update { it.copy(isSignedIn = isSignedIn) }
         }
     }
 
@@ -69,13 +57,6 @@ class SettingsViewModel(
             creditQueries.observeCredits().collect { credits ->
                 _uiState.update { it.copy(creditBalance = credits.amount) }
             }
-        }
-    }
-
-    private fun updateQuality(quality: GenerationQuality) {
-        _uiState.update { it.copy(preferredQuality = quality) }
-        viewModelScope.launch {
-            userPreferencesRepository.setPreferredQuality(quality.name)
         }
     }
 }

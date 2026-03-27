@@ -10,8 +10,6 @@ interface UserPreferencesRepository {
     suspend fun getFreeDownloadsUsed(): Int
     suspend fun incrementFreeDownloads()
     suspend fun incrementAndGetPaidDownloads(): Int
-    suspend fun getPreferredQuality(): String
-    suspend fun setPreferredQuality(quality: String)
     suspend fun getLastUsedCategoryFilter(): String
     suspend fun setLastUsedCategoryFilter(category: String)
     fun observePreferences(): Flow<UserPreferencesSnapshot>
@@ -22,6 +20,5 @@ data class UserPreferencesSnapshot(
     val hasPurchasedCredits: Boolean,
     val freeDownloadsUsed: Int,
     val totalPaidDownloads: Int,
-    val preferredQuality: String,
     val lastUsedCategoryFilter: String
 )

@@ -62,16 +62,6 @@ class UserPreferencesRepositoryImpl(
         return dao.incrementAndGetPaidDownloads()
     }
 
-    override suspend fun getPreferredQuality(): String {
-        ensureExists()
-        return dao.getPreferences()?.preferredQuality ?: "HIGH"
-    }
-
-    override suspend fun setPreferredQuality(quality: String) {
-        ensureExists()
-        dao.setPreferredQuality(quality)
-    }
-
     override suspend fun getLastUsedCategoryFilter(): String {
         ensureExists()
         return dao.getPreferences()?.lastUsedCategoryFilter ?: "ALL"
@@ -90,7 +80,6 @@ class UserPreferencesRepositoryImpl(
                 hasPurchasedCredits = prefs.hasPurchasedCredits,
                 freeDownloadsUsed = prefs.freeDownloadsUsed,
                 totalPaidDownloads = prefs.totalPaidDownloads,
-                preferredQuality = prefs.preferredQuality,
                 lastUsedCategoryFilter = prefs.lastUsedCategoryFilter
             )
         }

@@ -140,9 +140,6 @@
     <string name="settings_sign_out">Sign Out</string>
     <string name="settings_credits">Credits</string>
     <string name="settings_get_more_credits">Get More Credits</string>
-    <string name="settings_quality">Image Quality</string>
-    <string name="settings_quality_standard">Standard (faster)</string>
-    <string name="settings_quality_high">High (better results)</string>
     <string name="settings_about">About</string>
     <string name="settings_privacy_policy">Privacy Policy</string>
     <string name="settings_rate_app">Rate StudioSnap</string>

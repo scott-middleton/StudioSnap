@@ -199,12 +199,10 @@ class OnboardingViewModelTest : BaseViewModelTest() {
         override suspend fun getFreeDownloadsUsed() = 0
         override suspend fun incrementFreeDownloads() {}
         override suspend fun incrementAndGetPaidDownloads() = 0
-        override suspend fun getPreferredQuality() = "HIGH"
-        override suspend fun setPreferredQuality(quality: String) {}
         override suspend fun getLastUsedCategoryFilter() = "ALL"
         override suspend fun setLastUsedCategoryFilter(category: String) {}
         override fun observePreferences(): Flow<UserPreferencesSnapshot> = flowOf(
-            UserPreferencesSnapshot(false, false, 0, 0, "HIGH", "ALL")
+            UserPreferencesSnapshot(false, false, 0, 0, "ALL")
         )
     }
 

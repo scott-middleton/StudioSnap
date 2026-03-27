@@ -141,8 +141,6 @@ class StylePickerViewModelTest : BaseViewModelTest() {
         override suspend fun getFreeDownloadsUsed() = 0
         override suspend fun incrementFreeDownloads() {}
         override suspend fun incrementAndGetPaidDownloads() = 0
-        override suspend fun getPreferredQuality() = "HIGH"
-        override suspend fun setPreferredQuality(quality: String) {}
         override suspend fun getLastUsedCategoryFilter() = lastCategory
         override suspend fun setLastUsedCategoryFilter(category: String) {
             savedCategory = category
@@ -153,7 +151,6 @@ class StylePickerViewModelTest : BaseViewModelTest() {
                 hasPurchasedCredits = false,
                 freeDownloadsUsed = 0,
                 totalPaidDownloads = 0,
-                preferredQuality = "HIGH",
                 lastUsedCategoryFilter = lastCategory
             )
         )

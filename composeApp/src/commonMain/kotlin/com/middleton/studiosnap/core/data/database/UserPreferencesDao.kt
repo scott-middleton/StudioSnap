@@ -31,9 +31,6 @@ interface UserPreferencesDao {
     @Query("UPDATE user_preferences SET totalPaidDownloads = totalPaidDownloads + 1 WHERE id = 1")
     suspend fun incrementPaidDownloads()
 
-    @Query("UPDATE user_preferences SET preferredQuality = :quality WHERE id = 1")
-    suspend fun setPreferredQuality(quality: String)
-
     @Query("UPDATE user_preferences SET lastUsedCategoryFilter = :category WHERE id = 1")
     suspend fun setLastUsedCategoryFilter(category: String)
 

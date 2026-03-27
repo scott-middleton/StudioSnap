@@ -1,14 +1,12 @@
 package com.middleton.studiosnap.feature.settings.presentation.viewmodel
 
 import com.middleton.studiosnap.core.domain.model.AuthUser
+import com.middleton.studiosnap.core.domain.model.AuthProvider
 import com.middleton.studiosnap.core.domain.model.UserCredits
-import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
 import com.middleton.studiosnap.core.domain.service.FakeAnalyticsService
-import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditQueries
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
-import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.settings.presentation.action.SettingsUiAction
 import com.middleton.studiosnap.feature.settings.presentation.navigation.SettingsNavigationAction
 import kotlinx.coroutines.flow.Flow
@@ -24,12 +22,6 @@ import kotlin.test.assertTrue
 class SettingsViewModelTest : BaseViewModelTest() {
 
     @Test
-    fun `init loads preferred quality`() {
-        val vm = createViewModel(preferredQuality = "STANDARD")
-        assertEquals(GenerationQuality.STANDARD, vm.uiState.value.preferredQuality)
-    }
-
-    @Test
     fun `init loads signed in state`() {
         val vm = createViewModel(isSignedIn = true)
         assertTrue(vm.uiState.value.isSignedIn)
@@ -43,17 +35,6 @@ class SettingsViewModelTest : BaseViewModelTest() {
 
         creditsFlow.value = UserCredits(8)
         assertEquals(8, vm.uiState.value.creditBalance)
-    }
-
-    @Test
-    fun `quality change updates state and persists`() {
-        val prefsRepo = FakeUserPreferencesRepository()
-        val vm = createViewModel(prefsRepo = prefsRepo)
-
-        vm.handleAction(SettingsUiAction.OnQualityChanged(GenerationQuality.STANDARD))
-
-        assertEquals(GenerationQuality.STANDARD, vm.uiState.value.preferredQuality)
-        assertEquals("STANDARD", prefsRepo.quality)
     }
 
     @Test
@@ -83,15 +64,12 @@ class SettingsViewModelTest : BaseViewModelTest() {
     // --- Factory ---
 
     private fun createViewModel(
-        preferredQuality: String = "HIGH",
         isSignedIn: Boolean = false,
-        creditsFlow: Flow<UserCredits> = flowOf(UserCredits(10)),
-        prefsRepo: FakeUserPreferencesRepository = FakeUserPreferencesRepository(preferredQuality)
+        creditsFlow: Flow<UserCredits> = flowOf(UserCredits(10))
     ): SettingsViewModel {
         return SettingsViewModel(
             creditQueries = FakeCreditQueries(creditsFlow),
             authService = FakeAuthService(isSignedIn),
-            userPreferencesRepository = prefsRepo,
             analyticsService = FakeAnalyticsService()
         )
     }
@@ -109,35 +87,9 @@ class SettingsViewModelTest : BaseViewModelTest() {
     private class FakeAuthService(signedIn: Boolean = false) : AuthService {
         override val isSignedIn: StateFlow<Boolean> = MutableStateFlow(signedIn)
         override suspend fun awaitInitialized() = isSignedIn.value
-        override suspend fun signIn() = Result.success(AuthUser(id = "user_1", email = null, displayName = null, provider = com.middleton.studiosnap.core.domain.model.AuthProvider.GOOGLE))
+        override suspend fun signIn() = Result.success(AuthUser(id = "user_1", email = null, displayName = null, provider = AuthProvider.GOOGLE))
         override suspend fun signOut() = Result.success(Unit)
         override suspend fun deleteAccount() = Result.success(Unit)
-        override suspend fun getCurrentUser() = if (isSignedIn.value) AuthUser(id = "user_1", email = null, displayName = null, provider = com.middleton.studiosnap.core.domain.model.AuthProvider.GOOGLE) else null
-    }
-
-    private class FakeUserPreferencesRepository(
-        var quality: String = "HIGH"
-    ) : UserPreferencesRepository {
-        override suspend fun hasCompletedOnboarding() = true
-        override suspend fun setHasCompletedOnboarding() {}
-        override suspend fun hasPurchasedCredits() = false
-        override suspend fun setHasPurchasedCredits() {}
-        override suspend fun getFreeDownloadsUsed() = 0
-        override suspend fun incrementFreeDownloads() {}
-        override suspend fun incrementAndGetPaidDownloads() = 1
-        override suspend fun getPreferredQuality() = quality
-        override suspend fun setPreferredQuality(quality: String) { this.quality = quality }
-        override suspend fun getLastUsedCategoryFilter() = "ALL"
-        override suspend fun setLastUsedCategoryFilter(category: String) {}
-        override fun observePreferences() = flowOf(
-            UserPreferencesSnapshot(
-                hasCompletedOnboarding = true,
-                hasPurchasedCredits = false,
-                freeDownloadsUsed = 0,
-                totalPaidDownloads = 0,
-                preferredQuality = quality,
-                lastUsedCategoryFilter = "ALL"
-            )
-        )
+        override suspend fun getCurrentUser() = if (isSignedIn.value) AuthUser(id = "user_1", email = null, displayName = null, provider = AuthProvider.GOOGLE) else null
     }
 }

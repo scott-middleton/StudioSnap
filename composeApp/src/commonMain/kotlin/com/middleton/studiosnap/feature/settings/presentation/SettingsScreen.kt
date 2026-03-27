@@ -16,7 +16,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +28,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
-import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.settings.presentation.action.SettingsUiAction
 import com.middleton.studiosnap.feature.settings.presentation.navigation.SettingsNavigationAction
 import com.middleton.studiosnap.feature.settings.presentation.ui_state.SettingsUiState
@@ -43,9 +41,6 @@ import studiosnap.composeapp.generated.resources.settings_credit_count
 import studiosnap.composeapp.generated.resources.settings_credits
 import studiosnap.composeapp.generated.resources.settings_get_more_credits
 import studiosnap.composeapp.generated.resources.settings_privacy_policy
-import studiosnap.composeapp.generated.resources.settings_quality
-import studiosnap.composeapp.generated.resources.settings_quality_high
-import studiosnap.composeapp.generated.resources.settings_quality_standard
 import studiosnap.composeapp.generated.resources.settings_title
 
 @Composable
@@ -95,23 +90,6 @@ fun SettingsScreenContent(
                 label = stringResource(Res.string.settings_credit_count, state.creditBalance),
                 subtitle = stringResource(Res.string.settings_get_more_credits),
                 onClick = { onAction(SettingsUiAction.OnBuyCreditsClicked) }
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-            // Quality section
-            SectionHeader(stringResource(Res.string.settings_quality))
-
-            QualityOption(
-                label = stringResource(Res.string.settings_quality_standard),
-                selected = state.preferredQuality == GenerationQuality.STANDARD,
-                onClick = { onAction(SettingsUiAction.OnQualityChanged(GenerationQuality.STANDARD)) }
-            )
-
-            QualityOption(
-                label = stringResource(Res.string.settings_quality_high),
-                selected = state.preferredQuality == GenerationQuality.HIGH,
-                onClick = { onAction(SettingsUiAction.OnQualityChanged(GenerationQuality.HIGH)) }
             )
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -174,24 +152,3 @@ private fun SettingsRow(
     }
 }
 
-@Composable
-private fun QualityOption(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(selected = selected, onClick = onClick)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
-}
