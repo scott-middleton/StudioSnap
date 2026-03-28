@@ -11,22 +11,25 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 private const val TAG = "AndroidRatingService"
-private const val PACKAGE_ID = "com.middleton.studiosnap"
-
 class AndroidRatingService : RatingService {
     override suspend fun openStoreReviewPage() {
         val context = AndroidContextHolder.context ?: return
+        val packageId = context.packageName
         try {
             context.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$PACKAGE_ID"))
+                Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageId"))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
         } catch (e: ActivityNotFoundException) {
             // Play Store app not installed — fall back to browser
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$PACKAGE_ID"))
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            )
+            try {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageId"))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            } catch (e2: ActivityNotFoundException) {
+                Log.w(TAG, "openStoreReviewPage: no browser available")
+            }
         }
     }
 
