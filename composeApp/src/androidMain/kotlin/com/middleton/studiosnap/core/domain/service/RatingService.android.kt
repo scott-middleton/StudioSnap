@@ -1,5 +1,8 @@
 package com.middleton.studiosnap.core.domain.service
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManagerFactory
@@ -8,8 +11,25 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 private const val TAG = "AndroidRatingService"
+private const val PACKAGE_ID = "com.middleton.studiosnap"
 
 class AndroidRatingService : RatingService {
+    override suspend fun openStoreReviewPage() {
+        val context = AndroidContextHolder.context ?: return
+        try {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$PACKAGE_ID"))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        } catch (e: ActivityNotFoundException) {
+            // Play Store app not installed — fall back to browser
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$PACKAGE_ID"))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }
+    }
+
     override suspend fun requestReview() {
         val activity = AndroidContextHolder.activity ?: run {
             Log.w(TAG, "requestReview: no activity available")
