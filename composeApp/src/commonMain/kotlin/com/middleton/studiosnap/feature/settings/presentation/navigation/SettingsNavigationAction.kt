@@ -13,4 +13,8 @@ sealed class SettingsNavigationAction : NavigationAction {
     data object GoBack : SettingsNavigationAction() {
         override val navigationCommand = NavigationCommand.NavigateBack
     }
+
+    data object GoToSplashAfterSignOut : SettingsNavigationAction() {
+        override val navigationCommand = NavigationCommand.NavigateAndClearStack(Route.Splash)
+    }
 }

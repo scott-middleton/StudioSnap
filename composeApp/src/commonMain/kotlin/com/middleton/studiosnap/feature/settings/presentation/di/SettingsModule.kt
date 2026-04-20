@@ -4,7 +4,7 @@ import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.core.presentation.navigation.SharedNavigationStrategy
 import com.middleton.studiosnap.feature.settings.presentation.navigation.SettingsNavigationAction
 import com.middleton.studiosnap.feature.settings.presentation.viewmodel.SettingsViewModel
-import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val settingsModule = module {
@@ -13,5 +13,13 @@ val settingsModule = module {
         SharedNavigationStrategy(get())
     }
 
-    viewModelOf(::SettingsViewModel)
+    viewModel {
+        SettingsViewModel(
+            creditQueries = get(),
+            authService = get(),
+            analyticsService = get(),
+            ratingService = get(),
+            purchasesIdentifier = get()
+        )
+    }
 }
