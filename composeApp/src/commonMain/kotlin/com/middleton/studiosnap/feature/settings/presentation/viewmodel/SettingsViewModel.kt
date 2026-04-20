@@ -53,6 +53,8 @@ class SettingsViewModel(
             SettingsUiAction.OnSignOutDismissed ->
                 _uiState.update { it.copy(showSignOutConfirmation = false) }
             SettingsUiAction.OnSignOutConfirmed -> signOut()
+            SettingsUiAction.OnSignOutErrorDismissed ->
+                _uiState.update { it.copy(signOutError = null) }
 
             SettingsUiAction.OnDeleteAccountClicked ->
                 _uiState.update { it.copy(showDeleteAccountConfirmation = true) }
@@ -69,15 +71,28 @@ class SettingsViewModel(
     }
 
     private fun signOut() {
+        if (_uiState.value.isSigningOut) return
         viewModelScope.launch {
-            _uiState.update { it.copy(showSignOutConfirmation = false) }
+            _uiState.update { it.copy(showSignOutConfirmation = false, isSigningOut = true) }
             authService.signOut()
-            purchasesIdentifier.clearIdentity()
-            _navigationEvent.value = SettingsNavigationAction.GoToSplashAfterSignOut
+                .onSuccess {
+                    purchasesIdentifier.clearIdentity()
+                    _uiState.update { it.copy(isSigningOut = false) }
+                    _navigationEvent.value = SettingsNavigationAction.GoToSplashAfterSignOut
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isSigningOut = false,
+                            signOutError = error.message ?: "Failed to sign out"
+                        )
+                    }
+                }
         }
     }
 
     private fun deleteAccount() {
+        if (_uiState.value.isDeletingAccount) return
         viewModelScope.launch {
             _uiState.update {
                 it.copy(showDeleteAccountConfirmation = false, isDeletingAccount = true)

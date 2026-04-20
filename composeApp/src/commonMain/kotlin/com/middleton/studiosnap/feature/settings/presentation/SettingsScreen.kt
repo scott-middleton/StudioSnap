@@ -58,6 +58,7 @@ import studiosnap.composeapp.generated.resources.settings_sign_out_confirm
 import studiosnap.composeapp.generated.resources.settings_sign_out_message
 import studiosnap.composeapp.generated.resources.settings_sign_out_title
 import studiosnap.composeapp.generated.resources.settings_support
+import studiosnap.composeapp.generated.resources.settings_ok
 import studiosnap.composeapp.generated.resources.settings_title
 
 @Composable
@@ -183,6 +184,20 @@ fun SettingsScreenContent(
             )
         }
 
+        // Sign out error dialog
+        state.signOutError?.let { error ->
+            AlertDialog(
+                onDismissRequest = { onAction(SettingsUiAction.OnSignOutErrorDismissed) },
+                title = { Text(stringResource(Res.string.settings_sign_out_title)) },
+                text = { Text(error) },
+                confirmButton = {
+                    TextButton(onClick = { onAction(SettingsUiAction.OnSignOutErrorDismissed) }) {
+                        Text(stringResource(Res.string.settings_ok))
+                    }
+                }
+            )
+        }
+
         // Delete account error dialog
         state.deleteAccountError?.let { error ->
             AlertDialog(
@@ -191,14 +206,14 @@ fun SettingsScreenContent(
                 text = { Text(error) },
                 confirmButton = {
                     TextButton(onClick = { onAction(SettingsUiAction.OnDeleteAccountErrorDismissed) }) {
-                        Text("OK")
+                        Text(stringResource(Res.string.settings_ok))
                     }
                 }
             )
         }
 
-        // Loading overlay for delete account
-        if (state.isDeletingAccount) {
+        // Loading overlay for sign out or delete account
+        if (state.isSigningOut || state.isDeletingAccount) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center

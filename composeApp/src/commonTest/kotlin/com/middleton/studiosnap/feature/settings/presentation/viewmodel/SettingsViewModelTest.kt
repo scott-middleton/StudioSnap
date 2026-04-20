@@ -98,6 +98,28 @@ class SettingsViewModelTest : BaseViewModelTest() {
         assertTrue(fakeIdentifier.identityCleared)
     }
 
+    @Test
+    fun `sign out confirmed shows error on failure`() {
+        val failingAuth = FakeAuthService(signedIn = true, signOutFails = true)
+        val vm = createViewModel(authService = failingAuth)
+        vm.handleAction(SettingsUiAction.OnSignOutConfirmed)
+
+        assertNull(vm.navigationEvent.value)
+        assertEquals("Sign out failed", vm.uiState.value.signOutError)
+        assertFalse(vm.uiState.value.isSigningOut)
+    }
+
+    @Test
+    fun `sign out error dismissed clears error`() {
+        val failingAuth = FakeAuthService(signedIn = true, signOutFails = true)
+        val vm = createViewModel(authService = failingAuth)
+        vm.handleAction(SettingsUiAction.OnSignOutConfirmed)
+        assertEquals("Sign out failed", vm.uiState.value.signOutError)
+
+        vm.handleAction(SettingsUiAction.OnSignOutErrorDismissed)
+        assertNull(vm.uiState.value.signOutError)
+    }
+
     // --- Delete Account Tests ---
 
     @Test
@@ -187,12 +209,19 @@ class SettingsViewModelTest : BaseViewModelTest() {
 
     private class FakeAuthService(
         signedIn: Boolean = false,
+        private val signOutFails: Boolean = false,
         private val deleteAccountFails: Boolean = false
     ) : AuthService {
         override val isSignedIn: StateFlow<Boolean> = MutableStateFlow(signedIn)
         override suspend fun awaitInitialized() = isSignedIn.value
         override suspend fun signIn() = Result.success(AuthUser(id = "user_1", email = null, displayName = null, provider = AuthProvider.GOOGLE))
-        override suspend fun signOut() = Result.success(Unit)
+        override suspend fun signOut(): Result<Unit> {
+            return if (signOutFails) {
+                Result.failure(Exception("Sign out failed"))
+            } else {
+                Result.success(Unit)
+            }
+        }
         override suspend fun deleteAccount(): Result<Unit> {
             return if (deleteAccountFails) {
                 Result.failure(Exception("Delete failed"))

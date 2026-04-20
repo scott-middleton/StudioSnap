@@ -10,6 +10,7 @@ sealed interface SettingsUiAction {
     data object OnSignOutClicked : SettingsUiAction
     data object OnSignOutConfirmed : SettingsUiAction
     data object OnSignOutDismissed : SettingsUiAction
+    data object OnSignOutErrorDismissed : SettingsUiAction
     data object OnDeleteAccountClicked : SettingsUiAction
     data object OnDeleteAccountConfirmed : SettingsUiAction
     data object OnDeleteAccountDismissed : SettingsUiAction

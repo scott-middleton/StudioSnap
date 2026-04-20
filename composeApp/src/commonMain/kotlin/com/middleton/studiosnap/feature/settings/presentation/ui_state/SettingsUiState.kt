@@ -5,6 +5,8 @@ data class SettingsUiState(
     val isSignedIn: Boolean = false,
     val appVersion: String = "",
     val showSignOutConfirmation: Boolean = false,
+    val isSigningOut: Boolean = false,
+    val signOutError: String? = null,
     val showDeleteAccountConfirmation: Boolean = false,
     val isDeletingAccount: Boolean = false,
     val deleteAccountError: String? = null

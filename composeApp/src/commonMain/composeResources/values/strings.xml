@@ -154,7 +154,9 @@
     <string name="settings_delete_account_message">This will permanently delete your account and all associated data. This action cannot be undone.</string>
     <string name="settings_delete_account_confirm">Delete</string>
     <string name="settings_delete_account_error">Failed to delete account. Please try again.</string>
+    <string name="settings_sign_out_error">Failed to sign out. Please try again.</string>
     <string name="settings_cancel">Cancel</string>
+    <string name="settings_ok">OK</string>
 
     <!-- Credit Store / Paywall -->
     <string name="paywall_title">Get Credits</string>
