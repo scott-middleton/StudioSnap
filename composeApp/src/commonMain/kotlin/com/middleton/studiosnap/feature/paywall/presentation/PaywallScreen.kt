@@ -357,11 +357,23 @@ private fun BottomCtaSection(
                     .height(56.dp),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = AppColors.PrimaryGreen,
-                    strokeWidth = 2.5.dp
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = AppColors.PrimaryGreen,
+                        strokeWidth = 2.5.dp
+                    )
+                    uiState.purchaseStatusMessage?.let { message ->
+                        Text(
+                            text = message.asString(),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
         } else {
             val buttonText = uiState.selectedPack?.let { pack ->

@@ -5,10 +5,12 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.datetime.Clock
 
 /**
  * Sequentially generates styled images for all photos in a batch.
- * Deducts N credits upfront (one per photo) and refunds one per failure.
+ * Deducts 1 credit per photo with server-side pending deduction tracking.
+ * If generation fails, requests a refund of the most recent pending deduction.
  * Emits progress after each image completes. Does NOT run in parallel —
  * Replicate has rate limits and sequential is simpler for error handling.
  */
@@ -26,19 +28,20 @@ open class GenerateBatchPreviewsUseCase(
         onPhotoProgress: (suspend (photoIndex: Int, progress: Float) -> Unit)? = null
     ): Flow<BatchProgress> = flow {
         val photoCount = config.photos.size
-        creditDeductor.deductCredits(photoCount, DEDUCT_REASON)
-            .getOrElse { throw it }
-
         val results = mutableListOf<GenerationResult>()
         var refundedCredits = 0
 
         config.photos.forEachIndexed { index, photo ->
+            val idempotencyKey = "${config.batchId}-${photo.id}-${Clock.System.now().toEpochMilliseconds()}"
+            creditDeductor.deductGenerationCredit(idempotencyKey)
+                .getOrElse { throw it }
+
             val result = generatePreviewUseCase(photo, config) { progress ->
                 onPhotoProgress?.invoke(index, progress)
             }
 
             if (result is GenerationResult.Failure) {
-                creditDeductor.refundCredits(1, REFUND_REASON)
+                creditDeductor.refundGenerationCredit()
                 refundedCredits++
             }
 
@@ -54,11 +57,6 @@ open class GenerateBatchPreviewsUseCase(
                 )
             )
         }
-    }
-
-    companion object {
-        private const val DEDUCT_REASON = "batch_generation"
-        private const val REFUND_REASON = "generation_failure"
     }
 }
 

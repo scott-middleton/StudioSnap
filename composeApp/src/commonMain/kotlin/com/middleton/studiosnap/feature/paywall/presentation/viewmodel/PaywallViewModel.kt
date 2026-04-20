@@ -2,6 +2,7 @@ package com.middleton.studiosnap.feature.paywall.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.middleton.studiosnap.core.domain.model.PurchaseCancelledException
 import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsParams
@@ -18,7 +19,12 @@ import com.middleton.studiosnap.feature.paywall.presentation.ui_state.PaywallUiS
 import com.middleton.studiosnap.feature.paywall.presentation.ui_state.TokenPack
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.paywall_error_load_offerings
+import studiosnap.composeapp.generated.resources.paywall_error_no_pack_selected
 import studiosnap.composeapp.generated.resources.paywall_error_purchase_failed
+import studiosnap.composeapp.generated.resources.paywall_error_sign_in_failed
+import studiosnap.composeapp.generated.resources.paywall_status_processing_purchase
+import studiosnap.composeapp.generated.resources.paywall_status_setting_up
+import studiosnap.composeapp.generated.resources.paywall_status_signing_in
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -131,49 +137,125 @@ class PaywallViewModel(
         val pack = _uiState.value.selectedPack ?: return
 
         if (!authService.isSignedIn.value) {
-            _uiState.update { it.copy(showSignIn = true, isSignInForPurchase = true, isSigningIn = true) }
+            _uiState.update {
+                it.copy(
+                    showSignIn = true,
+                    isSignInForPurchase = true,
+                    isSigningIn = true,
+                    purchaseStatusMessage = UiText.StringResource(Res.string.paywall_status_signing_in)
+                )
+            }
             return
         }
 
-        executePurchase(pack)
+        // Ensure RevenueCat identity matches current Firebase user before purchasing
+        _uiState.update {
+            it.copy(
+                isPurchasing = true,
+                purchaseStatusMessage = UiText.StringResource(Res.string.paywall_status_setting_up)
+            )
+        }
+        viewModelScope.launch {
+            val identityResult = signInUseCase.execute()
+            if (identityResult.isFailure) {
+                _uiState.update {
+                    it.copy(
+                        isPurchasing = false,
+                        purchaseStatusMessage = null,
+                        error = UiText.StringResource(Res.string.paywall_error_sign_in_failed)
+                    )
+                }
+                return@launch
+            }
+            executePurchase(pack)
+        }
     }
 
     private fun handleSignIn() {
-        _uiState.update { it.copy(showSignIn = true, isSignInForPurchase = false, isSigningIn = true) }
+        _uiState.update {
+            it.copy(
+                showSignIn = true,
+                isSignInForPurchase = false,
+                isSigningIn = true,
+                purchaseStatusMessage = UiText.StringResource(Res.string.paywall_status_signing_in)
+            )
+        }
     }
 
     private fun handleSignInResult(success: Boolean) {
-        _uiState.update { it.copy(showSignIn = false, isSigningIn = false) }
+        _uiState.update { it.copy(showSignIn = false) }
 
-        if (success) {
-            analyticsService.logEvent(AnalyticsEvents.SIGN_IN_COMPLETED)
-            viewModelScope.launch {
-                signInUseCase.execute()
-                creditManager.refreshCredits()
-                val currentCredits = creditManager.credits.value?.amount ?: 0
+        if (!success) {
+            analyticsService.logEvent(AnalyticsEvents.SIGN_IN_FAILED)
+            _uiState.update {
+                it.copy(
+                    isSigningIn = false,
+                    error = UiText.StringResource(Res.string.paywall_error_sign_in_failed),
+                    isSignInForPurchase = false,
+                    purchaseStatusMessage = null
+                )
+            }
+            return
+        }
 
-                if (currentCredits > 0) {
-                    userPreferencesRepository.setHasPurchasedCredits()
+        analyticsService.logEvent(AnalyticsEvents.SIGN_IN_COMPLETED)
+        val isForPurchase = _uiState.value.isSignInForPurchase
+
+        _uiState.update {
+            it.copy(purchaseStatusMessage = UiText.StringResource(Res.string.paywall_status_setting_up))
+        }
+
+        viewModelScope.launch {
+            val signInResult = signInUseCase.execute()
+
+            if (signInResult.isFailure) {
+                _uiState.update {
+                    it.copy(
+                        isSigningIn = false,
+                        isSignInForPurchase = false,
+                        purchaseStatusMessage = null,
+                        error = UiText.StringResource(Res.string.paywall_error_sign_in_failed)
+                    )
                 }
-                _uiState.update { it.copy(currentCredits = currentCredits) }
+                return@launch
+            }
 
-                val isForPurchase = _uiState.value.isSignInForPurchase
-                _uiState.update { it.copy(isSignInForPurchase = false) }
+            creditManager.refreshCredits()
+            val currentCredits = creditManager.credits.value?.amount ?: 0
 
-                if (isForPurchase) {
-                    val pack = _uiState.value.selectedPack
-                    if (pack != null) {
-                        executePurchase(pack)
-                    }
+            if (currentCredits > 0) {
+                userPreferencesRepository.setHasPurchasedCredits()
+                _uiState.update { it.copy(isPostTrial = false, currentCredits = currentCredits) }
+            }
+
+            _uiState.update {
+                it.copy(isSigningIn = false, isSignInForPurchase = false, purchaseStatusMessage = null)
+            }
+
+            if (isForPurchase) {
+                val pack = _uiState.value.selectedPack
+                if (pack != null) {
+                    executePurchase(pack)
                 } else {
-                    _uiState.update { it.copy(signInSuccess = true) }
+                    _uiState.update {
+                        it.copy(error = UiText.StringResource(Res.string.paywall_error_no_pack_selected))
+                    }
                 }
+            } else if (currentCredits > 0) {
+                navigationStrategy.navigate(PaywallNavigationAction.PurchaseComplete)
+            } else {
+                _uiState.update { it.copy(signInSuccess = true) }
             }
         }
     }
 
     private fun executePurchase(pack: TokenPack) {
-        _uiState.update { it.copy(isPurchasing = true) }
+        _uiState.update {
+            it.copy(
+                isPurchasing = true,
+                purchaseStatusMessage = UiText.StringResource(Res.string.paywall_status_processing_purchase)
+            )
+        }
         analyticsService.logEvent(
             AnalyticsEvents.PURCHASE_STARTED,
             mapOf(
@@ -192,18 +274,32 @@ class PaywallViewModel(
                             AnalyticsParams.PACK_CREDITS to pack.grantedCredits.toString()
                         )
                     )
-                    creditManager.refreshCredits()
+
+                    _uiState.update {
+                        it.copy(purchaseStatusMessage = UiText.StringResource(Res.string.paywall_status_setting_up))
+                    }
+
                     userPreferencesRepository.setHasPurchasedCredits()
+                    creditManager.refreshCredits()
+
                     navigationStrategy.navigate(PaywallNavigationAction.PurchaseComplete)
                 },
                 onFailure = { error ->
+                    if (error is PurchaseCancelledException) {
+                        _uiState.update {
+                            it.copy(isPurchasing = false, purchaseStatusMessage = null)
+                        }
+                        return@fold
+                    }
+                    val errorMsg = error.message ?: "unknown"
                     analyticsService.logEvent(
                         AnalyticsEvents.PURCHASE_FAILED,
-                        mapOf(AnalyticsParams.ERROR_TYPE to (error.message ?: "unknown"))
+                        mapOf(AnalyticsParams.ERROR_TYPE to errorMsg)
                     )
                     _uiState.update {
                         it.copy(
                             isPurchasing = false,
+                            purchaseStatusMessage = null,
                             error = UiText.StringResource(Res.string.paywall_error_purchase_failed)
                         )
                     }

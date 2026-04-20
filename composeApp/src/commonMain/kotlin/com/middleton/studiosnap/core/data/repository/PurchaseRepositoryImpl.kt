@@ -2,6 +2,7 @@ package com.middleton.studiosnap.core.data.repository
 
 import com.middleton.studiosnap.core.data.datasource.VirtualCurrencyRemoteDataSource
 import com.middleton.studiosnap.core.data.mapper.toUserCredits
+import com.middleton.studiosnap.core.domain.model.PurchaseCancelledException
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.repository.PurchaseRepository
 import com.middleton.studiosnap.purchases.PurchasesManager
@@ -24,8 +25,9 @@ class PurchaseRepositoryImpl(
                     onSuccess = {
                         continuation.resume(Result.success(Unit))
                     },
-                    onError = { error ->
-                        continuation.resume(Result.failure(error))
+                    onError = { error, userCancelled ->
+                        val failure = if (userCancelled) PurchaseCancelledException() else error
+                        continuation.resume(Result.failure(failure))
                     }
                 )
             }

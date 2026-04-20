@@ -1,6 +1,7 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseAppCheck
+import ComposeApp
 
 class AppCheckProviderFactoryImpl: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? {
@@ -22,6 +23,9 @@ struct iOSApp: App {
         // App Check must be configured before FirebaseApp.configure()
         AppCheck.setAppCheckProviderFactory(AppCheckProviderFactoryImpl())
         FirebaseApp.configure()
+        // Initialize Koin and RevenueCat BEFORE Compose renders
+        InitKoinKt.doInitKoin()
+        PurchasesManager.shared.configure()
     }
 
     var body: some Scene {

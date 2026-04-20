@@ -4,6 +4,7 @@ import com.middleton.studiosnap.core.domain.service.CreditDeductor
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationRepository
+import kotlinx.datetime.Clock
 
 /**
  * Downloads the full-resolution version of a generated image.
@@ -18,8 +19,8 @@ class DownloadFullResUseCase(
 ) {
 
     suspend operator fun invoke(generationId: String): Result<String> {
-        // Deduct credit upfront
-        val deductResult = creditDeductor.deductCredits(DOWNLOAD_CREDIT_COST, "full_res_download")
+        val idempotencyKey = "download-$generationId-${Clock.System.now().toEpochMilliseconds()}"
+        val deductResult = creditDeductor.deductGenerationCredit(idempotencyKey)
         if (deductResult.isFailure) {
             return Result.failure(InsufficientCreditsException())
         }
@@ -29,14 +30,9 @@ class DownloadFullResUseCase(
                 historyRepository.markAsPurchased(generationId, localUri)
             }
             .onFailure { throwable ->
-                // Refund on failure
-                creditDeductor.refundCredits(DOWNLOAD_CREDIT_COST, "download_failed_refund")
+                creditDeductor.refundGenerationCredit()
                 errorReporter.recordException(throwable)
             }
-    }
-
-    companion object {
-        const val DOWNLOAD_CREDIT_COST = 1
     }
 }
 

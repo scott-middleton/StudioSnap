@@ -109,11 +109,11 @@ class DownloadFullResUseCaseTest {
     private class FakeCreditDeductor(private val shouldSucceed: Boolean) : CreditDeductor {
         var refundCalled = false
 
-        override suspend fun deductCredits(amount: Int, reason: String): Result<UserCredits> {
+        override suspend fun deductGenerationCredit(idempotencyKey: String): Result<UserCredits> {
             return if (shouldSucceed) Result.success(UserCredits(10)) else Result.failure(Exception("No credits"))
         }
 
-        override suspend fun refundCredits(amount: Int, reason: String): Result<UserCredits> {
+        override suspend fun refundGenerationCredit(): Result<UserCredits> {
             refundCalled = true
             return Result.success(UserCredits(11))
         }

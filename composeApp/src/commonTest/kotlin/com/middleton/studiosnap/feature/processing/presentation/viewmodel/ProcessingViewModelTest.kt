@@ -312,14 +312,14 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         var deductCalled = 0
         var refundCalled = 0
 
-        override suspend fun deductCredits(amount: Int, reason: String): Result<UserCredits> {
-            deductCalled += amount
+        override suspend fun deductGenerationCredit(idempotencyKey: String): Result<UserCredits> {
+            deductCalled++
             return if (deductShouldFail) Result.failure(RuntimeException("Insufficient credits"))
-            else Result.success(UserCredits(100 - amount))
+            else Result.success(UserCredits(100 - deductCalled))
         }
 
-        override suspend fun refundCredits(amount: Int, reason: String): Result<UserCredits> {
-            refundCalled += amount
+        override suspend fun refundGenerationCredit(): Result<UserCredits> {
+            refundCalled++
             return Result.success(UserCredits(100))
         }
     }

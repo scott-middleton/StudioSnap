@@ -53,15 +53,15 @@ object PurchasesManager {
 
     fun purchase(
         storeProduct: StoreProduct,
-        onError: (Exception) -> Unit = {},
+        onError: (Exception, Boolean) -> Unit = { _, _ -> },
         onSuccess: () -> Unit
     ) {
         Purchases.sharedInstance.purchase(
             storeProduct = storeProduct,
-            onError = { error, _ ->
-                onError(Exception(error.message))
+            onError = { error, userCancelled ->
+                onError(Exception("Purchase error (code=${error.code}): ${error.message}"), userCancelled)
             },
-            onSuccess = { _, customerInfo ->
+            onSuccess = { _, _ ->
                 onSuccess()
             }
         )

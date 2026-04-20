@@ -33,6 +33,7 @@ object AnalyticsEvents {
     const val HISTORY_VIEWED = "history_viewed"
     const val SETTINGS_VIEWED = "settings_viewed"
     const val SIGN_IN_COMPLETED = "sign_in_completed"
+    const val SIGN_IN_FAILED = "sign_in_failed"
 }
 
 object AnalyticsParams {

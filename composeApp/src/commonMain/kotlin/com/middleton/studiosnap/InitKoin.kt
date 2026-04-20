@@ -13,8 +13,8 @@ import com.middleton.studiosnap.feature.processing.presentation.di.processingMod
 import com.middleton.studiosnap.feature.results.presentation.di.resultsModule
 import com.middleton.studiosnap.feature.settings.presentation.di.settingsModule
 import com.middleton.studiosnap.feature.splash.presentation.di.splashModule
-import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
+import org.koin.mp.KoinPlatform
 
 /**
  * Initialises Koin with all app modules.
@@ -24,7 +24,7 @@ import org.koin.core.context.startKoin
  * *before* any Compose content is rendered.
  */
 fun initKoin() {
-    if (GlobalContext.getOrNull() != null) return
+    if (KoinPlatform.getKoinOrNull() != null) return
     startKoin {
         modules(
             platformModule(),

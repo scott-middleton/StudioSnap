@@ -21,4 +21,5 @@ sealed interface HomeUiAction {
     data class OnSignInResult(val success: Boolean) : HomeUiAction
     data object OnErrorDismissed : HomeUiAction
     data object OnNavigationHandled : HomeUiAction
+    data object OnScreenResumed : HomeUiAction
 }

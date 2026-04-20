@@ -17,19 +17,15 @@ interface CloudFunctionDataSource {
 
     suspend fun getPrediction(predictionId: String): Map<String, Any?>
 
-    suspend fun fetchUserCredits(customerId: String): Int
+    suspend fun fetchUserCredits(): Int
 
-    suspend fun deductCredits(
-        customerId: String,
-        amount: Int,
-        idempotencyKey: String
-    ): Int
+    suspend fun deductGenerationCredit(idempotencyKey: String): Int
 
-    suspend fun addCredits(
-        customerId: String,
-        amount: Int,
-        idempotencyKey: String
-    ): Int
+    suspend fun refundGenerationCredit(): Int
+
+    suspend fun checkFreeGenerationUsed(): Boolean
+
+    suspend fun claimFreeGeneration(): Boolean
 }
 
 class FirebaseCloudFunctionDataSource : CloudFunctionDataSource {
@@ -74,47 +70,39 @@ class FirebaseCloudFunctionDataSource : CloudFunctionDataSource {
         return result.dataAsMap("getPrediction")
     }
 
-    override suspend fun fetchUserCredits(customerId: String): Int {
+    override suspend fun fetchUserCredits(): Int {
         val callable = functions.httpsCallable("fetchUserCredits")
-        val result = callable.invoke(
-            mapOf("customerId" to customerId)
-        )
+        val result = callable.invoke(emptyMap<String, Any>())
         val data = result.dataAsMap("fetchUserCredits")
         return (data["balance"] as? Number)?.toInt() ?: 0
     }
 
-    override suspend fun deductCredits(
-        customerId: String,
-        amount: Int,
-        idempotencyKey: String
-    ): Int {
-        val callable = functions.httpsCallable("deductCredits")
-        val result = callable.invoke(
-            mapOf(
-                "customerId" to customerId,
-                "amount" to amount,
-                "idempotencyKey" to idempotencyKey
-            )
-        )
-        val data = result.dataAsMap("deductCredits")
+    override suspend fun deductGenerationCredit(idempotencyKey: String): Int {
+        val callable = functions.httpsCallable("deductGenerationCredit")
+        val result = callable.invoke(mapOf("idempotencyKey" to idempotencyKey))
+        val data = result.dataAsMap("deductGenerationCredit")
         return (data["balance"] as? Number)?.toInt() ?: 0
     }
 
-    override suspend fun addCredits(
-        customerId: String,
-        amount: Int,
-        idempotencyKey: String
-    ): Int {
-        val callable = functions.httpsCallable("addCredits")
-        val result = callable.invoke(
-            mapOf(
-                "customerId" to customerId,
-                "amount" to amount,
-                "idempotencyKey" to idempotencyKey
-            )
-        )
-        val data = result.dataAsMap("addCredits")
+    override suspend fun refundGenerationCredit(): Int {
+        val callable = functions.httpsCallable("refundGenerationCredit")
+        val result = callable.invoke(emptyMap<String, Any>())
+        val data = result.dataAsMap("refundGenerationCredit")
         return (data["balance"] as? Number)?.toInt() ?: 0
+    }
+
+    override suspend fun checkFreeGenerationUsed(): Boolean {
+        val callable = functions.httpsCallable("checkFreeGenerationUsed")
+        val result = callable.invoke(emptyMap<String, Any>())
+        val data = result.dataAsMap("checkFreeGenerationUsed")
+        return data["used"] as? Boolean ?: true
+    }
+
+    override suspend fun claimFreeGeneration(): Boolean {
+        val callable = functions.httpsCallable("claimFreeGeneration")
+        val result = callable.invoke(emptyMap<String, Any>())
+        val data = result.dataAsMap("claimFreeGeneration")
+        return data["claimed"] as? Boolean ?: false
     }
 }
 

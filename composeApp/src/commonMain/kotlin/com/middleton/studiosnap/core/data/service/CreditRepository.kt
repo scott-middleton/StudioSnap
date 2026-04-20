@@ -26,16 +26,16 @@ class CreditRepository(
         return creditManager.refreshCredits()
     }
 
-    override suspend fun deductCredits(amount: Int, reason: String): Result<UserCredits> {
-        return remoteDataSource.deductCredits(amount, reason)
+    override suspend fun deductGenerationCredit(idempotencyKey: String): Result<UserCredits> {
+        return remoteDataSource.deductGenerationCredit(idempotencyKey)
             .map { newBalance -> newBalance.toUserCredits() }
             .onSuccess {
                 creditManager.refreshCredits()
             }
     }
 
-    override suspend fun refundCredits(amount: Int, reason: String): Result<UserCredits> {
-        return remoteDataSource.addCredits(amount, reason)
+    override suspend fun refundGenerationCredit(): Result<UserCredits> {
+        return remoteDataSource.refundGenerationCredit()
             .map { newBalance -> newBalance.toUserCredits() }
             .onSuccess {
                 creditManager.refreshCredits()

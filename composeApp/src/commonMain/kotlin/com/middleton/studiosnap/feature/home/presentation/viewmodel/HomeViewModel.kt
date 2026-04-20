@@ -74,6 +74,16 @@ class HomeViewModel(
             is HomeUiAction.OnCreditBalanceClicked -> navigateTo(HomeNavigationAction.GoToCreditStore)
             is HomeUiAction.OnErrorDismissed -> _uiState.update { it.copy(error = null) }
             is HomeUiAction.OnNavigationHandled -> _navigationEvent.value = null
+            is HomeUiAction.OnScreenResumed -> handleScreenResumed()
+        }
+    }
+
+    private fun handleScreenResumed() {
+        _uiState.update {
+            it.copy(
+                showGalleryPicker = false,
+                showSignIn = false
+            )
         }
     }
 

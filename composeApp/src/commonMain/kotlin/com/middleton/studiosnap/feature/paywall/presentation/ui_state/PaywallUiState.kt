@@ -15,7 +15,8 @@ data class PaywallUiState(
     val isSigningIn: Boolean = false,
     val isSignedIn: Boolean = false,
     val isPostTrial: Boolean = false,
-    val signInSuccess: Boolean = false
+    val signInSuccess: Boolean = false,
+    val purchaseStatusMessage: UiText? = null
 )
 
 data class TokenPack(

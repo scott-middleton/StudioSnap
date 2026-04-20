@@ -54,6 +54,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -152,6 +153,14 @@ fun HomeScreen(
         showSignIn = uiState.showSignIn,
         onResult = { success -> viewModel.handleAction(HomeUiAction.OnSignInResult(success)) }
     )
+
+    // Reset transient states (showGalleryPicker, showSignIn) when returning to this screen
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+            viewModel.handleAction(HomeUiAction.OnScreenResumed)
+        }
+    }
 
     HomeScreenContent(
         state = uiState,

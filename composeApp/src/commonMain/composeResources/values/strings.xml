@@ -164,6 +164,11 @@
     <string name="paywall_already_have_account">Already have an account? Sign in</string>
     <string name="paywall_error_load_offerings">Unable to load credit packs. Please try again.</string>
     <string name="paywall_error_purchase_failed">Purchase failed. Please try again.</string>
+    <string name="paywall_error_sign_in_failed">Sign-in failed. Please try again.</string>
+    <string name="paywall_error_no_pack_selected">Please select a credit pack first.</string>
+    <string name="paywall_status_signing_in">Signing in…</string>
+    <string name="paywall_status_setting_up">Setting up…</string>
+    <string name="paywall_status_processing_purchase">Processing purchase…</string>
     <string name="paywall_sign_in_success">Signed in successfully! Choose a pack to get started.</string>
     <string name="paywall_credits_remaining">%1$d credits remaining</string>
 
