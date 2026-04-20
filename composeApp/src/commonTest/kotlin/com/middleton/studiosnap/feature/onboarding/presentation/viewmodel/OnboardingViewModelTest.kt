@@ -196,13 +196,16 @@ class OnboardingViewModelTest : BaseViewModelTest() {
         override suspend fun setHasCompletedOnboarding() { onboardingCompleted = true }
         override suspend fun hasPurchasedCredits() = false
         override suspend fun setHasPurchasedCredits() {}
+        override fun observeHasUsedFreeGeneration(): Flow<Boolean> = flowOf(false)
+        override suspend fun hasUsedFreeGeneration() = false
+        override suspend fun setHasUsedFreeGeneration() {}
         override suspend fun getFreeDownloadsUsed() = 0
         override suspend fun incrementFreeDownloads() {}
         override suspend fun incrementAndGetPaidDownloads() = 0
         override suspend fun getLastUsedCategoryFilter() = "ALL"
         override suspend fun setLastUsedCategoryFilter(category: String) {}
         override fun observePreferences(): Flow<UserPreferencesSnapshot> = flowOf(
-            UserPreferencesSnapshot(false, false, 0, 0, "ALL")
+            UserPreferencesSnapshot(false, false, false, 0, 0, "ALL")
         )
     }
 

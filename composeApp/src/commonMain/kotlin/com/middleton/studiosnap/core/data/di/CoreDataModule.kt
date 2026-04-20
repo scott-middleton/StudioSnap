@@ -17,6 +17,7 @@ import com.middleton.studiosnap.core.data.repository.PurchaseRepositoryImpl
 import com.middleton.studiosnap.core.data.repository.UserPreferencesRepositoryImpl
 import com.middleton.studiosnap.core.data.service.CreditManagerImpl
 import com.middleton.studiosnap.core.data.service.CreditRepository
+import com.middleton.studiosnap.core.data.service.FreeGenerationGateImpl
 import com.middleton.studiosnap.core.domain.repository.PurchaseRepository
 import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
@@ -24,6 +25,7 @@ import com.middleton.studiosnap.core.domain.service.CreditDeductor
 import com.middleton.studiosnap.core.domain.service.CreditManager
 import com.middleton.studiosnap.core.domain.service.CreditQueries
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
+import com.middleton.studiosnap.core.domain.service.FreeGenerationGate
 import com.middleton.studiosnap.purchases.PurchasesIdentifier
 import com.middleton.studiosnap.purchases.PurchasesIdentifierImpl
 import io.ktor.client.HttpClient
@@ -91,6 +93,13 @@ val coreDataModule = module {
 
     factory<CreditQueries> { get<CreditRepository>() }
     factory<CreditDeductor> { get<CreditRepository>() }
+
+    factory<FreeGenerationGate> {
+        FreeGenerationGateImpl(
+            cloudFunctions = get(),
+            userPreferencesRepository = get()
+        )
+    }
 
     factory<PurchaseRepository> {
         PurchaseRepositoryImpl(

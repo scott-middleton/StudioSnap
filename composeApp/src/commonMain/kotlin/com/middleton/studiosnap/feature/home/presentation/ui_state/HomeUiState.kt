@@ -15,6 +15,8 @@ data class HomeUiState(
     val exportFormat: ExportFormat = ExportFormat.DEFAULT,
     val creditLoadingState: UserCreditLoadingState = UserCreditLoadingState.LoggedOut,
     val showSignIn: Boolean = false,
+    val pendingFreeGeneration: Boolean = false,
+    val hasUsedFreeGeneration: Boolean = false,
     val recentGenerations: List<HistoryItem> = emptyList(),
     val error: HomeError? = null
 ) {
@@ -33,8 +35,15 @@ data class HomeUiState(
         get() = creditLoadingState is UserCreditLoadingState.Loaded &&
                 (creditLoadingState as UserCreditLoadingState.Loaded).credits.amount >= generationCost
 
+    val isFreeTrialMode: Boolean
+        get() = !hasUsedFreeGeneration && when (creditLoadingState) {
+            UserCreditLoadingState.LoggedOut -> true
+            is UserCreditLoadingState.Loaded -> !canAffordGeneration
+            UserCreditLoadingState.Loading, UserCreditLoadingState.Error -> false
+        }
+
     val canGenerate: Boolean
-        get() = photos.isNotEmpty() && selectedStyle != null && isSignedIn && canAffordGeneration
+        get() = photos.isNotEmpty() && selectedStyle != null && (isFreeTrialMode || (isSignedIn && canAffordGeneration))
 
     val hasPhotos: Boolean
         get() = photos.isNotEmpty()

@@ -47,7 +47,8 @@ val homeModule = module {
             observeCreditStateUseCase = get(),
             generationConfigHolder = get(),
             analyticsService = get(),
-            historyRepository = get<HistoryRepository>()
+            historyRepository = get<HistoryRepository>(),
+            userPreferencesRepository = get()
         )
     }
     viewModelOf(::StylePickerViewModel)

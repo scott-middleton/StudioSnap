@@ -47,6 +47,22 @@ class UserPreferencesRepositoryImpl(
         dao.setHasPurchasedCredits()
     }
 
+    override fun observeHasUsedFreeGeneration(): Flow<Boolean> {
+        return dao.observePreferences().map { entity ->
+            entity?.hasUsedFreeGeneration ?: false
+        }
+    }
+
+    override suspend fun hasUsedFreeGeneration(): Boolean {
+        ensureExists()
+        return dao.getPreferences()?.hasUsedFreeGeneration ?: false
+    }
+
+    override suspend fun setHasUsedFreeGeneration() {
+        ensureExists()
+        dao.setHasUsedFreeGeneration()
+    }
+
     override suspend fun getFreeDownloadsUsed(): Int {
         ensureExists()
         return dao.getPreferences()?.freeDownloadsUsed ?: 0
@@ -78,6 +94,7 @@ class UserPreferencesRepositoryImpl(
             UserPreferencesSnapshot(
                 hasCompletedOnboarding = prefs.hasCompletedOnboarding,
                 hasPurchasedCredits = prefs.hasPurchasedCredits,
+                hasUsedFreeGeneration = prefs.hasUsedFreeGeneration,
                 freeDownloadsUsed = prefs.freeDownloadsUsed,
                 totalPaidDownloads = prefs.totalPaidDownloads,
                 lastUsedCategoryFilter = prefs.lastUsedCategoryFilter

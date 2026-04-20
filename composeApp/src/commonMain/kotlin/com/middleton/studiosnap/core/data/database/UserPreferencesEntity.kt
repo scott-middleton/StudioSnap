@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.core.data.database
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -9,6 +10,8 @@ data class UserPreferencesEntity(
     val id: Int = 1,
     val hasCompletedOnboarding: Boolean = false,
     val hasPurchasedCredits: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    val hasUsedFreeGeneration: Boolean = false,
     val freeDownloadsUsed: Int = 0,
     val totalPaidDownloads: Int = 0,
     val preferredQuality: String = "HIGH",

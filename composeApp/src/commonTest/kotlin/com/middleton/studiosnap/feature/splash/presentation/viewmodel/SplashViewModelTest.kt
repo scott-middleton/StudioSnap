@@ -8,6 +8,7 @@ import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditManager
+import com.middleton.studiosnap.core.domain.service.FreeGenerationGate
 import com.middleton.studiosnap.feature.splash.presentation.navigation.SplashNavigationAction
 import com.middleton.studiosnap.purchases.PurchasesIdentifier
 import kotlinx.coroutines.Dispatchers
@@ -81,7 +82,8 @@ class SplashViewModelTest {
             creditManager = creditManager,
             userPreferencesRepository = FakeUserPreferencesRepository(hasCompletedOnboarding),
             purchasesIdentifier = FakePurchasesIdentifier(),
-            analyticsService = FakeAnalyticsService()
+            analyticsService = FakeAnalyticsService(),
+            freeGenerationGate = FakeFreeGenerationGate()
         )
     }
 
@@ -116,14 +118,22 @@ class SplashViewModelTest {
         override suspend fun setHasCompletedOnboarding() {}
         override suspend fun hasPurchasedCredits() = false
         override suspend fun setHasPurchasedCredits() {}
+        override fun observeHasUsedFreeGeneration(): Flow<Boolean> = flowOf(false)
+        override suspend fun hasUsedFreeGeneration() = false
+        override suspend fun setHasUsedFreeGeneration() {}
         override suspend fun getFreeDownloadsUsed() = 0
         override suspend fun incrementFreeDownloads() {}
         override suspend fun incrementAndGetPaidDownloads() = 0
         override suspend fun getLastUsedCategoryFilter() = "ALL"
         override suspend fun setLastUsedCategoryFilter(category: String) {}
         override fun observePreferences(): Flow<UserPreferencesSnapshot> = flowOf(
-            UserPreferencesSnapshot(onboardingCompleted, false, 0, 0, "ALL")
+            UserPreferencesSnapshot(onboardingCompleted, false, false, 0, 0, "ALL")
         )
+    }
+
+    private class FakeFreeGenerationGate : FreeGenerationGate {
+        override suspend fun checkFreeGenerationUsed() = false
+        override suspend fun claimFreeGeneration() = true
     }
 
     private class FakePurchasesIdentifier : PurchasesIdentifier {

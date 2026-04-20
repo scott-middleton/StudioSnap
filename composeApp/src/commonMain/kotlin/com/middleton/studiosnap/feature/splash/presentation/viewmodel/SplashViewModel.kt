@@ -7,6 +7,7 @@ import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditManager
+import com.middleton.studiosnap.core.domain.service.FreeGenerationGate
 import com.middleton.studiosnap.feature.splash.presentation.navigation.SplashNavigationAction
 import com.middleton.studiosnap.purchases.PurchasesIdentifier
 import kotlinx.coroutines.async
@@ -21,7 +22,8 @@ class SplashViewModel(
     private val creditManager: CreditManager,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val purchasesIdentifier: PurchasesIdentifier,
-    private val analyticsService: AnalyticsService
+    private val analyticsService: AnalyticsService,
+    private val freeGenerationGate: FreeGenerationGate
 ) : ViewModel() {
 
     private val _navigationEvent = MutableStateFlow<SplashNavigationAction?>(null)
@@ -35,6 +37,7 @@ class SplashViewModel(
         viewModelScope.launch {
             val minimumDelayJob = async { delay(MIN_SPLASH_DURATION_MS) }
             initializeUserSession()
+            syncFreeTrialState()
             val hasCompletedOnboarding = userPreferencesRepository.hasCompletedOnboarding()
             minimumDelayJob.await()
 
@@ -60,6 +63,30 @@ class SplashViewModel(
             }
         }
         return isSignedIn
+    }
+
+    // Syncs the server-side free trial state into local SQLite.
+    // If local SQLite was cleared (reinstall), this restores the flag so the UI is correct.
+    // Also marks free trial as used if the user has credits — they're past the free trial.
+    private suspend fun syncFreeTrialState() {
+        try {
+            if (userPreferencesRepository.hasUsedFreeGeneration()) return
+
+            // A signed-in user with credits has already moved past the free trial.
+            // Credits are loaded by initializeUserSession() before this is called.
+            val hasCredits = creditManager.credits.value?.amount?.let { it > 0 } == true
+            if (hasCredits) {
+                userPreferencesRepository.setHasUsedFreeGeneration()
+                return
+            }
+
+            val usedOnServer = freeGenerationGate.checkFreeGenerationUsed()
+            if (usedOnServer) {
+                userPreferencesRepository.setHasUsedFreeGeneration()
+            }
+        } catch (_: Exception) {
+            // Non-critical — worst case user sees free trial UI but server will gate the actual claim
+        }
     }
 
     companion object {

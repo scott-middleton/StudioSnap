@@ -1,9 +1,18 @@
 package com.middleton.studiosnap.feature.splash.presentation.di
 
 import com.middleton.studiosnap.feature.splash.presentation.viewmodel.SplashViewModel
-import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val splashModule = module {
-    viewModelOf(::SplashViewModel)
+    viewModel {
+        SplashViewModel(
+            authService = get(),
+            creditManager = get(),
+            userPreferencesRepository = get(),
+            purchasesIdentifier = get(),
+            analyticsService = get(),
+            freeGenerationGate = get()
+        )
+    }
 }

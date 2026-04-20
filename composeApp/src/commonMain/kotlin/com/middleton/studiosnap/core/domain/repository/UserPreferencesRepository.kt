@@ -7,6 +7,9 @@ interface UserPreferencesRepository {
     suspend fun setHasCompletedOnboarding()
     suspend fun hasPurchasedCredits(): Boolean
     suspend fun setHasPurchasedCredits()
+    fun observeHasUsedFreeGeneration(): Flow<Boolean>
+    suspend fun hasUsedFreeGeneration(): Boolean
+    suspend fun setHasUsedFreeGeneration()
     suspend fun getFreeDownloadsUsed(): Int
     suspend fun incrementFreeDownloads()
     suspend fun incrementAndGetPaidDownloads(): Int
@@ -18,6 +21,7 @@ interface UserPreferencesRepository {
 data class UserPreferencesSnapshot(
     val hasCompletedOnboarding: Boolean,
     val hasPurchasedCredits: Boolean,
+    val hasUsedFreeGeneration: Boolean,
     val freeDownloadsUsed: Int,
     val totalPaidDownloads: Int,
     val lastUsedCategoryFilter: String

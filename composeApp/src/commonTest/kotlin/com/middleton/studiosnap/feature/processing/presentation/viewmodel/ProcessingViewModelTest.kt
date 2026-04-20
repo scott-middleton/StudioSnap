@@ -5,6 +5,9 @@ import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.CreditDeductor
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
+import com.middleton.studiosnap.core.domain.service.FreeGenerationGate
+import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
+import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.FakeAnalyticsService
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
@@ -161,7 +164,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val errorReporter = FakeErrorReporter()
         val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
         val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeFreeGenerationGate(), FakeUserPreferencesRepository())
         ProcessingViewModel(
             generationConfigHolder = FakeGenerationConfigHolder(twoPhotoConfig),
             generationResultsHolder = FakeGenerationResultsHolder(),
@@ -180,7 +183,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
         val repo = FakeGenerationRepository(failOnIndex = 1)
         val generatePreview = GeneratePreviewUseCase(repo, FakeHistoryRepository(), errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeFreeGenerationGate(), FakeUserPreferencesRepository())
         val resultsHolder = FakeGenerationResultsHolder()
         ProcessingViewModel(
             generationConfigHolder = FakeGenerationConfigHolder(twoPhotoConfig),
@@ -199,7 +202,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val failingDeductor = FakeCreditDeductor(deductShouldFail = true)
         val errorReporter = FakeErrorReporter()
         val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor, FakeFreeGenerationGate(), FakeUserPreferencesRepository())
         val vm = createViewModelWithBatchUseCase(batchUseCase = batchUseCase)
 
         assertIs<ProcessingUiState.Error>(vm.uiState.value)
@@ -266,7 +269,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val configHolder = FakeGenerationConfigHolder(config)
         val errorReporter = FakeErrorReporter()
         val generatePreview = GeneratePreviewUseCase(generationRepo, historyRepo, errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, FakeCreditDeductor())
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, FakeCreditDeductor(), FakeFreeGenerationGate(), FakeUserPreferencesRepository())
 
         return ProcessingViewModel(
             generationConfigHolder = configHolder,
@@ -282,7 +285,9 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         resultsHolder: GenerationResultsHolder = FakeGenerationResultsHolder(),
         batchUseCase: GenerateBatchPreviewsUseCase = GenerateBatchPreviewsUseCase(
             GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter()),
-            FakeCreditDeductor()
+            FakeCreditDeductor(),
+            FakeFreeGenerationGate(),
+            FakeUserPreferencesRepository()
         ),
         analyticsService: AnalyticsService = FakeAnalyticsService()
     ): ProcessingViewModel {
@@ -408,7 +413,9 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         GeneratePreviewUseCase(
             FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter()
         ),
-        FakeCreditDeductor()
+        FakeCreditDeductor(),
+        FakeFreeGenerationGate(),
+        FakeUserPreferencesRepository()
     ) {
         override fun invoke(
             config: GenerationConfig,
@@ -416,5 +423,28 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         ): Flow<BatchProgress> = flow {
             throw exception
         }
+    }
+
+    private class FakeFreeGenerationGate : FreeGenerationGate {
+        override suspend fun checkFreeGenerationUsed() = false
+        override suspend fun claimFreeGeneration() = true
+    }
+
+    private class FakeUserPreferencesRepository : UserPreferencesRepository {
+        override suspend fun hasCompletedOnboarding() = true
+        override suspend fun setHasCompletedOnboarding() {}
+        override suspend fun hasPurchasedCredits() = false
+        override suspend fun setHasPurchasedCredits() {}
+        override fun observeHasUsedFreeGeneration(): Flow<Boolean> = flowOf(false)
+        override suspend fun hasUsedFreeGeneration() = false
+        override suspend fun setHasUsedFreeGeneration() {}
+        override suspend fun getFreeDownloadsUsed() = 0
+        override suspend fun incrementFreeDownloads() {}
+        override suspend fun incrementAndGetPaidDownloads() = 0
+        override suspend fun getLastUsedCategoryFilter() = "ALL"
+        override suspend fun setLastUsedCategoryFilter(category: String) {}
+        override fun observePreferences(): Flow<UserPreferencesSnapshot> = flowOf(
+            UserPreferencesSnapshot(true, false, false, 0, 0, "ALL")
+        )
     }
 }

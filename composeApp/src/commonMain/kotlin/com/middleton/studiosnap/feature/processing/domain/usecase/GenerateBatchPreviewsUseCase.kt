@@ -1,11 +1,15 @@
 package com.middleton.studiosnap.feature.processing.domain.usecase
 
+import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
 import com.middleton.studiosnap.core.domain.service.CreditDeductor
+import com.middleton.studiosnap.core.domain.service.FreeGenerationGate
 import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.datetime.Clock
+
+class FreeTrialAlreadyUsedException : Exception("Free trial has already been used")
 
 /**
  * Sequentially generates styled images for all photos in a batch.
@@ -16,7 +20,9 @@ import kotlinx.datetime.Clock
  */
 open class GenerateBatchPreviewsUseCase(
     private val generatePreviewUseCase: GeneratePreviewUseCase,
-    private val creditDeductor: CreditDeductor
+    private val creditDeductor: CreditDeductor,
+    private val freeGenerationGate: FreeGenerationGate,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) {
 
     /**
@@ -31,16 +37,25 @@ open class GenerateBatchPreviewsUseCase(
         val results = mutableListOf<GenerationResult>()
         var refundedCredits = 0
 
+        if (config.isFreeGeneration) {
+            val claimed = freeGenerationGate.claimFreeGeneration()
+            if (!claimed) {
+                throw FreeTrialAlreadyUsedException()
+            }
+        }
+
         config.photos.forEachIndexed { index, photo ->
-            val idempotencyKey = "${config.batchId}-${photo.id}-${Clock.System.now().toEpochMilliseconds()}"
-            creditDeductor.deductGenerationCredit(idempotencyKey)
-                .getOrElse { throw it }
+            if (!config.isFreeGeneration) {
+                val idempotencyKey = "${config.batchId}-${photo.id}-${Clock.System.now().toEpochMilliseconds()}"
+                creditDeductor.deductGenerationCredit(idempotencyKey)
+                    .getOrElse { throw it }
+            }
 
             val result = generatePreviewUseCase(photo, config) { progress ->
                 onPhotoProgress?.invoke(index, progress)
             }
 
-            if (result is GenerationResult.Failure) {
+            if (result is GenerationResult.Failure && !config.isFreeGeneration) {
                 creditDeductor.refundGenerationCredit()
                 refundedCredits++
             }
@@ -56,6 +71,10 @@ open class GenerateBatchPreviewsUseCase(
                     refundedCredits = refundedCredits
                 )
             )
+        }
+
+        if (config.isFreeGeneration) {
+            userPreferencesRepository.setHasUsedFreeGeneration()
         }
     }
 }

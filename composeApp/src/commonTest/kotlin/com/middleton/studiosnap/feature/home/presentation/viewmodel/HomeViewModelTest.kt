@@ -6,6 +6,8 @@ import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditManager
+import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
+import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
 import com.middleton.studiosnap.core.domain.usecase.ObserveCreditStateUseCase
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
 import com.middleton.studiosnap.feature.history.domain.model.HistorySession
@@ -71,7 +73,8 @@ class HomeViewModelTest : BaseViewModelTest() {
             observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
             generationConfigHolder = configHolder,
             analyticsService = FakeAnalyticsService(),
-            historyRepository = FakeHistoryRepository(historyItems)
+            historyRepository = FakeHistoryRepository(historyItems),
+            userPreferencesRepository = FakeUserPreferencesRepository()
         )
     }
 
@@ -315,7 +318,8 @@ class HomeViewModelTest : BaseViewModelTest() {
             observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
-            historyRepository = FakeHistoryRepository()
+            historyRepository = FakeHistoryRepository(),
+            userPreferencesRepository = FakeUserPreferencesRepository()
         )
         // Signed in, but credits failed to load
         assertTrue(viewModel.uiState.value.isSignedIn)
@@ -333,7 +337,8 @@ class HomeViewModelTest : BaseViewModelTest() {
             observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
-            historyRepository = FakeHistoryRepository()
+            historyRepository = FakeHistoryRepository(),
+            userPreferencesRepository = FakeUserPreferencesRepository()
         )
 
         // Initially logged out
@@ -357,7 +362,8 @@ class HomeViewModelTest : BaseViewModelTest() {
             observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
-            historyRepository = FakeHistoryRepository()
+            historyRepository = FakeHistoryRepository(),
+            userPreferencesRepository = FakeUserPreferencesRepository()
         )
 
         authService.setSignedIn(true)
@@ -442,5 +448,25 @@ class HomeViewModelTest : BaseViewModelTest() {
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
         override suspend fun updateSessionLabel(sessionId: String, label: String) {}
         override suspend fun deleteSession(sessionId: String) {}
+    }
+
+    private class FakeUserPreferencesRepository(
+        private val hasUsedFreeGen: Boolean = true
+    ) : UserPreferencesRepository {
+        override suspend fun hasCompletedOnboarding() = true
+        override suspend fun setHasCompletedOnboarding() {}
+        override suspend fun hasPurchasedCredits() = false
+        override suspend fun setHasPurchasedCredits() {}
+        override fun observeHasUsedFreeGeneration(): Flow<Boolean> = flowOf(hasUsedFreeGen)
+        override suspend fun hasUsedFreeGeneration() = hasUsedFreeGen
+        override suspend fun setHasUsedFreeGeneration() {}
+        override suspend fun getFreeDownloadsUsed() = 0
+        override suspend fun incrementFreeDownloads() {}
+        override suspend fun incrementAndGetPaidDownloads() = 0
+        override suspend fun getLastUsedCategoryFilter() = "ALL"
+        override suspend fun setLastUsedCategoryFilter(category: String) {}
+        override fun observePreferences(): Flow<UserPreferencesSnapshot> = flowOf(
+            UserPreferencesSnapshot(true, false, hasUsedFreeGen, 0, 0, "ALL")
+        )
     }
 }

@@ -2,6 +2,7 @@ package com.middleton.studiosnap.feature.home.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.usecase.ObserveCreditStateUseCase
@@ -9,6 +10,7 @@ import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
+import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
 import com.middleton.studiosnap.core.presentation.util.asDisplayString
 import com.middleton.studiosnap.core.presentation.state.UserCreditLoadingState
@@ -35,7 +37,8 @@ class HomeViewModel(
     private val observeCreditStateUseCase: ObserveCreditStateUseCase,
     private val generationConfigHolder: GenerationConfigHolder,
     private val analyticsService: AnalyticsService,
-    private val historyRepository: HistoryRepository
+    private val historyRepository: HistoryRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -47,6 +50,7 @@ class HomeViewModel(
     init {
         observeCreditState()
         observeRecentGenerations()
+        observeFreeTrialState()
     }
 
     fun handleAction(action: HomeUiAction) {
@@ -91,6 +95,14 @@ class HomeViewModel(
         observeCreditStateUseCase()
             .onEach { creditState ->
                 _uiState.update { it.copy(creditLoadingState = creditState) }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun observeFreeTrialState() {
+        userPreferencesRepository.observeHasUsedFreeGeneration()
+            .onEach { hasUsed ->
+                _uiState.update { it.copy(hasUsedFreeGeneration = hasUsed) }
             }
             .launchIn(viewModelScope)
     }
@@ -176,9 +188,20 @@ class HomeViewModel(
     @OptIn(ExperimentalUuidApi::class)
     private fun onGenerateClicked() {
         val state = _uiState.value
+        val style = state.selectedStyle ?: return
+        if (state.photos.isEmpty()) return
+
+        if (state.isFreeTrialMode) {
+            if (!state.isSignedIn) {
+                _uiState.update { it.copy(showSignIn = true, pendingFreeGeneration = true) }
+                return
+            }
+            startGeneration(state, style, isFreeGeneration = true)
+            return
+        }
 
         if (!state.isSignedIn) {
-            _uiState.update { it.copy(showSignIn = true) }
+            _uiState.update { it.copy(showSignIn = true, pendingFreeGeneration = false) }
             return
         }
 
@@ -187,9 +210,11 @@ class HomeViewModel(
             return
         }
 
-        val style = state.selectedStyle ?: return
-        if (state.photos.isEmpty()) return
+        startGeneration(state, style, isFreeGeneration = false)
+    }
 
+    @OptIn(ExperimentalUuidApi::class)
+    private fun startGeneration(state: HomeUiState, style: Style, isFreeGeneration: Boolean) {
         val config = GenerationConfig(
             photos = state.photos,
             style = style,
@@ -197,7 +222,8 @@ class HomeViewModel(
             reflection = state.reflection,
             exportFormat = state.exportFormat,
             quality = GenerationQuality.DEFAULT,
-            batchId = Uuid.random().toString()
+            batchId = Uuid.random().toString(),
+            isFreeGeneration = isFreeGeneration
         )
 
         generationConfigHolder.currentConfig = config
@@ -208,7 +234,8 @@ class HomeViewModel(
                 "photo_count" to state.photos.size.toString(),
                 "export_format" to state.exportFormat.name,
                 "shadow" to state.shadow.toString(),
-                "reflection" to state.reflection.toString()
+                "reflection" to state.reflection.toString(),
+                "is_free" to isFreeGeneration.toString()
             )
         )
 
@@ -216,8 +243,12 @@ class HomeViewModel(
     }
 
     private fun onSignInResult(success: Boolean) {
-        _uiState.update { it.copy(showSignIn = false) }
-        // Auth state observer (ObserveCreditStateUseCase) picks up sign-in automatically
+        val wasPendingFreeGeneration = _uiState.value.pendingFreeGeneration
+        _uiState.update { it.copy(showSignIn = false, pendingFreeGeneration = false) }
+
+        if (success && wasPendingFreeGeneration) {
+            onGenerateClicked()
+        }
     }
 
     private fun navigateTo(action: HomeNavigationAction) {
