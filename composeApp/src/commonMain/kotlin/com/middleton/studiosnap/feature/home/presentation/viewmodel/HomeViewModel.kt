@@ -75,7 +75,7 @@ class HomeViewModel(
             is HomeUiAction.OnHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
             is HomeUiAction.OnViewAllHistoryClicked -> navigateTo(HomeNavigationAction.GoToHistory)
             is HomeUiAction.OnRecentGenerationClicked -> navigateTo(HomeNavigationAction.GoToHistory)
-            is HomeUiAction.OnCreditBalanceClicked -> navigateTo(HomeNavigationAction.GoToCreditStore)
+            is HomeUiAction.OnCreditBalanceClicked -> onCreditBalanceClicked()
             is HomeUiAction.OnErrorDismissed -> _uiState.update { it.copy(error = null) }
             is HomeUiAction.OnNavigationHandled -> _navigationEvent.value = null
             is HomeUiAction.OnScreenResumed -> handleScreenResumed()
@@ -86,8 +86,17 @@ class HomeViewModel(
         _uiState.update {
             it.copy(
                 showGalleryPicker = false,
-                showSignIn = false
+                showSignIn = false,
+                isSigningIn = false
             )
+        }
+    }
+
+    private fun onCreditBalanceClicked() {
+        if (!_uiState.value.isSignedIn) {
+            _uiState.update { it.copy(showSignIn = true, isSigningIn = true, pendingFreeGeneration = false) }
+        } else {
+            navigateTo(HomeNavigationAction.GoToCreditStore)
         }
     }
 
@@ -188,20 +197,18 @@ class HomeViewModel(
     @OptIn(ExperimentalUuidApi::class)
     private fun onGenerateClicked() {
         val state = _uiState.value
+
+        // Sign-in takes priority - user should sign in first
+        if (!state.isSignedIn) {
+            _uiState.update { it.copy(showSignIn = true, isSigningIn = true, pendingFreeGeneration = state.isFreeTrialMode) }
+            return
+        }
+
         val style = state.selectedStyle ?: return
         if (state.photos.isEmpty()) return
 
         if (state.isFreeTrialMode) {
-            if (!state.isSignedIn) {
-                _uiState.update { it.copy(showSignIn = true, pendingFreeGeneration = true) }
-                return
-            }
             startGeneration(state, style, isFreeGeneration = true)
-            return
-        }
-
-        if (!state.isSignedIn) {
-            _uiState.update { it.copy(showSignIn = true, pendingFreeGeneration = false) }
             return
         }
 
@@ -244,7 +251,7 @@ class HomeViewModel(
 
     private fun onSignInResult(success: Boolean) {
         val wasPendingFreeGeneration = _uiState.value.pendingFreeGeneration
-        _uiState.update { it.copy(showSignIn = false, pendingFreeGeneration = false) }
+        _uiState.update { it.copy(showSignIn = false, isSigningIn = false, pendingFreeGeneration = false) }
 
         if (success && wasPendingFreeGeneration) {
             onGenerateClicked()

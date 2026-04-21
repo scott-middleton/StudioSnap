@@ -1,6 +1,7 @@
 package com.middleton.studiosnap.core.data.auth
 
 import android.content.Context
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
@@ -37,11 +38,25 @@ actual class NativeAuthProvider(
             .build()
 
         try {
+            if (BuildKonfig.IS_DEBUG) {
+                Log.d("NativeAuthProvider", "Requesting credential")
+            }
             val result = credentialManager.getCredential(activity, request)
             val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
+            if (BuildKonfig.IS_DEBUG) {
+                Log.d("NativeAuthProvider", "Got credential successfully")
+            }
             return GoogleAuthProvider.credential(googleIdTokenCredential.idToken, null)
         } catch (e: GetCredentialCancellationException) {
+            if (BuildKonfig.IS_DEBUG) {
+                Log.w("NativeAuthProvider", "Sign-in cancelled by user", e)
+            }
             throw Exception("Sign-in cancelled by user", e)
+        } catch (e: Exception) {
+            if (BuildKonfig.IS_DEBUG) {
+                Log.e("NativeAuthProvider", "Sign-in failed: ${e.javaClass.simpleName} - ${e.message}", e)
+            }
+            throw e
         }
     }
 }

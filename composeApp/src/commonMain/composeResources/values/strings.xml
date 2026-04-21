@@ -56,6 +56,8 @@
     <string name="home_export_vinted">Vinted Portrait</string>
     <string name="home_export_original">Original</string>
     <string name="home_generate_preview">Generate (%1$d credits)</string>
+    <string name="home_sign_in">Sign In</string>
+    <string name="home_signing_in">Signing In…</string>
     <string name="home_sign_in_to_generate">Sign In to Generate</string>
     <string name="home_get_credits">Get Credits (%1$d needed)</string>
     <string name="home_loading_credits">Loading…</string>

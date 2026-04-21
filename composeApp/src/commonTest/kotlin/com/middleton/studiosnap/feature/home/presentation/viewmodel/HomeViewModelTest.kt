@@ -219,10 +219,19 @@ class HomeViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `credit balance click navigates to store`() {
-        val viewModel = createViewModel()
+    fun `credit balance click navigates to store when signed in`() {
+        val viewModel = createViewModel(isSignedIn = true)
         viewModel.handleAction(HomeUiAction.OnCreditBalanceClicked)
         assertTrue(viewModel.navigationEvent.value is HomeNavigationAction.GoToCreditStore)
+    }
+
+    @Test
+    fun `credit balance click triggers sign in when logged out`() {
+        val viewModel = createViewModel(isSignedIn = false)
+        viewModel.handleAction(HomeUiAction.OnCreditBalanceClicked)
+        assertTrue(viewModel.uiState.value.showSignIn)
+        assertTrue(viewModel.uiState.value.isSigningIn)
+        assertNull(viewModel.navigationEvent.value)
     }
 
     @Test

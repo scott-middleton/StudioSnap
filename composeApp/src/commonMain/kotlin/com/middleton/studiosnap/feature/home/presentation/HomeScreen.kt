@@ -29,6 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -112,6 +114,8 @@ import studiosnap.composeapp.generated.resources.home_export_vinted
 import studiosnap.composeapp.generated.resources.home_generate_preview
 import studiosnap.composeapp.generated.resources.home_get_credits
 import studiosnap.composeapp.generated.resources.home_loading_credits
+import studiosnap.composeapp.generated.resources.home_sign_in
+import studiosnap.composeapp.generated.resources.home_signing_in
 import studiosnap.composeapp.generated.resources.home_sign_in_to_generate
 import studiosnap.composeapp.generated.resources.home_photos_header
 import studiosnap.composeapp.generated.resources.home_remove_photo
@@ -204,6 +208,8 @@ fun HomeScreenContent(
                     },
                     actions = {
                         CreditBalancePill(
+                            isSignedIn = state.isSignedIn,
+                            isSigningIn = state.isSigningIn,
                             balance = state.creditBalance,
                             onClick = { onAction(HomeUiAction.OnCreditBalanceClicked) }
                         )
@@ -343,6 +349,8 @@ private fun NavIconButton(
 
 @Composable
 private fun CreditBalancePill(
+    isSignedIn: Boolean,
+    isSigningIn: Boolean,
     balance: Int,
     onClick: () -> Unit
 ) {
@@ -358,18 +366,41 @@ private fun CreditBalancePill(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_diamond),
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = Color.White
-            )
-            Text(
-                text = "$balance",
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            if (isSignedIn) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_diamond),
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = Color.White
+                )
+                Text(
+                    text = "$balance",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            } else {
+                if (isSigningIn) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(14.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = Color.White
+                    )
+                }
+                Text(
+                    text = stringResource(Res.string.home_sign_in),
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }
@@ -935,6 +966,7 @@ private fun GenerateBottomBar(
     onGenerate: () -> Unit
 ) {
     val buttonLabel = when {
+        state.isSigningIn -> stringResource(Res.string.home_signing_in)
         !state.isSignedIn -> stringResource(Res.string.home_sign_in_to_generate)
         state.isLoadingCredits -> stringResource(Res.string.home_loading_credits)
         !state.canAffordGeneration && state.hasPhotos ->
@@ -942,8 +974,8 @@ private fun GenerateBottomBar(
         else -> stringResource(Res.string.home_generate_preview, state.generationCost)
     }
 
-    // Button is always tappable (signs in, buys credits, or generates) unless loading credits
-    val isActionable = !state.isLoadingCredits
+    // Button is always tappable (signs in, buys credits, or generates) unless loading credits or signing in
+    val isActionable = !state.isLoadingCredits && !state.isSigningIn
     val containerColor = when {
         !state.isSignedIn -> AppColors.PrimaryGreen
         !state.canAffordGeneration && state.hasPhotos -> MaterialTheme.colorScheme.tertiary
@@ -970,8 +1002,8 @@ private fun GenerateBottomBar(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = containerColor,
                     contentColor = Color.White,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    disabledContainerColor = if (state.isSigningIn) containerColor else MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContentColor = if (state.isSigningIn) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 elevation = if (isActionable) {
                     ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
@@ -979,11 +1011,19 @@ private fun GenerateBottomBar(
                     ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                 }
             ) {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_bolt),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
+                if (state.isSigningIn) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_bolt),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = buttonLabel,

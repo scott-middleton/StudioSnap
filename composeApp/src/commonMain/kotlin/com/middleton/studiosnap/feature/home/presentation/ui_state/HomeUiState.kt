@@ -15,6 +15,7 @@ data class HomeUiState(
     val exportFormat: ExportFormat = ExportFormat.DEFAULT,
     val creditLoadingState: UserCreditLoadingState = UserCreditLoadingState.LoggedOut,
     val showSignIn: Boolean = false,
+    val isSigningIn: Boolean = false,
     val pendingFreeGeneration: Boolean = false,
     val hasUsedFreeGeneration: Boolean = false,
     val recentGenerations: List<HistoryItem> = emptyList(),
