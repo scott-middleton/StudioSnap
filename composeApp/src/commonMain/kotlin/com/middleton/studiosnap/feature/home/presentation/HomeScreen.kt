@@ -118,6 +118,7 @@ import studiosnap.composeapp.generated.resources.home_sign_in
 import studiosnap.composeapp.generated.resources.home_signing_in
 import studiosnap.composeapp.generated.resources.home_sign_in_to_generate
 import studiosnap.composeapp.generated.resources.home_photos_header
+import studiosnap.composeapp.generated.resources.home_select_style_first
 import studiosnap.composeapp.generated.resources.home_remove_photo
 import studiosnap.composeapp.generated.resources.home_style_choose
 import studiosnap.composeapp.generated.resources.home_style_choose_hint
@@ -969,13 +970,14 @@ private fun GenerateBottomBar(
         state.isSigningIn -> stringResource(Res.string.home_signing_in)
         !state.isSignedIn -> stringResource(Res.string.home_sign_in_to_generate)
         state.isLoadingCredits -> stringResource(Res.string.home_loading_credits)
+        state.selectedStyle == null -> stringResource(Res.string.home_select_style_first)
         !state.canAffordGeneration && state.hasPhotos ->
             stringResource(Res.string.home_get_credits, state.generationCost)
         else -> stringResource(Res.string.home_generate_preview, state.generationCost)
     }
 
-    // Button is always tappable (signs in, buys credits, or generates) unless loading credits or signing in
-    val isActionable = !state.isLoadingCredits && !state.isSigningIn
+    // Button is always tappable (signs in, buys credits, or generates) unless loading credits, signing in, or no style
+    val isActionable = !state.isLoadingCredits && !state.isSigningIn && state.selectedStyle != null
     val containerColor = when {
         !state.isSignedIn -> AppColors.PrimaryGreen
         !state.canAffordGeneration && state.hasPhotos -> MaterialTheme.colorScheme.tertiary
