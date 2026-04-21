@@ -10,7 +10,6 @@
 		D25D59D52DEB4B5A00D164B4 /* PurchasesHybridCommon in Frameworks */ = {isa = PBXBuildFile; productRef = D25D59D42DEB4B5A00D164B4 /* PurchasesHybridCommon */; };
 		E10A00012E1A000100000001 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = E10A00022E1A000100000001 /* FirebaseAnalytics */; };
 		E10A00032E1A000100000001 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = E10A00042E1A000100000001 /* FirebaseCrashlytics */; };
-		E10A00062E1A000100000001 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = E10A00072E1A000100000001 /* FirebaseAppCheck */; };
 		E10A00082E1A000100000001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = E10A00092E1A000100000001 /* FirebaseAuth */; };
 		E10A000A2E1A000100000001 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = E10A000B2E1A000100000001 /* FirebaseFunctions */; };
 /* End PBXBuildFile section */
@@ -53,7 +52,6 @@
 				D25D59D52DEB4B5A00D164B4 /* PurchasesHybridCommon in Frameworks */,
 				E10A00012E1A000100000001 /* FirebaseAnalytics in Frameworks */,
 				E10A00032E1A000100000001 /* FirebaseCrashlytics in Frameworks */,
-				E10A00062E1A000100000001 /* FirebaseAppCheck in Frameworks */,
 				E10A00082E1A000100000001 /* FirebaseAuth in Frameworks */,
 				E10A000A2E1A000100000001 /* FirebaseFunctions in Frameworks */,
 			);
@@ -103,7 +101,6 @@
 				D25D59D42DEB4B5A00D164B4 /* PurchasesHybridCommon */,
 				E10A00022E1A000100000001 /* FirebaseAnalytics */,
 				E10A00042E1A000100000001 /* FirebaseCrashlytics */,
-				E10A00072E1A000100000001 /* FirebaseAppCheck */,
 				E10A00092E1A000100000001 /* FirebaseAuth */,
 				E10A000B2E1A000100000001 /* FirebaseFunctions */,
 			);
@@ -440,11 +437,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E10A00052E1A000100000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
-		};
-		E10A00072E1A000100000001 /* FirebaseAppCheck */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E10A00052E1A000100000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAppCheck;
 		};
 		E10A00092E1A000100000001 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
