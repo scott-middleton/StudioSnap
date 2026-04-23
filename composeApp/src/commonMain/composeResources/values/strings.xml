@@ -21,10 +21,6 @@
     <string name="onboarding_value_subheadline">Try your first photo free</string>
     <string name="get_started_button">Get Started</string>
     <string name="next_button">Next</string>
-    <string name="onboarding_style_warm">Warm Linen</string>
-    <string name="onboarding_style_dark">Dark Moody</string>
-    <string name="onboarding_style_outdoor">Outdoor</string>
-    <string name="onboarding_style_minimal">Minimal Grey</string>
 
     <!-- Benefits -->
     <string name="benefit_no_subscriptions_title">No subscriptions, ever</string>

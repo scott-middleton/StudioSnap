@@ -146,7 +146,7 @@ fun OnboardingBeforeAfterPage(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(100.dp))
+                Spacer(modifier = Modifier.weight(1f))
             }
 
             // Next button
@@ -155,7 +155,7 @@ fun OnboardingBeforeAfterPage(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .windowInsetsPadding(WindowInsets.navigationBars)
-                    .padding(bottom = 42.dp)
+                    .padding(bottom = 24.dp)
                     .fillMaxWidth(0.85f)
                     .height(50.dp),
                 shape = ButtonShape,

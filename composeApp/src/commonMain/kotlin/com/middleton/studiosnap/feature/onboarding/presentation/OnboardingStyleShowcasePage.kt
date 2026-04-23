@@ -46,7 +46,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.theme.AppColors
-import com.middleton.studiosnap.core.presentation.theme.LocalExtendedColorScheme
 import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.DrawableResource
@@ -56,18 +55,14 @@ import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.next_button
 import studiosnap.composeapp.generated.resources.onboarding_showcase_headline
 import studiosnap.composeapp.generated.resources.onboarding_showcase_subheadline
-import studiosnap.composeapp.generated.resources.onboarding_style_clean_white
 import studiosnap.composeapp.generated.resources.onboarding_style_concrete_minimal
 import studiosnap.composeapp.generated.resources.onboarding_style_marble_luxe
 import studiosnap.composeapp.generated.resources.onboarding_style_paper_craft
 import studiosnap.composeapp.generated.resources.onboarding_style_rustic_wood
-import studiosnap.composeapp.generated.resources.onboarding_style_warm_linen
-import studiosnap.composeapp.generated.resources.style_clean_white
 import studiosnap.composeapp.generated.resources.style_concrete_minimal
 import studiosnap.composeapp.generated.resources.style_marble_luxe
 import studiosnap.composeapp.generated.resources.style_paper_craft
 import studiosnap.composeapp.generated.resources.style_rustic_wood
-import studiosnap.composeapp.generated.resources.style_warm_linen
 
 private val CardShape = RoundedCornerShape(16.dp)
 private val ButtonShape = RoundedCornerShape(18.dp)
@@ -76,22 +71,12 @@ private val ButtonShape = RoundedCornerShape(18.dp)
 fun OnboardingStyleShowcasePage(
     onNext: () -> Unit
 ) {
-    val extendedColors = LocalExtendedColorScheme.current
-
     data class StyleItem(
         val image: DrawableResource,
         val label: String
     )
 
     val styles = listOf(
-        StyleItem(
-            image = Res.drawable.onboarding_style_clean_white,
-            label = stringResource(Res.string.style_clean_white)
-        ),
-        StyleItem(
-            image = Res.drawable.onboarding_style_warm_linen,
-            label = stringResource(Res.string.style_warm_linen)
-        ),
         StyleItem(
             image = Res.drawable.onboarding_style_marble_luxe,
             label = stringResource(Res.string.style_marble_luxe)
@@ -139,12 +124,12 @@ fun OnboardingStyleShowcasePage(
             Spacer(modifier = Modifier.weight(1f))
 
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = 24.dp),
                 userScrollEnabled = false
             ) {
                 itemsIndexed(styles) { index, style ->
@@ -156,7 +141,7 @@ fun OnboardingStyleShowcasePage(
                 }
             }
 
-            Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.weight(1f))
         }
 
         Button(
@@ -164,7 +149,7 @@ fun OnboardingStyleShowcasePage(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(bottom = 42.dp)
+                .padding(bottom = 24.dp)
                 .fillMaxWidth(0.85f)
                 .height(50.dp),
             shape = ButtonShape,

@@ -94,7 +94,7 @@ fun OnboardingHeroPage(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(bottom = 42.dp)
+                .padding(bottom = 24.dp)
                 .fillMaxWidth(0.85f)
                 .height(50.dp),
             shape = ButtonShape,
