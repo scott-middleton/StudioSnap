@@ -56,13 +56,21 @@ import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.next_button
 import studiosnap.composeapp.generated.resources.onboarding_showcase_headline
 import studiosnap.composeapp.generated.resources.onboarding_showcase_subheadline
-import studiosnap.composeapp.generated.resources.onboarding_style_dark
-import studiosnap.composeapp.generated.resources.onboarding_style_minimal
-import studiosnap.composeapp.generated.resources.onboarding_style_outdoor
-import studiosnap.composeapp.generated.resources.onboarding_style_warm
+import studiosnap.composeapp.generated.resources.onboarding_style_clean_white
+import studiosnap.composeapp.generated.resources.onboarding_style_concrete_minimal
+import studiosnap.composeapp.generated.resources.onboarding_style_marble_luxe
+import studiosnap.composeapp.generated.resources.onboarding_style_paper_craft
+import studiosnap.composeapp.generated.resources.onboarding_style_rustic_wood
+import studiosnap.composeapp.generated.resources.onboarding_style_warm_linen
+import studiosnap.composeapp.generated.resources.style_clean_white
+import studiosnap.composeapp.generated.resources.style_concrete_minimal
+import studiosnap.composeapp.generated.resources.style_marble_luxe
+import studiosnap.composeapp.generated.resources.style_paper_craft
+import studiosnap.composeapp.generated.resources.style_rustic_wood
+import studiosnap.composeapp.generated.resources.style_warm_linen
 
-private val CardShape = RoundedCornerShape(12.dp)
-private val ButtonShape = RoundedCornerShape(20.dp)
+private val CardShape = RoundedCornerShape(16.dp)
+private val ButtonShape = RoundedCornerShape(18.dp)
 
 @Composable
 fun OnboardingStyleShowcasePage(
@@ -77,20 +85,28 @@ fun OnboardingStyleShowcasePage(
 
     val styles = listOf(
         StyleItem(
-            image = Res.drawable.onboarding_style_warm,
-            label = stringResource(Res.string.onboarding_style_warm)
+            image = Res.drawable.onboarding_style_clean_white,
+            label = stringResource(Res.string.style_clean_white)
         ),
         StyleItem(
-            image = Res.drawable.onboarding_style_dark,
-            label = stringResource(Res.string.onboarding_style_dark)
+            image = Res.drawable.onboarding_style_warm_linen,
+            label = stringResource(Res.string.style_warm_linen)
         ),
         StyleItem(
-            image = Res.drawable.onboarding_style_outdoor,
-            label = stringResource(Res.string.onboarding_style_outdoor)
+            image = Res.drawable.onboarding_style_marble_luxe,
+            label = stringResource(Res.string.style_marble_luxe)
         ),
         StyleItem(
-            image = Res.drawable.onboarding_style_minimal,
-            label = stringResource(Res.string.onboarding_style_minimal)
+            image = Res.drawable.onboarding_style_rustic_wood,
+            label = stringResource(Res.string.style_rustic_wood)
+        ),
+        StyleItem(
+            image = Res.drawable.onboarding_style_paper_craft,
+            label = stringResource(Res.string.style_paper_craft)
+        ),
+        StyleItem(
+            image = Res.drawable.onboarding_style_concrete_minimal,
+            label = stringResource(Res.string.style_concrete_minimal)
         )
     )
 
@@ -107,7 +123,7 @@ fun OnboardingStyleShowcasePage(
             Text(
                 text = stringResource(Res.string.onboarding_showcase_headline),
                 style = studioSnapTextStyles().onboardingHeadline,
-                color = Color.White,
+                color = AppColors.Ink,
                 textAlign = TextAlign.Center
             )
 
@@ -116,16 +132,16 @@ fun OnboardingStyleShowcasePage(
             Text(
                 text = stringResource(Res.string.onboarding_showcase_subheadline),
                 style = studioSnapTextStyles().onboardingSubheadline,
-                color = Color.White.copy(alpha = 0.7f),
+                color = AppColors.Ink.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                columns = GridCells.Fixed(3),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp),
@@ -149,8 +165,8 @@ fun OnboardingStyleShowcasePage(
                 .align(Alignment.BottomCenter)
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(bottom = 42.dp)
-                .fillMaxWidth(0.55f)
-                .height(44.dp),
+                .fillMaxWidth(0.85f)
+                .height(50.dp),
             shape = ButtonShape,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White
@@ -160,10 +176,9 @@ fun OnboardingStyleShowcasePage(
         ) {
             Text(
                 text = stringResource(Res.string.next_button),
-                style = studioSnapTextStyles().buttonText.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.5.sp
-                ),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.2).sp,
                 color = AppColors.PrimaryGreen
             )
         }
@@ -205,9 +220,9 @@ private fun AnimatedStyleCard(
             .alpha(opacity),
         shape = CardShape,
         colors = CardDefaults.cardColors(
-            containerColor = Color.Black.copy(alpha = 0.3f)
+            containerColor = Color.White
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column {
             Image(
@@ -220,14 +235,13 @@ private fun AnimatedStyleCard(
             )
             Text(
                 text = label,
-                style = studioSnapTextStyles().captionText.copy(
-                    fontWeight = FontWeight.Medium
-                ),
-                color = Color.White,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = AppColors.Ink,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = 8.dp, horizontal = 4.dp)
             )
         }
     }

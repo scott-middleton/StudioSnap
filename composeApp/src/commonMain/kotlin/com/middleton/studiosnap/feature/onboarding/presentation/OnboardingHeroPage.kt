@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.onboarding.presentation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,8 +41,8 @@ import studiosnap.composeapp.generated.resources.next_button
 import studiosnap.composeapp.generated.resources.onboarding_hero_headline
 import studiosnap.composeapp.generated.resources.onboarding_hero_subheadline
 
-private val LogoShape = RoundedCornerShape(24.dp)
-private val ButtonShape = RoundedCornerShape(20.dp)
+private val LogoShape = RoundedCornerShape(28.dp)
+private val ButtonShape = RoundedCornerShape(18.dp)
 
 @Composable
 fun OnboardingHeroPage(
@@ -53,20 +56,26 @@ fun OnboardingHeroPage(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(Res.drawable.logo),
-                contentDescription = stringResource(Res.string.app_logo),
-                modifier = Modifier
-                    .size(200.dp)
-                    .clip(LogoShape)
-            )
+            Card(
+                modifier = Modifier.size(200.dp),
+                shape = LogoShape,
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                border = BorderStroke(1.dp, Color.Black.copy(alpha = 0.06f))
+            ) {
+                Image(
+                    painter = painterResource(Res.drawable.logo),
+                    contentDescription = stringResource(Res.string.app_logo),
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
                 text = stringResource(Res.string.onboarding_hero_headline),
                 style = studioSnapTextStyles().onboardingHeadline,
-                color = Color.White,
+                color = AppColors.Ink,
                 textAlign = TextAlign.Center
             )
 
@@ -75,7 +84,7 @@ fun OnboardingHeroPage(
             Text(
                 text = stringResource(Res.string.onboarding_hero_subheadline),
                 style = studioSnapTextStyles().onboardingSubheadline,
-                color = Color.White.copy(alpha = 0.8f),
+                color = AppColors.Ink.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center
             )
         }
@@ -86,8 +95,8 @@ fun OnboardingHeroPage(
                 .align(Alignment.BottomCenter)
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(bottom = 42.dp)
-                .fillMaxWidth(0.55f)
-                .height(44.dp),
+                .fillMaxWidth(0.85f)
+                .height(50.dp),
             shape = ButtonShape,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White
@@ -97,10 +106,9 @@ fun OnboardingHeroPage(
         ) {
             Text(
                 text = stringResource(Res.string.next_button),
-                style = studioSnapTextStyles().buttonText.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.5.sp
-                ),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.2).sp,
                 color = AppColors.PrimaryGreen
             )
         }

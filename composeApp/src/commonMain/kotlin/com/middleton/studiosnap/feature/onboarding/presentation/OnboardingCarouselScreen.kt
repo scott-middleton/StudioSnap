@@ -1,20 +1,23 @@
 package com.middleton.studiosnap.feature.onboarding.presentation
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -26,8 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.middleton.studiosnap.core.presentation.navigation.NavigationHandler
 import com.middleton.studiosnap.core.presentation.theme.AppColors
@@ -78,20 +83,30 @@ fun OnboardingCarouselScreen() {
         }
     }
 
+    val density = LocalDensity.current
+    val glowRadius = with(density) { 150.dp.toPx() }
+    val glowOffsetY = with(density) { -60.dp.toPx() }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(
-                        AppColors.SplashLightGreen,
-                        AppColors.SplashMidGreen,
-                        AppColors.SplashDarkGreen
-                    ),
-                    radius = 900f
-                )
-            )
+            .background(AppColors.Paper)
     ) {
+        // Soft green glow at top
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        AppColors.PrimaryGreen.copy(alpha = 0.09f),
+                        Color.Transparent
+                    ),
+                    center = Offset(size.width / 2f, glowOffsetY),
+                    radius = glowRadius
+                ),
+                center = Offset(size.width / 2f, glowOffsetY),
+                radius = glowRadius
+            )
+        }
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
@@ -114,7 +129,7 @@ fun OnboardingCarouselScreen() {
             }
         }
 
-        // Page indicator dots
+        // Page indicator dots (pill shape)
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -124,26 +139,26 @@ fun OnboardingCarouselScreen() {
         ) {
             repeat(OnboardingViewModel.TOTAL_PAGES) { index ->
                 val isSelected = pagerState.currentPage == index
-                val dotAlpha by animateFloatAsState(
-                    targetValue = if (isSelected) 1f else 0.3f,
+                val dotWidth by animateDpAsState(
+                    targetValue = if (isSelected) 20.dp else 6.dp,
                     animationSpec = tween(300),
-                    label = "dot_alpha_$index"
+                    label = "dot_width_$index"
                 )
                 val dotScale by animateFloatAsState(
-                    targetValue = if (isSelected) 1f else 0.7f,
+                    targetValue = if (isSelected) 1f else 0.85f,
                     animationSpec = tween(300),
                     label = "dot_scale_$index"
                 )
 
                 Box(
                     modifier = Modifier
-                        .size(8.dp)
+                        .height(6.dp)
+                        .width(dotWidth)
                         .scale(dotScale)
-                        .alpha(dotAlpha)
-                        .clip(CircleShape)
+                        .clip(RoundedCornerShape(3.dp))
                         .background(
-                            if (isSelected) AppColors.PrimaryGreen 
-                            else AppColors.DarkTextTertiary
+                            if (isSelected) AppColors.PrimaryGreen
+                            else Color.Black.copy(alpha = 0.10f)
                         )
                 )
             }

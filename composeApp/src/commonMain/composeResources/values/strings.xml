@@ -11,12 +11,12 @@
     <!-- Onboarding Screens -->
     <string name="onboarding_hero_headline">Product Photos That Sell</string>
     <string name="onboarding_hero_subheadline">AI-powered product photography in seconds</string>
-    <string name="onboarding_before_after_headline">Instant Studio Quality</string>
-    <string name="onboarding_before_after_subheadline">Drag the slider to see the transformation</string>
+    <string name="onboarding_before_after_headline">See the difference</string>
+    <string name="onboarding_before_after_subheadline">Drag the slider to compare</string>
     <string name="onboarding_before_label">Original</string>
     <string name="onboarding_after_label">Styled</string>
-    <string name="onboarding_showcase_headline">One Photo, Endless Possibilities</string>
-    <string name="onboarding_showcase_subheadline">18 curated styles for every product</string>
+    <string name="onboarding_showcase_headline">Curated scenes for every product</string>
+    <string name="onboarding_showcase_subheadline">Pick the vibe that matches your brand</string>
     <string name="onboarding_value_headline">No Subscription. Pay Per Photo.</string>
     <string name="onboarding_value_subheadline">Try your first photo free</string>
     <string name="get_started_button">Get Started</string>
@@ -58,7 +58,7 @@
     <string name="home_generate_preview">Generate (%1$d credits)</string>
     <string name="home_sign_in">Sign In</string>
     <string name="home_signing_in">Signing In…</string>
-    <string name="home_sign_in_to_generate">Sign In to Generate</string>
+    <string name="home_generate_button">Generate</string>
     <string name="home_get_credits">Get Credits (%1$d needed)</string>
     <string name="home_loading_credits">Loading…</string>
     <string name="results_credits_refunded">%1$d of %2$d images failed — %1$d credits refunded</string>
@@ -249,6 +249,7 @@
     <!-- Style Picker -->
     <string name="style_picker_title">Choose Style</string>
     <string name="style_picker_empty_category">No styles in this category</string>
+    <string name="style_picker_selected">SELECTED</string>
 
     <!-- Home - Style Section -->
     <string name="home_background_style">Background Style</string>

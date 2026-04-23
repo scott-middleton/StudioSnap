@@ -62,15 +62,15 @@ import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import org.jetbrains.compose.resources.stringResource
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.next_button
+import studiosnap.composeapp.generated.resources.onboarding_after
 import studiosnap.composeapp.generated.resources.onboarding_after_label
-import studiosnap.composeapp.generated.resources.onboarding_after_studio
 import studiosnap.composeapp.generated.resources.onboarding_before
 import studiosnap.composeapp.generated.resources.onboarding_before_after_headline
 import studiosnap.composeapp.generated.resources.onboarding_before_after_subheadline
 import studiosnap.composeapp.generated.resources.onboarding_before_label
 
-private val CardShape = RoundedCornerShape(16.dp)
-private val ButtonShape = RoundedCornerShape(20.dp)
+private val CardShape = RoundedCornerShape(20.dp)
+private val ButtonShape = RoundedCornerShape(18.dp)
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -108,7 +108,7 @@ fun OnboardingBeforeAfterPage(
                 Text(
                     text = stringResource(Res.string.onboarding_before_after_headline),
                     style = studioSnapTextStyles().onboardingHeadline,
-                    color = Color.White,
+                    color = AppColors.Ink,
                     textAlign = TextAlign.Center
                 )
 
@@ -117,7 +117,7 @@ fun OnboardingBeforeAfterPage(
                 Text(
                     text = stringResource(Res.string.onboarding_before_after_subheadline),
                     style = studioSnapTextStyles().onboardingSubheadline,
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = AppColors.Ink.copy(alpha = 0.5f),
                     textAlign = TextAlign.Center
                 )
 
@@ -156,8 +156,8 @@ fun OnboardingBeforeAfterPage(
                     .align(Alignment.BottomCenter)
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(bottom = 42.dp)
-                    .fillMaxWidth(0.55f)
-                    .height(44.dp),
+                    .fillMaxWidth(0.85f)
+                    .height(50.dp),
                 shape = ButtonShape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White
@@ -167,10 +167,9 @@ fun OnboardingBeforeAfterPage(
             ) {
                 Text(
                     text = stringResource(Res.string.next_button),
-                    style = studioSnapTextStyles().buttonText.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.5.sp
-                    ),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.2).sp,
                     color = AppColors.PrimaryGreen
                 )
             }
@@ -202,10 +201,10 @@ fun OnboardingBeforeAfterPage(
                                 sliderPosition = effectiveSliderPosition,
                                 beforeLabel = UiText.StringResource(Res.string.onboarding_before_label),
                                 afterLabel = UiText.StringResource(Res.string.onboarding_after_label),
-                                beforeColor = AppColors.DarkTextTertiary,
-                                afterColor = AppColors.PrimaryGreen,
+                                beforeColor = Color.Black.copy(alpha = 0.45f),
+                                afterColor = AppColors.PrimaryGreen.copy(alpha = 0.88f),
                                 beforeImage = Res.drawable.onboarding_before,
-                                afterImage = Res.drawable.onboarding_after_studio,
+                                afterImage = Res.drawable.onboarding_after,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .aspectRatio(3f / 4f)
@@ -277,18 +276,19 @@ private fun BeforeAfterCard(
                     ),
                 shape = CardShape,
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.Black.copy(alpha = 0.3f)
-                )
+                    containerColor = Color.White
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
-                Box(modifier = Modifier.padding(16.dp)) {
+                Box {
                     SharedBeforeAfterSlider(
                         sliderPosition = sliderPosition,
                         beforeLabel = UiText.StringResource(Res.string.onboarding_before_label),
                         afterLabel = UiText.StringResource(Res.string.onboarding_after_label),
-                        beforeColor = AppColors.DarkTextTertiary,
-                        afterColor = AppColors.PrimaryGreen,
+                        beforeColor = Color.Black.copy(alpha = 0.45f),
+                        afterColor = AppColors.PrimaryGreen.copy(alpha = 0.88f),
                         beforeImage = Res.drawable.onboarding_before,
-                        afterImage = Res.drawable.onboarding_after_studio,
+                        afterImage = Res.drawable.onboarding_after,
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(3f / 4f)
