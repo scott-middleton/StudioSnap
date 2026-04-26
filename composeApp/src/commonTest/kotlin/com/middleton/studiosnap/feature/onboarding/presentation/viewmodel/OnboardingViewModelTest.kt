@@ -29,8 +29,8 @@ class OnboardingViewModelTest : BaseViewModelTest() {
     // --- Page count ---
 
     @Test
-    fun `total pages is 4`() {
-        assertEquals(4, OnboardingViewModel.TOTAL_PAGES)
+    fun `total pages is 3`() {
+        assertEquals(3, OnboardingViewModel.TOTAL_PAGES)
     }
 
     // --- Initial state ---
@@ -57,7 +57,7 @@ class OnboardingViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `next page progresses through all 4 pages`() {
+    fun `next page progresses through all 3 pages`() {
         val viewModel = createViewModel()
         assertEquals(0, viewModel.uiState.value.currentPage)
 
@@ -66,9 +66,6 @@ class OnboardingViewModelTest : BaseViewModelTest() {
 
         viewModel.handleAction(OnboardingUiAction.NextPage)
         assertEquals(2, viewModel.uiState.value.currentPage)
-
-        viewModel.handleAction(OnboardingUiAction.NextPage)
-        assertEquals(3, viewModel.uiState.value.currentPage)
     }
 
     @Test
@@ -81,15 +78,15 @@ class OnboardingViewModelTest : BaseViewModelTest() {
     @Test
     fun `next page on last page stays on last page`() {
         val viewModel = createViewModel()
-        // Navigate to last page
+        // Navigate to last page (page 2 with 3 total pages)
         repeat(OnboardingViewModel.TOTAL_PAGES - 1) {
             viewModel.handleAction(OnboardingUiAction.NextPage)
         }
-        assertEquals(3, viewModel.uiState.value.currentPage)
+        assertEquals(2, viewModel.uiState.value.currentPage)
 
         // Try to go further
         viewModel.handleAction(OnboardingUiAction.NextPage)
-        assertEquals(3, viewModel.uiState.value.currentPage)
+        assertEquals(2, viewModel.uiState.value.currentPage)
     }
 
     // --- NavigateToPage ---
@@ -104,8 +101,8 @@ class OnboardingViewModelTest : BaseViewModelTest() {
     @Test
     fun `navigate to last page succeeds`() {
         val viewModel = createViewModel()
-        viewModel.handleAction(OnboardingUiAction.NavigateToPage(3))
-        assertEquals(3, viewModel.uiState.value.currentPage)
+        viewModel.handleAction(OnboardingUiAction.NavigateToPage(2))
+        assertEquals(2, viewModel.uiState.value.currentPage)
     }
 
     @Test
@@ -126,7 +123,7 @@ class OnboardingViewModelTest : BaseViewModelTest() {
     @Test
     fun `navigate to page beyond total is ignored`() {
         val viewModel = createViewModel()
-        viewModel.handleAction(OnboardingUiAction.NavigateToPage(4))
+        viewModel.handleAction(OnboardingUiAction.NavigateToPage(3))
         assertEquals(0, viewModel.uiState.value.currentPage)
     }
 

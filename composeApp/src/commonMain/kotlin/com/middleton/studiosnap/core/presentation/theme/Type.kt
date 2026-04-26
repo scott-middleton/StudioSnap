@@ -12,6 +12,8 @@ import studiosnap.composeapp.generated.resources.inter_regular
 import studiosnap.composeapp.generated.resources.inter_medium
 import studiosnap.composeapp.generated.resources.inter_semibold
 import studiosnap.composeapp.generated.resources.inter_bold
+import studiosnap.composeapp.generated.resources.inter_extrabold
+import studiosnap.composeapp.generated.resources.inter_black
 
 @Composable
 fun InterFontFamily(): FontFamily = FontFamily(
@@ -19,6 +21,8 @@ fun InterFontFamily(): FontFamily = FontFamily(
     Font(Res.font.inter_medium, FontWeight.Medium),
     Font(Res.font.inter_semibold, FontWeight.SemiBold),
     Font(Res.font.inter_bold, FontWeight.Bold),
+    Font(Res.font.inter_extrabold, FontWeight.ExtraBold),
+    Font(Res.font.inter_black, FontWeight.Black),
 )
 
 @Composable

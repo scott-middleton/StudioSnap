@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +51,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import com.middleton.studiosnap.core.presentation.components.GradientButton
 import com.middleton.studiosnap.core.presentation.components.NativeSignInEffect
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.util.SystemBarsAppearance
 import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.feature.paywall.presentation.action.PaywallUiAction
@@ -77,7 +79,7 @@ import studiosnap.composeapp.generated.resources.paywall_sign_in_success
 import studiosnap.composeapp.generated.resources.paywall_subtitle
 
 private val CardShape = RoundedCornerShape(16.dp)
-private val BadgeShape = RoundedCornerShape(8.dp)
+private val BadgeShape = RoundedCornerShape(100.dp)
 
 @Composable
 fun PaywallScreen() {
@@ -168,16 +170,16 @@ internal fun PaywallScreenContent(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // Headline — context-aware
+            // Headline — bold, tight
             Text(
                 text = stringResource(
                     if (uiState.isPostTrial) Res.string.paywall_headline_post_trial
                     else Res.string.paywall_headline_topup
                 ),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 36.sp
-                ),
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = (-1.5).sp,
+                lineHeight = 32.sp,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp)
@@ -246,41 +248,57 @@ private fun PackCard(
         label = "selection"
     )
 
-    val cardBackground = MaterialTheme.colorScheme.surfaceVariant.copy(
-        alpha = 0.3f + 0.2f * selectionAlpha
-    )
-    val borderColor = AppColors.PrimaryGreen.copy(alpha = selectionAlpha * 0.8f)
-    val unselectedBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+    val isMostPopular = pack.isMostPopular
+    val ext = extendedColorScheme()
+    val cardBackground = if (isSelected) {
+        if (isMostPopular) ext.greenTint else MaterialTheme.colorScheme.background
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    val borderColor = if (isSelected) {
+        if (isMostPopular) AppColors.PrimaryGreen else ext.ink
+    } else {
+        ext.ink10
+    }
+    val elevation = if (isSelected) 4.dp else 1.dp
 
     Box {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .graphicsLayer {
+                    shadowElevation = elevation.toPx()
+                    shape = CardShape
+                    clip = true
+                }
                 .clip(CardShape)
                 .background(cardBackground, CardShape)
-                .then(
-                    if (isSelected) Modifier.border(1.5.dp, borderColor, CardShape)
-                    else Modifier.border(1.dp, unselectedBorder, CardShape)
+                .border(
+                    width = if (isSelected) 1.5.dp else 1.dp,
+                    color = borderColor,
+                    shape = CardShape
                 )
                 .clickable { onSelect() }
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 18.dp, vertical = 15.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Credits + per-photo price
             Column(modifier = Modifier.weight(1f)) {
-                Row {
+                Row(verticalAlignment = Alignment.Bottom) {
                     Text(
                         text = "${pack.grantedCredits}",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = (-1.5).sp,
+                        lineHeight = 30.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.alignByBaseline()
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = stringResource(Res.string.paywall_restorations),
-                        style = MaterialTheme.typography.bodyMedium,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.alignByBaseline()
                     )
@@ -288,9 +306,10 @@ private fun PackCard(
 
                 val pricePerRestoration = calculatePerRestorationPrice(pack)
                 if (pricePerRestoration != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "$pricePerRestoration ${stringResource(Res.string.paywall_per_restoration)}",
-                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -299,10 +318,10 @@ private fun PackCard(
             // Price
             Text(
                 text = pack.storeProduct.price.formatted,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = if (isSelected) AppColors.PrimaryGreen else MaterialTheme.colorScheme.onSurface
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = (-1.0).sp,
+                color = if (isSelected && isMostPopular) AppColors.PrimaryGreen else ext.ink
             )
         }
 
@@ -312,20 +331,19 @@ private fun PackCard(
                 if (pack.isMostPopular) Res.string.paywall_most_popular
                 else Res.string.paywall_best_value
             )
-            val badgeColor = if (pack.isMostPopular) AppColors.PrimaryGreen else AppColors.Warning
+            val badgeColor = if (pack.isMostPopular) AppColors.PrimaryGreen else AppColors.Amber
 
             Text(
-                text = badgeText,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp
-                ),
-                color = MaterialTheme.colorScheme.onPrimary,
+                text = badgeText.uppercase(),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 0.5.sp,
+                color = Color.White,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .zIndex(1f)
                     .padding(end = 16.dp)
-                    .graphicsLayer { translationY = -4.dp.toPx() }
+                    .graphicsLayer { translationY = -9.dp.toPx() }
                     .background(badgeColor, BadgeShape)
                     .padding(horizontal = 10.dp, vertical = 3.dp)
             )

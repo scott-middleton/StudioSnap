@@ -84,6 +84,7 @@ import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChi
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
@@ -113,10 +114,11 @@ import studiosnap.composeapp.generated.resources.home_export_original
 import studiosnap.composeapp.generated.resources.home_export_vinted
 import studiosnap.composeapp.generated.resources.home_generate_preview
 import studiosnap.composeapp.generated.resources.home_get_credits
+import studiosnap.composeapp.generated.resources.home_photo_limit_hint
 import studiosnap.composeapp.generated.resources.home_loading_credits
 import studiosnap.composeapp.generated.resources.home_sign_in
 import studiosnap.composeapp.generated.resources.home_signing_in
-import studiosnap.composeapp.generated.resources.home_sign_in_to_generate
+import studiosnap.composeapp.generated.resources.home_generate_button
 import studiosnap.composeapp.generated.resources.home_photos_header
 import studiosnap.composeapp.generated.resources.home_select_style_first
 import studiosnap.composeapp.generated.resources.home_remove_photo
@@ -124,7 +126,6 @@ import studiosnap.composeapp.generated.resources.home_style_choose
 import studiosnap.composeapp.generated.resources.home_style_choose_hint
 import studiosnap.composeapp.generated.resources.home_style_tap_to_change
 import studiosnap.composeapp.generated.resources.home_title
-// home_before_label/home_after_label removed — reserved for onboarding
 import studiosnap.composeapp.generated.resources.style_botanical_garden
 import studiosnap.composeapp.generated.resources.style_dark_moody
 import studiosnap.composeapp.generated.resources.style_marble_luxe
@@ -202,9 +203,9 @@ fun HomeScreenContent(
                     title = {
                         Text(
                             text = stringResource(Res.string.home_title),
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = (-1.2).sp
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-1.3).sp
                         )
                     },
                     actions = {
@@ -336,16 +337,18 @@ private fun NavIconButton(
 ) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.size(40.dp),
+        modifier = Modifier
+            .size(38.dp)
+            .border(1.dp, extendedColorScheme().ink10, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 1.dp
     ) {
         Box(contentAlignment = Alignment.Center) {
             content()
         }
     }
-    Spacer(modifier = Modifier.width(8.dp))
+    Spacer(modifier = Modifier.width(7.dp))
 }
 
 @Composable
@@ -357,7 +360,7 @@ private fun CreditBalancePill(
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(100.dp),
         color = AppColors.PrimaryGreenDark,
         shadowElevation = 2.dp,
         modifier = Modifier.padding(end = 8.dp)
@@ -371,14 +374,15 @@ private fun CreditBalancePill(
                 Icon(
                     painter = painterResource(Res.drawable.ic_diamond),
                     contentDescription = null,
-                    modifier = Modifier.size(14.dp),
+                    modifier = Modifier.size(11.dp),
                     tint = Color.White
                 )
                 Text(
                     text = "$balance",
                     color = Color.White,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.1).sp
                 )
             } else {
                 if (isSigningIn) {
@@ -399,7 +403,7 @@ private fun CreditBalancePill(
                     text = stringResource(Res.string.home_sign_in),
                     color = Color.White,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -412,30 +416,30 @@ private fun CreditBalancePill(
 
 @Composable
 private fun EmptyStateHero(onAddPhotos: () -> Unit, modifier: Modifier = Modifier) {
-    val dashedBorderColor = MaterialTheme.colorScheme.outline
+    val dashedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
     val dashedPathEffect = remember {
-        PathEffect.dashPathEffect(floatArrayOf(20f, 12f), 0f)
+        PathEffect.dashPathEffect(floatArrayOf(16f, 10f), 0f)
     }
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(24.dp))
+            .shadow(2.dp, RoundedCornerShape(22.dp))
             .drawBehind {
                 drawRoundRect(
                     color = dashedBorderColor,
-                    cornerRadius = CornerRadius(24.dp.toPx()),
+                    cornerRadius = CornerRadius(22.dp.toPx()),
                     style = Stroke(
-                        width = 2.dp.toPx(),
+                        width = 1.5.dp.toPx(),
                         pathEffect = dashedPathEffect
                     )
                 )
             }
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(22.dp))
             .clickable(onClick = onAddPhotos)
-            .padding(horizontal = 24.dp, vertical = 28.dp),
+            .padding(horizontal = 20.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         // Transform icon — two overlapping cards with bolt
         Image(
@@ -445,24 +449,20 @@ private fun EmptyStateHero(onAddPhotos: () -> Unit, modifier: Modifier = Modifie
             contentScale = ContentScale.Fit
         )
 
-        // Compact CTA — the whole card is tappable
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = AppColors.PrimaryGreen
-            )
-            Text(
-                text = stringResource(Res.string.home_add_photos),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = AppColors.PrimaryGreen
-            )
-        }
+        // CTA text
+        Text(
+            text = stringResource(Res.string.home_add_photos),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = AppColors.PrimaryGreen
+        )
+
+        // Sub-text
+        Text(
+            text = stringResource(Res.string.home_photo_limit_hint),
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -550,9 +550,10 @@ private fun PhotoCell(
     Box(
         modifier = Modifier
             .size(PHOTO_CELL_SIZE.dp)
-            .shadow(4.dp, RoundedCornerShape(14.dp))
-            .clip(RoundedCornerShape(14.dp))
+            .shadow(2.dp, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, extendedColorScheme().ink06, RoundedCornerShape(16.dp))
     ) {
         GalleryImage(
             galleryUri = photoUri,
@@ -565,11 +566,11 @@ private fun PhotoCell(
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(4.dp)
+                .padding(5.dp)
                 .size(20.dp)
                 .background(
-                    color = Color.Black.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(5.dp)
+                    color = Color.Black.copy(alpha = 0.55f),
+                    shape = RoundedCornerShape(6.dp)
                 )
                 .clickable(onClick = onRemove),
             contentAlignment = Alignment.Center
@@ -578,7 +579,7 @@ private fun PhotoCell(
                 imageVector = Icons.Default.Close,
                 contentDescription = stringResource(Res.string.home_remove_photo),
                 tint = Color.White,
-                modifier = Modifier.size(10.dp)
+                modifier = Modifier.size(8.dp)
             )
         }
     }
@@ -586,46 +587,36 @@ private fun PhotoCell(
 
 @Composable
 private fun AddPhotoCell(onClick: () -> Unit) {
-    val dashedColor = MaterialTheme.colorScheme.outline
+    val ext = extendedColorScheme()
+    val dashedColor = ext.ink10
     val pathEffect = remember {
-        PathEffect.dashPathEffect(floatArrayOf(16f, 10f), 0f)
+        PathEffect.dashPathEffect(floatArrayOf(12f, 8f), 0f)
     }
 
     Box(
         modifier = Modifier
             .size(PHOTO_CELL_SIZE.dp)
-            .shadow(2.dp, RoundedCornerShape(14.dp))
+            .shadow(1.dp, RoundedCornerShape(16.dp))
             .drawBehind {
                 drawRoundRect(
                     color = dashedColor,
-                    cornerRadius = CornerRadius(14.dp.toPx()),
+                    cornerRadius = CornerRadius(16.dp.toPx()),
                     style = Stroke(
-                        width = 2.dp.toPx(),
+                        width = 1.5.dp.toPx(),
                         pathEffect = pathEffect
                     )
                 )
             }
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                modifier = Modifier.size(22.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = stringResource(Res.string.home_add_label),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = ext.ink30
+        )
     }
 }
 
@@ -639,31 +630,28 @@ private fun BackgroundStyleSection(
     onChangeStyle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val hasSelection = selectedStyle != null
+
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionHeaderWithIcon(
-            text = stringResource(Res.string.home_background_style),
-            iconContent = {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_palette),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = AppColors.PrimaryGreen
-                )
-            }
-        )
+        SectionLabel(text = stringResource(Res.string.home_background_style))
 
         Card(
             onClick = onChangeStyle,
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = if (hasSelection) extendedColorScheme().greenTint else MaterialTheme.colorScheme.surface
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = if (hasSelection) 3.dp else 2.dp
+            ),
+            border = if (hasSelection) {
+                androidx.compose.foundation.BorderStroke(1.5.dp, AppColors.PrimaryGreen)
+            } else null
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(14.dp),
+                    .padding(14.dp, 14.dp, 16.dp, 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
@@ -681,35 +669,37 @@ private fun BackgroundStyleSection(
                         } else {
                             stringResource(Res.string.home_style_choose)
                         },
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        letterSpacing = (-0.1).sp,
+                        color = if (hasSelection) AppColors.PrimaryGreen else MaterialTheme.colorScheme.onSurface
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = if (selectedStyle != null) {
                             stringResource(Res.string.home_style_tap_to_change)
                         } else {
                             stringResource(Res.string.home_style_choose_hint)
                         },
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                // Chevron arrow
+                // Chevron arrow box
                 Box(
                     modifier = Modifier
                         .size(28.dp)
                         .background(
-                            MaterialTheme.colorScheme.primaryContainer,
-                            RoundedCornerShape(8.dp)
+                            extendedColorScheme().greenTint,
+                            RoundedCornerShape(9.dp)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         painter = painterResource(Res.drawable.ic_chevron_right),
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(11.dp),
                         tint = AppColors.PrimaryGreen
                     )
                 }
@@ -729,7 +719,7 @@ private fun StyleSwatchGrid() {
 
     Box(
         modifier = Modifier
-            .size(56.dp)
+            .size(52.dp)
             .clip(RoundedCornerShape(12.dp))
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -739,7 +729,7 @@ private fun StyleSwatchGrid() {
                         painter = painterResource(swatch),
                         contentDescription = null,
                         modifier = Modifier
-                            .size(27.dp)
+                            .size(25.dp)
                             .clip(RoundedCornerShape(2.dp)),
                         contentScale = ContentScale.Crop
                     )
@@ -751,7 +741,7 @@ private fun StyleSwatchGrid() {
                         painter = painterResource(swatch),
                         contentDescription = null,
                         modifier = Modifier
-                            .size(27.dp)
+                            .size(25.dp)
                             .clip(RoundedCornerShape(2.dp)),
                         contentScale = ContentScale.Crop
                     )
@@ -769,18 +759,16 @@ private fun SelectedStyleThumbnail(style: Style) {
             painter = painterResource(thumbnailRes),
             contentDescription = style.displayName.asString(),
             modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(12.dp)),
+                .size(52.dp)
+                .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop
         )
     } else {
         // Fallback — green box with palette icon
         Box(
             modifier = Modifier
-                .size(56.dp)
-                .background(AppColors.PrimaryGreen.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
-                .border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(12.dp)),
+                .size(52.dp)
+                .background(extendedColorScheme().greenTint, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -803,17 +791,9 @@ private fun ExportSizeSection(
     onExportFormatSelected: (ExportFormat) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionHeaderWithIcon(
+        SectionLabel(
             text = stringResource(Res.string.home_export_format),
-            modifier = Modifier.padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp),
-            iconContent = {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_aspect_ratio),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = AppColors.PrimaryGreen
-                )
-            }
+            modifier = Modifier.padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
         )
 
         LazyRow(
@@ -821,13 +801,39 @@ private fun ExportSizeSection(
             contentPadding = PaddingValues(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
         ) {
             items(ExportFormat.entries) { format ->
-                StudioSnapFilterChip(
+                ExportFormatChip(
                     label = exportFormatDisplayName(format),
                     selected = format == exportFormat,
                     onClick = { onExportFormatSelected(format) }
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ExportFormatChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(100.dp),
+        color = if (selected) extendedColorScheme().ink else MaterialTheme.colorScheme.surface,
+        shadowElevation = if (selected) 2.dp else 1.dp,
+        border = if (!selected) {
+            androidx.compose.foundation.BorderStroke(1.dp, extendedColorScheme().ink10)
+        } else null
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = (-0.05).sp,
+            color = if (selected) MaterialTheme.colorScheme.background else extendedColorScheme().ink70,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp)
+        )
     }
 }
 
@@ -861,34 +867,18 @@ private fun RecentGenerationsSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SectionHeaderWithIcon(
-                text = stringResource(Res.string.home_recent_title),
-                iconContent = {
-                    Icon(
-                        imageVector = Icons.Default.History,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = AppColors.PrimaryGreen
-                    )
-                }
+            SectionLabel(text = stringResource(Res.string.home_recent_title))
+            Text(
+                text = stringResource(Res.string.home_recent_view_all),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = AppColors.PrimaryGreen,
+                modifier = Modifier.clickable(onClick = onViewAll)
             )
-            Surface(
-                onClick = onViewAll,
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Text(
-                    text = stringResource(Res.string.home_recent_view_all),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = AppColors.PrimaryGreen,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                )
-            }
         }
 
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
         ) {
             items(items, key = { it.id }) { item ->
@@ -903,56 +893,52 @@ private fun RecentGenerationCard(
     item: HistoryItem,
     onClick: () -> Unit
 ) {
-    StudioSnapCard(
-        modifier = Modifier.width(RECENT_CARD_WIDTH.dp),
-        onClick = onClick
+    Box(
+        modifier = Modifier
+            .width(RECENT_CARD_WIDTH.dp)
+            .shadow(6.dp, RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
     ) {
-        Box(
+        RestorationImage(
+            imagePath = item.previewUri,
+            contentDescription = null,
             modifier = Modifier
                 .width(RECENT_CARD_WIDTH.dp)
-                .height(RECENT_CARD_HEIGHT.dp)
-        ) {
-            RestorationImage(
-                imagePath = item.previewUri,
-                contentDescription = null,
-                modifier = Modifier
-                    .matchParentSize()
-                    .clip(RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop
-            )
-            // Gradient overlay — fraction-based so it's density-independent
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        Brush.verticalGradient(
-                            0.4f to Color.Transparent,
-                            1.0f to Color.Black.copy(alpha = 0.65f)
-                        )
+                .height(RECENT_CARD_HEIGHT.dp),
+            contentScale = ContentScale.Crop
+        )
+        // Gradient overlay — starts at 55% height
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.verticalGradient(
+                        0.55f to Color.Transparent,
+                        1.0f to Color.Black.copy(alpha = 0.65f)
                     )
+                )
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = item.styleName,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.1).sp,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(horizontal = 10.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = item.styleName,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = formatRelativeTime(item.createdAt),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.75f),
-                    maxLines = 1
-                )
-            }
+            Text(
+                text = formatRelativeTime(item.createdAt),
+                fontSize = 9.sp,
+                color = Color.White.copy(alpha = 0.7f),
+                maxLines = 1
+            )
         }
     }
 }
@@ -968,7 +954,7 @@ private fun GenerateBottomBar(
 ) {
     val buttonLabel = when {
         state.isSigningIn -> stringResource(Res.string.home_signing_in)
-        !state.isSignedIn -> stringResource(Res.string.home_sign_in_to_generate)
+        !state.isSignedIn -> stringResource(Res.string.home_generate_button)
         state.isLoadingCredits -> stringResource(Res.string.home_loading_credits)
         state.selectedStyle == null -> stringResource(Res.string.home_select_style_first)
         !state.canAffordGeneration && state.hasPhotos ->
@@ -978,61 +964,92 @@ private fun GenerateBottomBar(
 
     // Button is always tappable (signs in, buys credits, or generates) unless loading credits, signing in, or no style
     val isActionable = !state.isLoadingCredits && !state.isSigningIn && state.selectedStyle != null
-    val containerColor = when {
-        !state.isSignedIn -> AppColors.PrimaryGreen
-        !state.canAffordGeneration && state.hasPhotos -> MaterialTheme.colorScheme.tertiary
-        else -> AppColors.PrimaryGreen
-    }
 
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp
+    // Fade gradient overlay above button
+    Box(
+        modifier = Modifier.fillMaxWidth()
     ) {
+        // Background fade
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-                .padding(bottom = 16.dp)
+                .height(100.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        0.4f to MaterialTheme.colorScheme.background
+                    )
+                )
+        )
+
+        // Button area
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .padding(bottom = 28.dp)
+                .align(Alignment.BottomCenter)
         ) {
-            Button(
-                onClick = onGenerate,
-                enabled = isActionable,
+            val gradientBrush = remember {
+                Brush.linearGradient(
+                    colors = listOf(AppColors.PrimaryGreen, AppColors.PrimaryGreenDark),
+                    start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                    end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                )
+            }
+            val ext = extendedColorScheme()
+            val disabledBrush = Brush.linearGradient(
+                colors = listOf(ext.paperMid, ext.paperDeep)
+            )
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = containerColor,
-                    contentColor = Color.White,
-                    disabledContainerColor = if (state.isSigningIn) containerColor else MaterialTheme.colorScheme.surfaceVariant,
-                    disabledContentColor = if (state.isSigningIn) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-                ),
-                elevation = if (isActionable) {
-                    ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-                } else {
-                    ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
-                }
+                    .height(56.dp)
+                    .then(
+                        if (isActionable) {
+                            Modifier.shadow(
+                                elevation = 6.dp,
+                                shape = RoundedCornerShape(18.dp),
+                                ambientColor = AppColors.PrimaryGreen.copy(alpha = 0.32f),
+                                spotColor = AppColors.PrimaryGreen.copy(alpha = 0.32f)
+                            )
+                        } else Modifier
+                    )
+                    .background(
+                        brush = if (isActionable) gradientBrush else disabledBrush,
+                        shape = RoundedCornerShape(18.dp)
+                    )
+                    .clickable(enabled = isActionable, onClick = onGenerate),
+                contentAlignment = Alignment.Center
             ) {
-                if (state.isSigningIn) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Icon(
-                        painter = painterResource(Res.drawable.ic_bolt),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (state.isSigningIn) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(Res.drawable.ic_bolt),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (isActionable) Color.White else ext.ink30
+                        )
+                    }
+                    Text(
+                        text = buttonLabel,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.2).sp,
+                        color = if (isActionable) Color.White else ext.ink30
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = buttonLabel,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-0.2).sp
-                )
             }
         }
     }
@@ -1043,48 +1060,23 @@ private fun GenerateBottomBar(
 // region — Shared Components
 
 @Composable
-private fun SectionLabel(text: String) {
+private fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text.uppercase(),
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Bold,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = 0.8.sp,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        letterSpacing = 0.5.sp
+        modifier = modifier
     )
-}
-
-@Composable
-private fun SectionHeaderWithIcon(
-    text: String,
-    modifier: Modifier = Modifier,
-    iconContent: @Composable () -> Unit
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .background(
-                    MaterialTheme.colorScheme.primaryContainer,
-                    RoundedCornerShape(8.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            iconContent()
-        }
-        SectionLabel(text = text)
-    }
 }
 
 // endregion
 
 private const val CONTENT_HORIZONTAL_PADDING = 20
-private const val CONTENT_TOP_PADDING = 16
+private const val CONTENT_TOP_PADDING = 24
 private const val CONTENT_BOTTOM_PADDING = 32
-private const val SECTION_SPACING = 28
-private const val PHOTO_CELL_SIZE = 100
-private const val RECENT_CARD_WIDTH = 130
-private const val RECENT_CARD_HEIGHT = 170
+private const val SECTION_SPACING = 24
+private const val PHOTO_CELL_SIZE = 86
+private const val RECENT_CARD_WIDTH = 96
+private const val RECENT_CARD_HEIGHT = 128

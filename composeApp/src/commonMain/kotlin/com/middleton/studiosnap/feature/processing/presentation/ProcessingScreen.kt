@@ -71,6 +71,7 @@ import com.middleton.studiosnap.core.presentation.components.GradientButton
 import com.middleton.studiosnap.core.presentation.components.PickedImage
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.feature.onboarding.presentation.PlatformBackHandler
 import com.middleton.studiosnap.feature.processing.presentation.action.ProcessingUiAction
 import com.middleton.studiosnap.feature.processing.presentation.navigation.ProcessingNavigationAction
@@ -97,6 +98,9 @@ import studiosnap.composeapp.generated.resources.processing_subtitle_generating
 import studiosnap.composeapp.generated.resources.processing_subtitle_preparing
 import studiosnap.composeapp.generated.resources.processing_title
 import studiosnap.composeapp.generated.resources.processing_your_photo
+import studiosnap.composeapp.generated.resources.processing_step_prepare
+import studiosnap.composeapp.generated.resources.processing_step_generate
+import studiosnap.composeapp.generated.resources.processing_step_download
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -130,26 +134,31 @@ fun ProcessingScreenContent(
     state: ProcessingUiState,
     onAction: (ProcessingUiAction) -> Unit
 ) {
-    val backgroundBrush = remember {
-        Brush.verticalGradient(
-            colors = listOf(
-                AppColors.PrimaryGreen.copy(alpha = 0.03f),
-                AppColors.ProcessingTeal.copy(alpha = 0.06f),
-                AppColors.PrimaryGreen.copy(alpha = 0.03f)
-            )
-        )
-    }
-
     // Prevent back navigation during processing — API call costs money
     PlatformBackHandler(enabled = state is ProcessingUiState.Processing) { /* no-op */ }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .background(backgroundBrush),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
+        // Soft radial gradient at ~38% height
+        Canvas(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        AppColors.PrimaryGreen.copy(alpha = 0.07f),
+                        Color.Transparent
+                    ),
+                    center = Offset(size.width / 2f, size.height * 0.38f),
+                    radius = size.minDimension * 0.6f
+                )
+            )
+        }
+
         when (state) {
             ProcessingUiState.Loading -> LoadingContent()
             is ProcessingUiState.Processing -> ProcessingContent(
@@ -224,10 +233,10 @@ private fun ProcessingContent(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Step indicators
+            // Step indicators with labels
             ProcessingSteps(currentStatus = state.status)
 
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
             // Status text — animated transitions
             AnimatedContent(
@@ -283,11 +292,11 @@ private fun ProcessingContent(
                 )
             }
 
-            // Progress percentage
-            Spacer(modifier = Modifier.height(16.dp))
-            Box(
-                modifier = Modifier.height(32.dp),
-                contentAlignment = Alignment.Center
+            // Bold progress number
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.Center
             ) {
                 val animatedProgress by animateFloatAsState(
                     targetValue = state.overallProgress,
@@ -295,11 +304,20 @@ private fun ProcessingContent(
                     label = "progress"
                 )
                 Text(
-                    text = "${(animatedProgress * 100).toInt()}%",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
+                    text = "${(animatedProgress * 100).toInt()}",
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = (-2.9).sp,
+                    lineHeight = 48.sp,
                     color = AppColors.PrimaryGreen
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = "%",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.PrimaryGreen,
+                    modifier = Modifier.padding(bottom = 6.dp)
                 )
             }
 
@@ -580,26 +598,39 @@ private fun ImagePlaceholder() {
 
 @Composable
 private fun ProcessingSteps(currentStatus: ProcessingStatus) {
+    val stepLabels = listOf(
+        stringResource(Res.string.processing_step_prepare),
+        stringResource(Res.string.processing_step_generate),
+        stringResource(Res.string.processing_step_download)
+    )
     val steps = ProcessingStatus.entries
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
         steps.forEachIndexed { index, step ->
             val isActive = step == currentStatus
             val isComplete = step.ordinal < currentStatus.ordinal
 
-            StepDot(
-                icon = when (step) {
-                    ProcessingStatus.Preparing -> Icons.Default.ImageSearch
-                    ProcessingStatus.Generating -> Icons.Default.AutoFixHigh
-                    ProcessingStatus.Downloading -> Icons.Default.Download
-                },
-                isActive = isActive,
-                isComplete = isComplete
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                StepDot(
+                    stepNumber = index + 1,
+                    isActive = isActive,
+                    isComplete = isComplete
+                )
+                Spacer(modifier = Modifier.height(7.dp))
+                Text(
+                    text = stepLabels[index],
+                    fontSize = 10.sp,
+                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
+                    letterSpacing = (-0.1).sp,
+                    color = if (isActive) AppColors.PrimaryGreen else extendedColorScheme().ink30
+                )
+            }
 
             if (index < steps.lastIndex) {
                 StepConnector(isComplete = isComplete)
@@ -610,7 +641,7 @@ private fun ProcessingSteps(currentStatus: ProcessingStatus) {
 
 @Composable
 private fun StepDot(
-    icon: ImageVector,
+    stepNumber: Int,
     isActive: Boolean,
     isComplete: Boolean
 ) {
@@ -620,44 +651,73 @@ private fun StepDot(
         label = "step_scale"
     )
 
+    val ext = extendedColorScheme()
     val backgroundColor = when {
         isActive -> AppColors.PrimaryGreen
-        isComplete -> AppColors.SuccessGreen
-        else -> MaterialTheme.colorScheme.surfaceVariant
+        isComplete -> AppColors.PrimaryGreen
+        else -> ext.paperDeep
     }
 
-    val iconTint = when {
-        isActive || isComplete -> MaterialTheme.colorScheme.onPrimary
-        else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+    val contentColor = when {
+        isActive || isComplete -> Color.White
+        else -> ext.ink30
     }
 
     Box(
         modifier = Modifier
             .size(40.dp)
             .scale(scale)
-            .background(color = backgroundColor, shape = CircleShape),
+            .then(
+                if (isActive) {
+                    Modifier.graphicsLayer {
+                        shadowElevation = 14f
+                        shape = CircleShape
+                        ambientShadowColor = AppColors.PrimaryGreen.copy(alpha = 0.35f)
+                        spotShadowColor = AppColors.PrimaryGreen.copy(alpha = 0.35f)
+                    }
+                } else Modifier
+            )
+            .background(color = backgroundColor, shape = CircleShape)
+            .then(
+                if (!isActive && !isComplete) {
+                    Modifier.graphicsLayer {
+                        // border for inactive
+                    }
+                } else Modifier
+            ),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = iconTint
-        )
+        if (isComplete) {
+            // Checkmark for completed steps
+            Icon(
+                imageVector = Icons.Default.Download,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = contentColor
+            )
+        } else {
+            Text(
+                text = "$stepNumber",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = contentColor
+            )
+        }
     }
 }
 
 @Composable
 private fun StepConnector(isComplete: Boolean) {
     val connectorColor = if (isComplete) {
-        AppColors.PrimaryGreen.copy(alpha = 0.5f)
+        AppColors.PrimaryGreen
     } else {
-        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f)
+        extendedColorScheme().ink10
     }
 
     Box(
         modifier = Modifier
-            .width(28.dp)
+            .padding(top = 19.dp)
+            .width(36.dp)
             .height(2.dp)
             .background(connectorColor, RoundedCornerShape(1.dp))
     )

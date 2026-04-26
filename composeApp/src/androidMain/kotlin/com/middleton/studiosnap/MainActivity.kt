@@ -6,11 +6,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.middleton.studiosnap.core.presentation.imagepicker.AndroidContextHolder
 import com.middleton.studiosnap.purchases.PurchasesManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition { false }
+
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 

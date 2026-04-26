@@ -111,6 +111,9 @@ kotlin {
 
                 // In-App Review
                 implementation(libs.play.review)
+
+                // Splash Screen API
+                implementation("androidx.core:core-splashscreen:1.0.1")
             }
         }
 

@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -75,7 +76,7 @@ fun OnboardingHeroPage(
             Text(
                 text = stringResource(Res.string.onboarding_hero_headline),
                 style = studioSnapTextStyles().onboardingHeadline,
-                color = AppColors.Ink,
+                color = extendedColorScheme().ink,
                 textAlign = TextAlign.Center
             )
 
@@ -84,7 +85,7 @@ fun OnboardingHeroPage(
             Text(
                 text = stringResource(Res.string.onboarding_hero_subheadline),
                 style = studioSnapTextStyles().onboardingSubheadline,
-                color = AppColors.Ink.copy(alpha = 0.5f),
+                color = extendedColorScheme().ink50,
                 textAlign = TextAlign.Center
             )
         }

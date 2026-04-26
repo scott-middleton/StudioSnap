@@ -56,6 +56,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.components.FullScreenImageOverlay
 import com.middleton.studiosnap.core.presentation.components.GalleryImage
 import com.middleton.studiosnap.core.presentation.components.GradientButton
@@ -64,6 +65,7 @@ import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.feature.home.domain.model.GenerationError
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
@@ -331,13 +333,17 @@ private fun SuccessCard(
         result.inputPhoto.width.toFloat() / result.inputPhoto.height.toFloat()
     } else aspectRatio
 
+    // Mat-style card — outer white card with inner image for print feel
     StudioSnapCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = 20.dp),
+        cornerRadius = 22.dp,
+        elevation = 6.dp
     ) {
         Box(
             modifier = Modifier
+                .padding(10.dp)
                 .fillMaxWidth()
                 .clickable(enabled = !showingOriginal, onClick = onFullScreenClicked)
         ) {
@@ -353,7 +359,7 @@ private fun SuccessCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(inputAspectRatio)
-                            .clip(RoundedCornerShape(16.dp)),
+                            .clip(RoundedCornerShape(14.dp)),
                         contentScale = ContentScale.Fit,
                         knownAspectRatio = inputAspectRatio
                     )
@@ -364,7 +370,7 @@ private fun SuccessCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(aspectRatio)
-                            .clip(RoundedCornerShape(16.dp)),
+                            .clip(RoundedCornerShape(14.dp)),
                         contentScale = ContentScale.Fit
                     )
                 }
@@ -374,17 +380,17 @@ private fun SuccessCard(
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color.Black.copy(alpha = 0.35f))
-                        .padding(4.dp),
+                        .padding(10.dp)
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.Black.copy(alpha = 0.38f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.ZoomIn,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                 }
             }
@@ -458,9 +464,11 @@ private fun GallerySaveIndicator(isSavedToGallery: Boolean, isAutoSaving: Boolea
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = stringResource(Res.string.results_saved),
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                color = AppColors.SuccessGreen
+                text = "✓ ${stringResource(Res.string.results_saved)}",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.1).sp,
+                color = AppColors.PrimaryGreen
             )
         }
         else -> Spacer(modifier = Modifier.height(4.dp))
@@ -478,22 +486,23 @@ private fun BeforeAfterToggle(
     val beforeText = stringResource(Res.string.results_before)
     val afterText = stringResource(Res.string.results_after)
 
+    // Floating pill container
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .clickable(onClick = onToggle)
-            .padding(horizontal = 4.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.Center
+            .clip(RoundedCornerShape(100.dp))
+            .background(extendedColorScheme().paperMid)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         TogglePill(
             text = beforeText,
-            selected = showingOriginal
+            selected = showingOriginal,
+            onClick = { if (!showingOriginal) onToggle() }
         )
-        Spacer(modifier = Modifier.width(2.dp))
         TogglePill(
             text = afterText,
-            selected = !showingOriginal
+            selected = !showingOriginal,
+            onClick = { if (showingOriginal) onToggle() }
         )
     }
 }
@@ -501,24 +510,29 @@ private fun BeforeAfterToggle(
 @Composable
 private fun TogglePill(
     text: String,
-    selected: Boolean
+    selected: Boolean,
+    onClick: () -> Unit
 ) {
     val backgroundColor = if (selected) AppColors.PrimaryGreen else Color.Transparent
-    val textColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurface
+    val textColor = if (selected) Color.White else extendedColorScheme().ink50
 
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(backgroundColor)
-            .defaultMinSize(minHeight = 36.dp)
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .clip(RoundedCornerShape(100.dp))
+            .then(
+                if (selected) {
+                    Modifier.background(backgroundColor)
+                } else Modifier
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 22.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelMedium.copy(
-                fontWeight = FontWeight.SemiBold
-            ),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = (-0.1).sp,
             color = textColor
         )
     }
@@ -534,26 +548,29 @@ private fun PageIndicator(
 ) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         repeat(pageCount) { index ->
             val isSelected = currentPage == index
-            val dotSize by animateDpAsState(
-                targetValue = if (isSelected) 8.dp else 6.dp,
-                animationSpec = tween(200),
-                label = "dot_size"
+            // Animate width: 6dp for inactive, 22dp for active (pill shape)
+            val dotWidth by animateDpAsState(
+                targetValue = if (isSelected) 22.dp else 6.dp,
+                animationSpec = tween(220),
+                label = "dot_width"
             )
             val dotColor = if (isSelected) {
                 AppColors.PrimaryGreen
             } else {
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                extendedColorScheme().ink10
             }
 
             Box(
                 modifier = Modifier
-                    .size(dotSize)
-                    .background(dotColor, CircleShape)
+                    .height(6.dp)
+                    .width(dotWidth)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(dotColor)
             )
         }
     }
@@ -574,6 +591,7 @@ private fun ActionButtons(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(9.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Share — primary gradient button
@@ -582,20 +600,10 @@ private fun ActionButtons(
             onClick = { onAction(ResultsUiAction.OnShareClicked(result.generationId)) }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Done — outlined so it has visible weight but is clearly secondary
-        OutlinedButton(
-            onClick = { onAction(ResultsUiAction.OnDoneClicked) },
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text(
-                text = stringResource(Res.string.results_done),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
-        }
+        // Done — secondary white button with border
+        com.middleton.studiosnap.core.presentation.components.SecondaryButton(
+            text = stringResource(Res.string.results_done),
+            onClick = { onAction(ResultsUiAction.OnDoneClicked) }
+        )
     }
 }

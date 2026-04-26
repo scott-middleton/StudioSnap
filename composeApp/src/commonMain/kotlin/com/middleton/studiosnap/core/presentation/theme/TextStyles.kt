@@ -9,6 +9,7 @@ data class StudioSnapTextStyles(
     val splashTitle: TextStyle,
     val onboardingHeadline: TextStyle,
     val onboardingSubheadline: TextStyle,
+    val onboardingSubheadlineSmall: TextStyle,
     val benefitText: TextStyle,
     val buttonText: TextStyle,
     val creditChip: TextStyle,
@@ -28,19 +29,26 @@ fun studioSnapTextStyles(): StudioSnapTextStyles {
             lineHeight = 40.sp,
             letterSpacing = 0.sp
         ),
-        onboardingHeadline = TextStyle( // 22sp keeps large screens readable without dominating small phones
+        onboardingHeadline = TextStyle(
             fontFamily = interFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 22.sp,
-            lineHeight = 30.sp,
-            letterSpacing = 0.sp
+            fontWeight = FontWeight.Black,
+            fontSize = 26.sp,
+            lineHeight = 32.sp,
+            letterSpacing = (-1.3).sp
         ),
         onboardingSubheadline = TextStyle(
             fontFamily = interFamily,
             fontWeight = FontWeight.Normal,
-            fontSize = 16.sp,
-            lineHeight = 24.sp,
-            letterSpacing = 0.5.sp
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            letterSpacing = 0.sp
+        ),
+        onboardingSubheadlineSmall = TextStyle(
+            fontFamily = interFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 13.sp,
+            lineHeight = 18.sp,
+            letterSpacing = 0.sp
         ),
         benefitText = TextStyle(
             fontFamily = interFamily,

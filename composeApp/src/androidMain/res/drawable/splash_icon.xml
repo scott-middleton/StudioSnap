@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Rounded square card background (white) - matches Compose splash -->
+    <item
+        android:gravity="center"
+        android:width="160dp"
+        android:height="160dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" />
+            <corners android:radius="32dp" />
+        </shape>
+    </item>
+    <!-- Logo foreground on top -->
+    <item
+        android:gravity="center"
+        android:width="160dp"
+        android:height="160dp"
+        android:drawable="@mipmap/ic_launcher_foreground" />
+</layer-list>

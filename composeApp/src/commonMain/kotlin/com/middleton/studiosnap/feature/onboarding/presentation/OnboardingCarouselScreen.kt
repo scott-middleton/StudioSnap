@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.MaterialTheme
 import com.middleton.studiosnap.core.presentation.navigation.NavigationHandler
 import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.feature.onboarding.presentation.action.OnboardingUiAction
@@ -90,7 +91,7 @@ fun OnboardingCarouselScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.Paper)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Soft green glow at top
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -112,17 +113,14 @@ fun OnboardingCarouselScreen() {
             modifier = Modifier.fillMaxSize()
         ) { page ->
             when (page) {
-                0 -> OnboardingHeroPage(
-                    onNext = { viewModel.handleAction(OnboardingUiAction.NextPage) }
-                )
-                1 -> OnboardingBeforeAfterPage(
+                0 -> OnboardingBeforeAfterPage(
                     isPageSettled = !pagerState.isScrollInProgress && pagerState.currentPage == page,
                     onNext = { viewModel.handleAction(OnboardingUiAction.NextPage) }
                 )
-                2 -> OnboardingStyleShowcasePage(
+                1 -> OnboardingStyleShowcasePage(
                     onNext = { viewModel.handleAction(OnboardingUiAction.NextPage) }
                 )
-                3 -> OnboardingValuePage(
+                2 -> OnboardingValuePage(
                     animationTrigger = uiState.valuePageAnimationTrigger,
                     onGetStarted = { viewModel.handleAction(OnboardingUiAction.GetStarted) }
                 )

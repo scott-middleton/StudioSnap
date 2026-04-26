@@ -42,6 +42,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.shadow
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
@@ -158,24 +164,33 @@ private fun EmptyHistoryContent(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = Icons.Default.ImageSearch,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            )
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        color = extendedColorScheme().paperMid,
+                        shape = RoundedCornerShape(20.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ImageSearch,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = stringResource(Res.string.history_empty_title),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.SemiBold
-                ),
+                fontSize = 17.sp,
+                fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = stringResource(Res.string.history_empty_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
+                fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
@@ -214,42 +229,77 @@ private fun SessionCard(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val maxVisibleThumbnails = 4
+
     StudioSnapCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(20.dp)
+            ),
+        onClick = onClick,
+        cornerRadius = 20.dp
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column {
             // Thumbnail strip
             if (session.thumbnailUris.isNotEmpty()) {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 4.dp, end = 4.dp, top = 4.dp)
                 ) {
-                    items(session.thumbnailUris) { uri ->
+                    val visibleThumbnails = session.thumbnailUris.take(maxVisibleThumbnails)
+                    val overflowCount = session.thumbnailUris.size - maxVisibleThumbnails
+
+                    visibleThumbnails.forEach { uri ->
                         RestorationImage(
                             imagePath = uri,
                             contentDescription = stringResource(Res.string.history_product_photo),
                             modifier = Modifier
-                                .size(80.dp)
-                                .clip(RoundedCornerShape(8.dp)),
+                                .weight(1f)
+                                .height(100.dp)
+                                .clip(RoundedCornerShape(10.dp)),
                             contentScale = ContentScale.Crop
                         )
                     }
+
+                    if (overflowCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(100.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(extendedColorScheme().paperMid),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "+$overflowCount",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
-                Spacer(Modifier.height(10.dp))
             }
 
+            // Meta row
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = session.displayLabel,
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            fontWeight = FontWeight.SemiBold
-                        ),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.02).sp,
+                        color = extendedColorScheme().ink,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -262,32 +312,45 @@ private fun SessionCard(
                         }
                         Text(
                             text = photoCountText,
-                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = " · ",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = formatRelativeTime(session.createdAt),
-                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
                 Spacer(Modifier.width(8.dp))
-                IconButton(
+                Surface(
                     onClick = onDelete,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier
+                        .size(34.dp)
+                        .border(
+                            width = 1.dp,
+                            color = extendedColorScheme().ink10,
+                            shape = RoundedCornerShape(11.dp)
+                        ),
+                    shape = RoundedCornerShape(11.dp),
+                    color = MaterialTheme.colorScheme.surface
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = stringResource(Res.string.history_delete),
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(Res.string.history_delete),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

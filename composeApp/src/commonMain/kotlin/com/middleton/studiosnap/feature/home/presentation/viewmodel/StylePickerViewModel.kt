@@ -33,15 +33,16 @@ class StylePickerViewModel(
 
     private fun loadStyles() {
         viewModelScope.launch {
+            val allStyles = styleRepository.getAllStyles()
             val lastCategory = userPreferencesRepository.getLastUsedCategoryFilter()
             val category = StyleCategory.entries.find { it.name == lastCategory } ?: StyleCategory.ALL
             val styles = if (category == StyleCategory.ALL) {
-                styleRepository.getAllStyles()
+                allStyles
             } else {
                 styleRepository.getStylesByCategory(category)
             }
             _uiState.update {
-                it.copy(styles = styles, selectedCategory = category)
+                it.copy(styles = styles, allStyles = allStyles, selectedCategory = category)
             }
         }
     }

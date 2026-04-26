@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.presentation.components.SharedBeforeAfterSlider
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import org.jetbrains.compose.resources.stringResource
 import studiosnap.composeapp.generated.resources.Res
@@ -100,15 +101,16 @@ fun OnboardingBeforeAfterPage(
                 modifier = Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.systemBars)
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 90.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
                     text = stringResource(Res.string.onboarding_before_after_headline),
                     style = studioSnapTextStyles().onboardingHeadline,
-                    color = AppColors.Ink,
+                    color = extendedColorScheme().ink,
                     textAlign = TextAlign.Center
                 )
 
@@ -116,8 +118,8 @@ fun OnboardingBeforeAfterPage(
 
                 Text(
                     text = stringResource(Res.string.onboarding_before_after_subheadline),
-                    style = studioSnapTextStyles().onboardingSubheadline,
-                    color = AppColors.Ink.copy(alpha = 0.5f),
+                    style = studioSnapTextStyles().onboardingSubheadlineSmall,
+                    color = extendedColorScheme().ink50,
                     textAlign = TextAlign.Center
                 )
 

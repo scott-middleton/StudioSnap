@@ -17,9 +17,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -32,16 +32,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.components.GradientButton
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.DrawableResource
@@ -123,14 +123,17 @@ fun OnboardingValuePage(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .windowInsetsPadding(WindowInsets.systemBars)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 90.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(32.dp))
+
             Text(
                 text = stringResource(Res.string.onboarding_value_headline),
                 style = studioSnapTextStyles().onboardingHeadline,
-                color = AppColors.Ink,
+                color = extendedColorScheme().ink,
                 textAlign = TextAlign.Center
             )
 
@@ -139,11 +142,11 @@ fun OnboardingValuePage(
             Text(
                 text = stringResource(Res.string.onboarding_value_subheadline),
                 style = studioSnapTextStyles().onboardingSubheadline,
-                color = AppColors.Ink.copy(alpha = 0.5f),
+                color = extendedColorScheme().ink50,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -161,6 +164,8 @@ fun OnboardingValuePage(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.weight(1f))
         }
 
         GradientButton(
@@ -220,46 +225,56 @@ private fun AnimatedBenefitItem(
         label = "icon_$index"
     )
 
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .offset(x = (-slideOffset).dp)
-            .alpha(opacity)
-            .shadow(elevation = 2.dp, shape = BenefitRowShape)
-            .background(Color.White, BenefitRowShape)
-            .border(1.dp, Color.Black.copy(alpha = 0.06f), BenefitRowShape)
-            .padding(horizontal = 14.dp, vertical = 11.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
+            .graphicsLayer {
+                translationX = -slideOffset * density
+                alpha = opacity
+            }
     ) {
-        Box(
+        Row(
             modifier = Modifier
-                .size(36.dp)
-                .background(AppColors.PrimaryGreen.copy(alpha = 0.08f), IconBoxShape)
-                .scale(iconScale),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .shadow(elevation = 2.dp, shape = BenefitRowShape)
+                .background(Color.White, BenefitRowShape)
+                .border(1.dp, Color.Black.copy(alpha = 0.06f), BenefitRowShape)
+                .padding(horizontal = 14.dp, vertical = 11.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = AppColors.PrimaryGreen
-            )
-        }
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(AppColors.PrimaryGreen.copy(alpha = 0.08f), IconBoxShape)
+                    .graphicsLayer {
+                        scaleX = iconScale
+                        scaleY = iconScale
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = AppColors.PrimaryGreen
+                )
+            }
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.Ink
-            )
-            Text(
-                text = subtitle,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Normal,
-                color = AppColors.Ink.copy(alpha = 0.5f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = extendedColorScheme().ink
+                )
+                Text(
+                    text = subtitle,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = extendedColorScheme().ink50
+                )
+            }
         }
     }
 }

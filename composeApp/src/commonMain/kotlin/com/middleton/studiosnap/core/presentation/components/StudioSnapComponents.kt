@@ -38,10 +38,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.stringResource
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.content_back
@@ -113,24 +117,26 @@ fun StudioSnapFilterChip(
 @Composable
 fun StudioSnapCard(
     modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colorScheme.surface,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerLowest,
+    cornerRadius: Dp = 18.dp,
+    elevation: Dp = 2.dp,
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
-    
+
     Card(
         modifier = if (onClick != null) {
             modifier.clickable(onClick = onClick)
         } else modifier,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(cornerRadius),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         ),
         elevation = if (isDark) {
             CardDefaults.cardElevation(defaultElevation = 0.dp)
         } else {
-            CardDefaults.cardElevation(defaultElevation = 2.dp)
+            CardDefaults.cardElevation(defaultElevation = elevation)
         },
         border = if (isDark) {
             BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
@@ -140,11 +146,29 @@ fun StudioSnapCard(
     }
 }
 
-private val GradientButtonShape = RoundedCornerShape(16.dp)
+/**
+ * Section label — small uppercase text for section headers
+ */
+@Composable
+fun SectionLabel(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = text.uppercase(),
+        fontSize = 11.sp,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = 0.8.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier
+    )
+}
+
+private val GradientButtonShape = RoundedCornerShape(18.dp)
 
 /**
- * Branded gradient button — green-to-teal horizontal gradient.
- * Used for primary actions (Save, Retry, etc.).
+ * Branded gradient button — green diagonal gradient with glow shadow.
+ * Used for primary actions (Generate, Continue, Share, etc.).
  */
 @Composable
 fun GradientButton(
@@ -153,43 +177,94 @@ fun GradientButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
-    val gradientBrush = remember {
-        Brush.horizontalGradient(
-            colors = listOf(AppColors.PrimaryGreen, AppColors.ProcessingTeal)
+    val enabledGradient = remember {
+        Brush.linearGradient(
+            colors = listOf(AppColors.PrimaryGreen, AppColors.PrimaryGreenDark),
+            start = Offset(0f, 0f),
+            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+        )
+    }
+    val disabledGradient = remember {
+        Brush.linearGradient(
+            colors = listOf(
+                AppColors.PaperMid,
+                AppColors.PaperDeep
+            )
         )
     }
 
-    Button(
-        onClick = onClick,
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
-        shape = GradientButtonShape,
-        enabled = enabled,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-        contentPadding = PaddingValues(0.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = if (enabled) gradientBrush else Brush.horizontalGradient(
-                        colors = listOf(
-                            AppColors.PrimaryGreen.copy(alpha = 0.4f),
-                            AppColors.ProcessingTeal.copy(alpha = 0.4f)
-                        )
-                    ),
-                    shape = GradientButtonShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = MaterialTheme.colorScheme.onPrimary
+            .height(56.dp)
+            .then(
+                if (enabled) {
+                    Modifier.shadow(
+                        elevation = 6.dp,
+                        shape = GradientButtonShape,
+                        ambientColor = AppColors.PrimaryGreen.copy(alpha = 0.32f),
+                        spotColor = AppColors.PrimaryGreen.copy(alpha = 0.32f)
+                    )
+                } else Modifier
             )
-        }
+            .background(
+                brush = if (enabled) enabledGradient else disabledGradient,
+                shape = GradientButtonShape
+            )
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = (-0.2).sp,
+            color = if (enabled) Color.White else AppColors.Ink30
+        )
+    }
+}
+
+/**
+ * Secondary button — white/surface background with subtle border.
+ * Used for secondary actions (Done, Cancel, etc.).
+ */
+@Composable
+fun SecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isDark = isSystemInDarkTheme()
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .shadow(
+                elevation = 1.dp,
+                shape = GradientButtonShape
+            )
+            .background(
+                color = if (isDark) AppColors.DarkSurface else AppColors.White,
+                shape = GradientButtonShape
+            )
+            .then(
+                if (!isDark) {
+                    Modifier.background(
+                        color = Color.Transparent,
+                        shape = GradientButtonShape
+                    )
+                } else Modifier
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = (-0.2).sp,
+            color = if (isDark) Color.White else AppColors.Ink
+        )
     }
 }

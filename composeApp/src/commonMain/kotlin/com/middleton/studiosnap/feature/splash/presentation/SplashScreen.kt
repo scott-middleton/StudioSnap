@@ -11,7 +11,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,12 +18,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,34 +41,36 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.navigation.NavigationHandler
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.feature.splash.presentation.viewmodel.SplashViewModel
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.app_logo
 import studiosnap.composeapp.generated.resources.app_name
 import studiosnap.composeapp.generated.resources.app_tagline
 import studiosnap.composeapp.generated.resources.logo
 import studiosnap.composeapp.generated.resources.splash_loading
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-// Pre-allocated shapes
-private val LogoCardShape = RoundedCornerShape(28.dp)
+private val LogoCardShape = RoundedCornerShape(30.dp)
 private val DotShape = CircleShape
 
-// Pre-computed sparkle layout data (relative to logo center)
 private data class SparkleLayout(
     val baseAngle: Float,
     val maxRadius: Float,
@@ -104,6 +107,8 @@ private val OuterSparkles: List<OuterSparkleLayout> = List(40) { i ->
     OuterSparkleLayout(baseX, baseY, rotationSpeed, size)
 }
 
+private val DegToRad = (PI / 180.0).toFloat()
+
 @Composable
 fun SplashScreen() {
     val viewModel: SplashViewModel = koinViewModel()
@@ -130,7 +135,7 @@ fun SplashScreen() {
 
     val logoScale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1f,
+        targetValue = 1.02f,
         animationSpec = infiniteRepeatable(
             animation = tween(2000, easing = EaseInOutCubic),
             repeatMode = RepeatMode.Reverse
@@ -139,23 +144,13 @@ fun SplashScreen() {
     )
 
     val glowIntensity by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.8f,
+        initialValue = 0.08f,
+        targetValue = 0.18f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = EaseInOutSine),
+            animation = tween(3500, easing = EaseInOutSine),
             repeatMode = RepeatMode.Reverse
         ),
         label = "glow_animation"
-    )
-
-    val loadingProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "loading_dots"
     )
 
     val sparkleRotation by infiniteTransition.animateFloat(
@@ -168,9 +163,18 @@ fun SplashScreen() {
         label = "sparkle_rotation"
     )
 
+    val dotBounce by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 2f * PI.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(1400, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "dot_bounce"
+    )
+
     val progressValue = animationProgress.value
 
-    // Pulsing glow behind the logo — only shows green after reveal completes
     val glowAlpha = glowIntensity * progressValue
     val glowBrush = remember(glowAlpha) {
         Brush.radialGradient(
@@ -184,7 +188,6 @@ fun SplashScreen() {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Background: swipe-to-reveal from grey to branded green + sparkles
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawBrandRevealBackground(progressValue)
             drawPhotoSparkles(progressValue, sparkleRotation)
@@ -198,10 +201,9 @@ fun SplashScreen() {
             verticalArrangement = Arrangement.Center
         ) {
             Box(contentAlignment = Alignment.Center) {
-                // Glow — blurred green pulse behind logo
                 Box(
                     modifier = Modifier
-                        .size(160.dp)
+                        .size(200.dp)
                         .scale(logoScale)
                         .drawBehind {
                             drawCircle(brush = glowBrush)
@@ -211,12 +213,12 @@ fun SplashScreen() {
 
                 Card(
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(150.dp)
                         .scale(logoScale)
                         .semantics { contentDescription = "App Logo" },
                     shape = LogoCardShape,
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.White.copy(alpha = 0.98f)
+                        containerColor = Color.White
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
                 ) {
@@ -237,49 +239,43 @@ fun SplashScreen() {
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            val titleColor = androidx.compose.ui.graphics.lerp(
+            val titleColor = lerp(
                 Color(0xFF888888),
-                Color.White,
+                extendedColorScheme().ink,
                 progressValue
             )
-            val taglineColor = androidx.compose.ui.graphics.lerp(
+            val taglineColor = lerp(
                 Color(0xFF555555),
-                Color.White.copy(alpha = 0.9f),
+                MaterialTheme.colorScheme.onSurfaceVariant,
                 progressValue
             )
 
             Text(
                 text = stringResource(Res.string.app_name),
-                fontSize = 36.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 1.sp,
-                color = titleColor,
-                style = androidx.compose.ui.text.TextStyle(
-                    shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.5f * progressValue),
-                        offset = androidx.compose.ui.geometry.Offset(2f, 2f),
-                        blurRadius = 4f
-                    )
-                )
+                fontSize = 44.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = (-2.2).sp,
+                color = titleColor
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Text(
                 text = stringResource(Res.string.app_tagline),
-                fontSize = 14.sp,
-                letterSpacing = 0.8.sp,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Normal,
+                letterSpacing = 0.3.sp,
                 color = taglineColor
             )
 
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(52.dp))
 
             val loadingContentDescription = stringResource(Res.string.splash_loading)
-            AnimatedLoadingDots(
+            BouncingLoadingDots(
                 modifier = Modifier.semantics { contentDescription = loadingContentDescription },
-                progress = loadingProgress,
+                bounceProgress = dotBounce,
                 revealProgress = progressValue
             )
         }
@@ -287,86 +283,96 @@ fun SplashScreen() {
 }
 
 @Composable
-private fun AnimatedLoadingDots(
+private fun BouncingLoadingDots(
     modifier: Modifier = Modifier,
-    progress: Float,
-    revealProgress: Float = 1f
+    bounceProgress: Float,
+    revealProgress: Float
 ) {
-    // Dots transition from grey to white as the reveal sweeps across
-    val dotColor = androidx.compose.ui.graphics.lerp(
+    val density = LocalDensity.current
+    val bounceHeightPx = with(density) { 4.dp.toPx() }
+
+    val dotColor = lerp(
         Color(0xFF666666),
-        Color.White.copy(alpha = 0.9f),
+        AppColors.PrimaryGreen,
         revealProgress
     )
+
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
+        verticalAlignment = Alignment.Bottom
     ) {
         repeat(3) { index ->
-            val dotScale = when {
-                progress < 0.33f && index == 0 -> 1.3f
-                progress in 0.33f..0.66f && index == 1 -> 1.3f
-                progress >= 0.66f && index == 2 -> 1.3f
-                else -> 1f
+            val phaseOffset = index * 0.22f * 2f * PI.toFloat() / 1.4f
+            val dotPhase = bounceProgress + phaseOffset
+
+            val normalizedPhase = (dotPhase % (2f * PI.toFloat())) / (2f * PI.toFloat())
+            val bounceOffset = if (normalizedPhase < 0.4f) {
+                -sin(normalizedPhase / 0.4f * PI.toFloat()) * bounceHeightPx
+            } else if (normalizedPhase < 0.8f) {
+                -sin((1f - (normalizedPhase - 0.4f) / 0.4f) * PI.toFloat()) * bounceHeightPx
+            } else {
+                0f
             }
 
             Box(
                 modifier = Modifier
-                    .size(8.dp)
-                    .scale(dotScale)
-                    .background(
-                        color = dotColor,
-                        shape = DotShape
-                    )
+                    .size(6.dp)
+                    .offset { IntOffset(0, bounceOffset.toInt()) }
+                    .drawBehind {
+                        drawCircle(color = dotColor)
+                    }
             )
         }
     }
 }
 
-// --- Draw-scope functions ---
-
-private val DegToRad = (kotlin.math.PI / 180.0).toFloat()
-
 /**
- * Swipe-to-reveal background: grey sweeps to branded dark green.
- * Matches the Restorer AI pattern but with StudioSnap brand colours.
+ * Swipe-to-reveal background: dull grey sweeps to vibrant green-tinted white.
+ * The "before" is muted and lifeless, the "after" is bright with green energy.
  */
 private fun DrawScope.drawBrandRevealBackground(animationProgress: Float) {
     val sweepPosition = size.width * (1f - animationProgress)
 
-    // "Before" side — pure dark (black to dark grey)
+    // "Before" side — dull grey (lifeless, desaturated)
     drawRect(
         brush = Brush.verticalGradient(
             colors = listOf(
-                Color(0xFF2A2A2A),
-                Color(0xFF1A1A1A),
-                Color(0xFF0F0F0F)
+                Color(0xFFD0D0D0),
+                Color(0xFFBBBBBB),
+                Color(0xFFA8A8A8)
             )
         )
     )
 
-    // "After" side — branded dark green (app icon colours)
+    // "After" side — vibrant green gradient to clean white
     if (sweepPosition < size.width) {
         drawRect(
             brush = Brush.verticalGradient(
                 colors = listOf(
-                    AppColors.SplashLightGreen,
-                    AppColors.SplashMidGreen,
-                    AppColors.SplashDarkGreen
-                )
+                    AppColors.GreenLight,
+                    AppColors.GreenTint,
+                    AppColors.Paper
+                ),
+                startY = 0f,
+                endY = size.height * 0.7f
             ),
             topLeft = androidx.compose.ui.geometry.Offset(sweepPosition, 0f),
             size = androidx.compose.ui.geometry.Size(size.width - sweepPosition, size.height)
         )
     }
 
-    // Sweep line — white glow at the boundary
+    // Sweep line — bright green glow at the boundary
+    val sweepLineAlpha = if (animationProgress < 0.95f) 0.7f else (1f - animationProgress) * 14f
     drawRect(
         brush = Brush.horizontalGradient(
-            colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.6f), Color.Transparent),
-            startX = sweepPosition - 30f,
-            endX = sweepPosition + 30f
+            colors = listOf(
+                Color.Transparent,
+                AppColors.PrimaryGreen.copy(alpha = sweepLineAlpha),
+                Color.Transparent
+            ),
+            startX = sweepPosition - 50f,
+            endX = sweepPosition + 50f
         )
     )
 }
@@ -377,7 +383,13 @@ private fun DrawScope.drawPhotoSparkles(
 ) {
     val logoX = size.width / 2f
     val logoY = size.height * 0.38f
-    val sparkleColor = Color.White
+
+    // Sparkle color transitions from grey to green as reveal sweeps
+    val sparkleColor = lerp(
+        Color(0xFFAAAAAA),
+        AppColors.PrimaryGreen,
+        animationProgress
+    )
 
     // Inner sparkles (orbit around logo)
     InnerSparkles.forEach { sparkle ->
@@ -391,7 +403,7 @@ private fun DrawScope.drawPhotoSparkles(
         if (x >= -80 && x <= size.width + 80 && y >= -80 && y <= size.height + 80) {
             val alphaVariation = (sin(angleRad * 0.5f + animationProgress * 1.5f) * 0.3f).coerceAtLeast(0f)
             drawCircle(
-                color = sparkleColor.copy(alpha = 0.6f + alphaVariation),
+                color = sparkleColor.copy(alpha = 0.5f + alphaVariation),
                 radius = sparkle.size,
                 center = androidx.compose.ui.geometry.Offset(x, y)
             )
@@ -414,7 +426,7 @@ private fun DrawScope.drawPhotoSparkles(
 
         if (x >= -80 && x <= size.width + 80 && y >= -80 && y <= size.height + 80) {
             drawCircle(
-                color = sparkleColor.copy(alpha = 0.6f),
+                color = sparkleColor.copy(alpha = 0.4f),
                 radius = sparkle.size,
                 center = androidx.compose.ui.geometry.Offset(x, y)
             )

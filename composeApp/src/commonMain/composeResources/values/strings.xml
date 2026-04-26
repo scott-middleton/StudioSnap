@@ -65,6 +65,7 @@
     <string name="home_remove_photo">Remove photo</string>
     <string name="home_error_too_many_photos">Maximum %1$d photos allowed</string>
     <string name="home_error_generation_failed">Generation failed. Please try again.</string>
+    <string name="home_photo_limit_hint">Up to 10 photos · JPG or PNG</string>
 
     <!-- Style Categories -->
     <string name="category_all">All</string>
@@ -93,6 +94,9 @@
     <string name="processing_patience">This can take a moment</string>
     <string name="processing_do_not_close">Please don\'t close the app</string>
     <string name="processing_your_photo">Your photo</string>
+    <string name="processing_step_prepare">Prepare</string>
+    <string name="processing_step_generate">Generate</string>
+    <string name="processing_step_download">Download</string>
 
     <!-- Results Screen -->
     <string name="results_title">Your Results</string>

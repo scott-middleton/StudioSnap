@@ -37,15 +37,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.DrawableResource
@@ -100,15 +100,16 @@ fun OnboardingStyleShowcasePage(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.systemBars)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 90.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Text(
                 text = stringResource(Res.string.onboarding_showcase_headline),
                 style = studioSnapTextStyles().onboardingHeadline,
-                color = AppColors.Ink,
+                color = extendedColorScheme().ink,
                 textAlign = TextAlign.Center
             )
 
@@ -117,7 +118,7 @@ fun OnboardingStyleShowcasePage(
             Text(
                 text = stringResource(Res.string.onboarding_showcase_subheadline),
                 style = studioSnapTextStyles().onboardingSubheadline,
-                color = AppColors.Ink.copy(alpha = 0.5f),
+                color = extendedColorScheme().ink50,
                 textAlign = TextAlign.Center
             )
 
@@ -127,9 +128,8 @@ fun OnboardingStyleShowcasePage(
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
+                contentPadding = PaddingValues(bottom = 16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 userScrollEnabled = false
             ) {
                 itemsIndexed(styles) { index, style ->
@@ -183,13 +183,13 @@ private fun AnimatedStyleCard(
         isVisible = true
     }
 
-    val scale by animateFloatAsState(
-        targetValue = if (isVisible) 1f else 0.8f,
+    val slideOffset by animateFloatAsState(
+        targetValue = if (isVisible) 0f else 24f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
         ),
-        label = "card_scale_$index"
+        label = "card_slide_$index"
     )
 
     val opacity by animateFloatAsState(
@@ -198,36 +198,42 @@ private fun AnimatedStyleCard(
         label = "card_opacity_$index"
     )
 
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .scale(scale)
-            .alpha(opacity),
-        shape = CardShape,
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            .graphicsLayer {
+                translationY = slideOffset * density
+                alpha = opacity
+            }
     ) {
-        Column {
-            Image(
-                painter = painterResource(image),
-                contentDescription = label,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(3f / 4f),
-                contentScale = ContentScale.Crop
-            )
-            Text(
-                text = label,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.Ink,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp, horizontal = 4.dp)
-            )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = CardShape,
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            Column {
+                Image(
+                    painter = painterResource(image),
+                    contentDescription = label,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(3f / 4f),
+                    contentScale = ContentScale.Crop
+                )
+                Text(
+                    text = label,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = extendedColorScheme().ink,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp, horizontal = 4.dp)
+                )
+            }
         }
     }
 }

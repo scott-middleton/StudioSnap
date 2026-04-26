@@ -3,6 +3,7 @@ package com.middleton.studiosnap.feature.home.presentation
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -38,14 +40,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
-import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
@@ -59,6 +65,7 @@ import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.content_close
 import studiosnap.composeapp.generated.resources.ic_palette
 import studiosnap.composeapp.generated.resources.style_picker_empty_category
+import studiosnap.composeapp.generated.resources.style_picker_selected
 import studiosnap.composeapp.generated.resources.style_picker_title
 
 @Composable
@@ -70,9 +77,13 @@ fun StylePickerScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val selectedStyle = uiState.allStyles.find { it.id == currentSelectedStyleId }
+
     StylePickerScreenContent(
         styles = uiState.styles,
+        allStyles = uiState.allStyles,
         selectedStyleId = currentSelectedStyleId,
+        selectedStyle = selectedStyle,
         selectedCategory = uiState.selectedCategory,
         onCategorySelected = { viewModel.handleAction(StylePickerUiAction.OnCategorySelected(it)) },
         onStyleSelected = onStyleSelected,
@@ -84,7 +95,9 @@ fun StylePickerScreen(
 @Composable
 internal fun StylePickerScreenContent(
     styles: List<Style>,
+    allStyles: List<Style>,
     selectedStyleId: String?,
+    selectedStyle: Style?,
     selectedCategory: StyleCategory,
     onCategorySelected: (StyleCategory) -> Unit,
     onStyleSelected: (String) -> Unit,
@@ -96,7 +109,9 @@ internal fun StylePickerScreenContent(
                 title = {
                     Text(
                         text = stringResource(Res.string.style_picker_title),
-                        fontWeight = FontWeight.Bold
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = (-1.0).sp
                     )
                 },
                 actions = {
@@ -114,12 +129,11 @@ internal fun StylePickerScreenContent(
         }
     ) { padding ->
         if (styles.isEmpty() && selectedCategory != StyleCategory.ALL) {
-            // Empty state for filtered category
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -129,12 +143,12 @@ internal fun StylePickerScreenContent(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Icon(
-                        imageVector = Icons.Default.ImageSearch,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    imageVector = Icons.Default.ImageSearch,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = stringResource(Res.string.style_picker_empty_category),
                     style = MaterialTheme.typography.bodyLarge,
@@ -148,11 +162,21 @@ internal fun StylePickerScreenContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Category filter chips as full-width header
+                // Selected style hero preview
+                if (selectedStyle != null) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        SelectedStyleHero(
+                            style = selectedStyle,
+                            onClick = { onStyleSelected(selectedStyle.id) }
+                        )
+                    }
+                }
+
+                // Category filter chips
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Column {
                         Spacer(modifier = Modifier.height(8.dp))
@@ -183,6 +207,86 @@ internal fun StylePickerScreenContent(
     }
 }
 
+// ─── Selected Style Hero ────────────────────────────────────────────────────
+
+@Composable
+private fun SelectedStyleHero(
+    style: Style,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(118.dp)
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(18.dp)
+            )
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+    ) {
+        if (style.thumbnail != null) {
+            Image(
+                painter = painterResource(style.thumbnail),
+                contentDescription = style.displayName.asString(),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+        }
+
+        // Dark gradient overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.65f),
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
+
+        // Selected badge
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(10.dp)
+                .background(
+                    color = AppColors.PrimaryGreen,
+                    shape = RoundedCornerShape(100.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 5.dp)
+        ) {
+            Text(
+                text = stringResource(Res.string.style_picker_selected),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+        }
+
+        // Style name
+        Text(
+            text = style.displayName.asString(),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(14.dp)
+        )
+    }
+}
+
 // ─── Category Chips ─────────────────────────────────────────────────────────
 
 @Composable
@@ -196,12 +300,43 @@ private fun CategoryChipRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         StyleCategory.entries.forEach { category ->
-            StudioSnapFilterChip(
+            CategoryChip(
                 label = categoryDisplayName(category),
                 selected = category == selectedCategory,
                 onClick = { onCategorySelected(category) }
             )
         }
+    }
+}
+
+@Composable
+private fun CategoryChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val ext = extendedColorScheme()
+    val backgroundColor = if (selected) ext.ink else Color.Transparent
+    val textColor = if (selected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant
+    val borderColor = if (selected) Color.Transparent else ext.ink10
+
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(100.dp),
+        color = backgroundColor,
+        border = if (!selected) {
+            androidx.compose.foundation.BorderStroke(1.dp, borderColor)
+        } else null
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = textColor,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp)
+        )
     }
 }
 
@@ -215,67 +350,62 @@ private fun StylePickerCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderModifier = if (isSelected) {
-        Modifier.border(2.dp, AppColors.PrimaryGreen, RoundedCornerShape(16.dp))
-    } else {
-        Modifier
-    }
-
-    StudioSnapCard(
-        modifier = modifier
-            .aspectRatio(0.85f)
-            .then(borderModifier),
-        backgroundColor = if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        onClick = onClick
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+        val borderModifier = if (isSelected) {
+            Modifier.border(2.5.dp, AppColors.PrimaryGreen, RoundedCornerShape(14.dp))
+        } else {
+            Modifier
+        }
+
+        Box(
+            modifier = Modifier
+                .aspectRatio(1f)
+                .shadow(
+                    elevation = 6.dp,
+                    shape = RoundedCornerShape(14.dp)
+                )
+                .then(borderModifier)
+                .clip(RoundedCornerShape(14.dp))
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (thumbnail != null) {
-                    Image(
-                        painter = painterResource(thumbnail),
-                        contentDescription = styleName,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+            if (thumbnail != null) {
+                Image(
+                    painter = painterResource(thumbnail),
+                    contentDescription = styleName,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_palette),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(Res.drawable.ic_palette),
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
             }
-            Text(
-                text = styleName,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
-                textAlign = TextAlign.Center
-            )
         }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = styleName,
+            fontSize = 10.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            color = if (isSelected) AppColors.PrimaryGreen else extendedColorScheme().ink,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
     }
 }

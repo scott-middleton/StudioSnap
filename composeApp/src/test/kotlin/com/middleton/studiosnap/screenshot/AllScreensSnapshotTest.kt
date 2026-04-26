@@ -303,9 +303,12 @@ class AllScreensSnapshotTest {
     @Test
     fun stylePicker_default() {
         snapshot {
+            val styles = fakeStyles()
             StylePickerScreenContent(
-                styles = fakeStyles(),
+                styles = styles,
+                allStyles = styles,
                 selectedStyleId = null,
+                selectedStyle = null,
                 selectedCategory = StyleCategory.ALL,
                 onCategorySelected = {},
                 onStyleSelected = {},
@@ -317,9 +320,13 @@ class AllScreensSnapshotTest {
     @Test
     fun stylePicker_withSelection() {
         snapshot {
+            val styles = fakeStyles()
+            val selectedStyle = styles.find { it.id == "rustic_wood" }
             StylePickerScreenContent(
-                styles = fakeStyles(),
+                styles = styles,
+                allStyles = styles,
                 selectedStyleId = "rustic_wood",
+                selectedStyle = selectedStyle,
                 selectedCategory = StyleCategory.ALL,
                 onCategorySelected = {},
                 onStyleSelected = {},
