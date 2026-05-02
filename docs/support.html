@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudioSnap – Support</title>
+  <style>
+    :root {
+      --bg: #f7f5f2;
+      --card: #ffffff;
+      --accent: #1a1a1a;
+      --primary: #2d6a4f;
+      --primary-light: #e8f4ef;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--accent);
+      color: #fff;
+      text-align: center;
+      padding: 56px 24px 48px;
+    }
+
+    header .logo {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 12px;
+    }
+
+    header h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    header p {
+      font-size: 17px;
+      color: rgba(255,255,255,0.65);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Contact Banner ── */
+    .contact-banner {
+      background: var(--primary);
+      color: #fff;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .contact-banner p {
+      font-size: 15px;
+      margin-bottom: 10px;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .contact-banner a {
+      display: inline-block;
+      background: #fff;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 15px;
+      padding: 10px 24px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .contact-banner a:hover {
+      opacity: 0.88;
+    }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    /* ── Section headings ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 48px 0 16px;
+    }
+
+    /* ── FAQ cards ── */
+    .faq-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .faq-card summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 22px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      list-style: none;
+      gap: 16px;
+    }
+
+    .faq-card summary::-webkit-details-marker { display: none; }
+
+    .faq-card summary::after {
+      content: "+";
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+
+    .faq-card[open] summary::after {
+      transform: rotate(45deg);
+    }
+
+    .faq-card .answer {
+      padding: 0 22px 20px;
+      color: var(--muted);
+      font-size: 15px;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+
+    .faq-card .answer p + p {
+      margin-top: 10px;
+    }
+
+    .faq-card .answer ul {
+      margin: 8px 0 0 18px;
+    }
+
+    .faq-card .answer li {
+      margin-bottom: 4px;
+    }
+
+    .faq-card .answer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .faq-card .answer a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── Info chips ── */
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 100px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 32px 20px;
+      font-size: 13px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="logo">StudioSnap</div>
+    <h1>Support</h1>
+    <p>Product photos that sell — powered by AI. We're here to help.</p>
+  </header>
+
+  <!-- ── Contact Banner ── -->
+  <div class="contact-banner">
+    <p>Can't find what you're looking for? Email us and we'll reply within 24 hours.</p>
+    <a href="mailto:middleton.apps@gmail.com">middleton.apps@gmail.com</a>
+  </div>
+
+  <!-- ── Main Content ── -->
+  <main>
+
+    <!-- Getting Started -->
+    <p class="section-title">Getting Started</p>
+
+    <details class="faq-card">
+      <summary>What is StudioSnap?</summary>
+      <div class="answer">
+        <p>StudioSnap is an AI-powered product photography app. Upload a photo of your product and choose from curated studio-style backgrounds — the AI removes your original background and composites your product into a professional scene in seconds.</p>
+        <p>Results are optimised for selling on marketplaces like Etsy, eBay, and Vinted.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>How do I use StudioSnap?</summary>
+      <div class="answer">
+        <p>Using StudioSnap is simple:</p>
+        <ul>
+          <li>Tap <strong>Add Product Photos</strong> and select up to 10 images from your gallery</li>
+          <li>Pick a background style that matches your brand</li>
+          <li>Choose optional enhancements (shadow, reflection) and export size</li>
+          <li>Tap <strong>Generate</strong> — results are ready in 10–30 seconds per photo</li>
+          <li>Save or share your styled images directly from the Results screen</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>Can I try StudioSnap for free?</summary>
+      <div class="answer">
+        <p>Yes! New users receive a free trial photo on sign-up. The result will include a watermark, but it lets you see exactly how your product looks in a styled scene before you commit to buying credits.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>What types of products work best?</summary>
+      <div class="answer">
+        <p>StudioSnap works across a wide range of product categories:</p>
+        <div class="chip-row">
+          <span class="chip">Clothing</span>
+          <span class="chip">Jewellery</span>
+          <span class="chip">Homeware</span>
+          <span class="chip">Cosmetics</span>
+          <span class="chip">Food</span>
+          <span class="chip">and more</span>
+        </div>
+        <p style="margin-top:12px;">For best results, photograph your product against a plain or contrasting background with good lighting before uploading.</p>
+      </div>
+    </details>
+
+    <!-- Credits -->
+    <p class="section-title">Credits &amp; Pricing</p>
+
+    <details class="faq-card">
+      <summary>How does the credit system work?</summary>
+      <div class="answer">
+        <p><strong>1 credit = 1 styled photo.</strong> If you generate a batch of 5 photos, that costs 5 credits. Credits are deducted when generation completes successfully.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>Do credits expire?</summary>
+      <div class="answer">
+        <p>No. Once purchased, your credits never expire. Use them at your own pace.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>How do I buy more credits?</summary>
+      <div class="answer">
+        <p>Tap the credits icon in the top-right corner of the home screen, or go to <strong>Settings → Get More Credits</strong>. Credit packs are available in three tiers — choose what suits your volume.</p>
+        <p>Purchases are processed securely by the App Store (iOS) or Google Play (Android).</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>What happens if a photo fails to generate?</summary>
+      <div class="answer">
+        <p>If any photo in your batch fails, the credit for that photo is automatically refunded to your account. You'll see a notification like <em>"2 of 5 images failed — 2 credits refunded"</em> on the Results screen.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>How do I restore previous purchases?</summary>
+      <div class="answer">
+        <p>If you reinstall the app or switch devices, you can restore your credits:</p>
+        <ul>
+          <li>Go to <strong>Settings → Restore Purchases</strong></li>
+          <li>Sign in with the same Apple ID or Google account you used when purchasing</li>
+          <li>Your credits will be restored automatically</li>
+        </ul>
+        <p>If that doesn't work, email us at <a href="mailto:middleton.apps@gmail.com">middleton.apps@gmail.com</a> with your order confirmation and we'll sort it out.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>Can I get a refund?</summary>
+      <div class="answer">
+        <p>Purchases are handled by Apple or Google, so refunds must be requested through them:</p>
+        <ul>
+          <li><strong>iOS:</strong> Visit <a href="https://reportaproblem.apple.com" target="_blank">reportaproblem.apple.com</a></li>
+          <li><strong>Android:</strong> Contact Google Play support via the Play Store app</li>
+        </ul>
+        <p>If you believe credits were deducted incorrectly due to a technical issue, email us directly and we'll investigate.</p>
+      </div>
+    </details>
+
+    <!-- Styles & Generating -->
+    <p class="section-title">Styles &amp; Generating</p>
+
+    <details class="faq-card">
+      <summary>What background styles are available?</summary>
+      <div class="answer">
+        <p>StudioSnap includes 18 curated studio styles, including:</p>
+        <div class="chip-row">
+          <span class="chip">Clean White</span>
+          <span class="chip">Warm Linen</span>
+          <span class="chip">Marble Luxe</span>
+          <span class="chip">Botanical Garden</span>
+          <span class="chip">Dark Moody</span>
+          <span class="chip">Neon Pop</span>
+          <span class="chip">Pastel Dream</span>
+          <span class="chip">Rustic Wood</span>
+          <span class="chip">Silk Velvet</span>
+          <span class="chip">and more…</span>
+        </div>
+        <p style="margin-top:12px;">New styles are added regularly. Styles are organised by category so you can quickly find the right vibe for your product.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>How many photos can I process at once?</summary>
+      <div class="answer">
+        <p>You can upload and process up to <strong>10 photos per batch</strong>. All photos in a batch are styled with the same background and settings you've chosen, making it fast to create a consistent product listing.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>How long does generation take?</summary>
+      <div class="answer">
+        <p>Generation typically takes <strong>10–30 seconds per photo</strong>. Please keep the app open during processing — closing it may interrupt the generation.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>What export sizes are available?</summary>
+      <div class="answer">
+        <p>StudioSnap exports photos optimised for the most popular selling platforms:</p>
+        <ul>
+          <li><strong>Etsy Square</strong> — ideal for Etsy listings</li>
+          <li><strong>eBay Landscape</strong> — optimised for eBay</li>
+          <li><strong>Vinted Portrait</strong> — sized for Vinted</li>
+          <li><strong>Original</strong> — keeps your source aspect ratio</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>Can I add a shadow or reflection?</summary>
+      <div class="answer">
+        <p>Yes. Before generating, toggle <strong>Add Shadow</strong> or <strong>Add Reflection</strong> in the Options section. These add subtle, realistic depth to your product — great for making it pop against clean backgrounds.</p>
+      </div>
+    </details>
+
+    <!-- Account & Privacy -->
+    <p class="section-title">Account &amp; Privacy</p>
+
+    <details class="faq-card">
+      <summary>Do I need an account to use StudioSnap?</summary>
+      <div class="answer">
+        <p>You can try the free trial without an account. To purchase credits and sync your history across devices, you'll need to sign in with Apple or Google — it only takes a few seconds.</p>
+        <p>Benefits of signing in:</p>
+        <ul>
+          <li>Credits sync across all your devices</li>
+          <li>Never lose your generation history</li>
+          <li>Secure and private</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>What happens to my photos?</summary>
+      <div class="answer">
+        <p>Your photos are sent securely to our servers for processing and are <strong>deleted immediately</strong> after your styled result is generated. We never store, sell, or use your images for any other purpose.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>How do I delete my account?</summary>
+      <div class="answer">
+        <p>Go to <strong>Settings → Delete Account</strong>. This will permanently delete your account and all associated data. This action cannot be undone.</p>
+        <p>If you have remaining credits you'd like to discuss before deleting, email us first at <a href="mailto:middleton.apps@gmail.com">middleton.apps@gmail.com</a>.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>Where is my generation history stored?</summary>
+      <div class="answer">
+        <p>Generated images are saved to your device and are accessible via the <strong>History</strong> tab in the app. If you delete a session within the app, the images are removed from local storage. Images are not stored on our servers after generation.</p>
+      </div>
+    </details>
+
+    <!-- Troubleshooting -->
+    <p class="section-title">Troubleshooting</p>
+
+    <details class="faq-card">
+      <summary>Generation failed — what should I do?</summary>
+      <div class="answer">
+        <p>If a generation fails, any credits used are automatically refunded. Common causes:</p>
+        <ul>
+          <li><strong>Network issue</strong> — check your internet connection and try again</li>
+          <li><strong>App in background</strong> — keep the app open during generation</li>
+          <li><strong>Image format</strong> — use JPG or PNG files for best results</li>
+        </ul>
+        <p>If failures persist, email us at <a href="mailto:middleton.apps@gmail.com">middleton.apps@gmail.com</a> and we'll investigate.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>My credits aren't showing up after purchase</summary>
+      <div class="answer">
+        <p>First, try <strong>Settings → Restore Purchases</strong> to sync your purchase. Make sure you're signed in with the same account used for the purchase.</p>
+        <p>If credits still don't appear after a few minutes, email us at <a href="mailto:middleton.apps@gmail.com">middleton.apps@gmail.com</a> with a screenshot of your purchase confirmation and we'll add them manually.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>The app is crashing or behaving unexpectedly</summary>
+      <div class="answer">
+        <p>Try these steps in order:</p>
+        <ul>
+          <li>Force-close and reopen the app</li>
+          <li>Check for an app update in the App Store or Google Play</li>
+          <li>Restart your device</li>
+          <li>Reinstall the app (your credits are linked to your account and will be restored)</li>
+        </ul>
+        <p>If the issue persists, please email <a href="mailto:middleton.apps@gmail.com">middleton.apps@gmail.com</a> with your device model and iOS/Android version so we can investigate.</p>
+      </div>
+    </details>
+
+    <details class="faq-card">
+      <summary>Can't sign in with Apple or Google</summary>
+      <div class="answer">
+        <p>For Apple sign-in issues, make sure you're signed into iCloud on your device (<strong>Settings → Apple ID</strong>). For Google sign-in, ensure a Google account is added to your device.</p>
+        <p>If the problem continues, email us at <a href="mailto:middleton.apps@gmail.com">middleton.apps@gmail.com</a>.</p>
+      </div>
+    </details>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <p>
+      &copy; 2025 StudioSnap &nbsp;·&nbsp;
+      <a href="mailto:middleton.apps@gmail.com">middleton.apps@gmail.com</a>
+    </p>
+    <p style="margin-top:6px;">
+      We aim to reply within 24 hours.
+    </p>
+  </footer>
+
+</body>
+</html>
