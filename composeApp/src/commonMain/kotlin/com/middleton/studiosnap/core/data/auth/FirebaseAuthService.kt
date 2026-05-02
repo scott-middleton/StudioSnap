@@ -23,7 +23,8 @@ import kotlinx.coroutines.launch
  * This service manages the authenticated session after sign-in.
  */
 class FirebaseAuthService(
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
+    private val nativeAuthProvider: NativeAuthProvider,
 ) : AuthService {
 
     private val auth = Firebase.auth
@@ -60,20 +61,15 @@ class FirebaseAuthService(
         return try {
             val user = auth.currentUser
                 ?: return Result.failure(Exception("No user to delete"))
+            val credential = nativeAuthProvider.getCredential()
+            user.reauthenticate(credential)
             user.delete()
             Result.success(Unit)
         } catch (e: Exception) {
             val msg = e.message ?: ""
-            val needsReauth = msg.contains("sensitive", ignoreCase = true) ||
-                msg.contains("recent", ignoreCase = true) ||
-                msg.contains("CREDENTIAL_TOO_OLD", ignoreCase = true) ||
-                msg.contains("REQUIRES_RECENT_LOGIN", ignoreCase = true) ||
-                msg.contains("17021", ignoreCase = true)
-            val message = if (needsReauth) {
-                "Please sign out and sign back in, then try deleting your account again"
-            } else {
-                "Account deletion failed"
-            }
+            val cancelled = msg.contains("cancelled", ignoreCase = true) ||
+                msg.contains("canceled", ignoreCase = true)
+            val message = if (cancelled) "Account deletion cancelled" else "Account deletion failed"
             Result.failure(Exception(message, e))
         }
     }

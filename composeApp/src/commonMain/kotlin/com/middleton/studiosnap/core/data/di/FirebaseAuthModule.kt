@@ -1,6 +1,7 @@
 package com.middleton.studiosnap.core.data.di
 
 import com.middleton.studiosnap.core.data.auth.FirebaseAuthService
+import com.middleton.studiosnap.core.data.auth.NativeAuthProvider
 import com.middleton.studiosnap.core.domain.service.AuthService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,8 @@ import org.koin.dsl.module
 val firebaseAuthModule = module {
     single<AuthService> {
         FirebaseAuthService(
-            coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+            coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+            nativeAuthProvider = get<NativeAuthProvider>(),
         )
     }
 }
