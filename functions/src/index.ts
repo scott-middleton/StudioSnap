@@ -1,4 +1,5 @@
 import {onCall, HttpsError} from "firebase-functions/v2/https";
+import {user as authUser} from "firebase-functions/v1/auth";
 import * as admin from "firebase-admin";
 
 admin.initializeApp();
@@ -504,6 +505,26 @@ export const checkFreeGenerationUsed = onCall(async (request) => {
   const doc = await db.collection("users").doc(uid).get();
   const used = doc.exists && doc.data()?.hasUsedFreeGeneration === true;
   return {used};
+});
+
+// ─── Auth: Delete user data on account deletion ───────────────────────────
+
+export const onUserDeleted = authUser().onDelete(async (user) => {
+  const uid = user.uid;
+  const db = admin.firestore();
+
+  const rateLimitDocs = await db.collection("rateLimits")
+    .where(admin.firestore.FieldPath.documentId(), ">=", `${uid}_`)
+    .where(admin.firestore.FieldPath.documentId(), "<", `${uid}\``)
+    .get();
+
+  await Promise.all([
+    db.collection("users").doc(uid).delete(),
+    db.collection("pendingDeductions").doc(uid).delete(),
+    ...rateLimitDocs.docs.map((doc) => doc.ref.delete()),
+  ]);
+
+  console.log(`onUserDeleted: cleaned up Firestore data for uid=${uid}`);
 });
 
 // ─── Free Generation: Atomic claim (server-side gate) ────────────────────
