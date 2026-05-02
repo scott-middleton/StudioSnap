@@ -63,12 +63,13 @@ class FirebaseAuthService(
             user.delete()
             Result.success(Unit)
         } catch (e: Exception) {
-            // Firebase may require recent authentication for sensitive operations.
-            // The error message from Firebase typically contains "CREDENTIAL_TOO_OLD_LOGIN_AGAIN"
-            // or similar when re-auth is needed.
-            val message = if (e.message?.contains("CREDENTIAL_TOO_OLD", ignoreCase = true) == true ||
-                e.message?.contains("requires-recent-login", ignoreCase = true) == true
-            ) {
+            val msg = e.message ?: ""
+            val needsReauth = msg.contains("sensitive", ignoreCase = true) ||
+                msg.contains("recent", ignoreCase = true) ||
+                msg.contains("CREDENTIAL_TOO_OLD", ignoreCase = true) ||
+                msg.contains("REQUIRES_RECENT_LOGIN", ignoreCase = true) ||
+                msg.contains("17021", ignoreCase = true)
+            val message = if (needsReauth) {
                 "Please sign out and sign back in, then try deleting your account again"
             } else {
                 "Account deletion failed"
