@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
     private val creditQueries: CreditQueries,
     private val authService: AuthService,
-    private val analyticsService: AnalyticsService,
+    analyticsService: AnalyticsService,
     private val ratingService: RatingService,
     private val purchasesIdentifier: PurchasesIdentifier
 ) : ViewModel() {
@@ -43,9 +43,7 @@ class SettingsViewModel(
                 _navigationEvent.value = SettingsNavigationAction.GoToCreditStore
             SettingsUiAction.OnBackClicked ->
                 _navigationEvent.value = SettingsNavigationAction.GoBack
-            SettingsUiAction.OnPrivacyPolicyClicked -> { /* Handled by screen — opens URL */ }
             SettingsUiAction.OnTermsClicked -> { /* Handled by screen — opens URL */ }
-            SettingsUiAction.OnSupportClicked -> { /* Handled by screen — opens URL */ }
             SettingsUiAction.OnNavigationHandled -> _navigationEvent.value = null
 
             SettingsUiAction.OnSignOutClicked ->
@@ -131,6 +129,6 @@ class SettingsViewModel(
 
     companion object {
         const val PRIVACY_POLICY_URL = "https://scott-middleton.github.io/studiosnap/privacy-policy.html"
-        const val SUPPORT_URL = "https://scott-middleton.github.io/studiosnap/support.html"
+        const val SUPPORT_URL = "https://scott-middleton.github.io/StudioSnap/support.html"
     }
 }

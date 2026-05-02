@@ -2,7 +2,6 @@ package com.middleton.studiosnap.feature.settings.presentation.action
 
 sealed interface SettingsUiAction {
     data object OnBuyCreditsClicked : SettingsUiAction
-    data object OnPrivacyPolicyClicked : SettingsUiAction
     data object OnTermsClicked : SettingsUiAction
     data object OnBackClicked : SettingsUiAction
     data object OnNavigationHandled : SettingsUiAction
@@ -16,5 +15,4 @@ sealed interface SettingsUiAction {
     data object OnDeleteAccountDismissed : SettingsUiAction
     data object OnDeleteAccountErrorDismissed : SettingsUiAction
     data object OnRateAppClicked : SettingsUiAction
-    data object OnSupportClicked : SettingsUiAction
 }

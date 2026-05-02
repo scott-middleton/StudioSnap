@@ -146,7 +146,6 @@ fun SettingsScreenContent(
                 SettingsRow(
                     label = stringResource(Res.string.settings_privacy_policy),
                     onClick = {
-                        onAction(SettingsUiAction.OnPrivacyPolicyClicked)
                         onOpenUrl(SettingsViewModel.PRIVACY_POLICY_URL)
                     }
                 )
@@ -154,7 +153,6 @@ fun SettingsScreenContent(
                 SettingsRow(
                     label = stringResource(Res.string.settings_support),
                     onClick = {
-                        onAction(SettingsUiAction.OnSupportClicked)
                         onOpenUrl(SettingsViewModel.SUPPORT_URL)
                     }
                 )

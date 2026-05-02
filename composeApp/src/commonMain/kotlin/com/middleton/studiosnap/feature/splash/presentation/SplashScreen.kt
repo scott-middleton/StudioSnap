@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -69,8 +68,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 private val LogoCardShape = RoundedCornerShape(30.dp)
-private val DotShape = CircleShape
-
 private data class SparkleLayout(
     val baseAngle: Float,
     val maxRadius: Float,
@@ -107,7 +104,7 @@ private val OuterSparkles: List<OuterSparkleLayout> = List(40) { i ->
     OuterSparkleLayout(baseX, baseY, rotationSpeed, size)
 }
 
-private val DegToRad = (PI / 180.0).toFloat()
+private const val DegToRad = (PI / 180.0).toFloat()
 
 @Composable
 fun SplashScreen() {
