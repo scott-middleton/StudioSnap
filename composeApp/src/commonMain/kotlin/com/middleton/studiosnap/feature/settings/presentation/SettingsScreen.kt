@@ -50,6 +50,8 @@ import studiosnap.composeapp.generated.resources.settings_delete_account
 import studiosnap.composeapp.generated.resources.settings_delete_account_confirm
 import studiosnap.composeapp.generated.resources.settings_delete_account_message
 import studiosnap.composeapp.generated.resources.settings_delete_account_title
+import studiosnap.composeapp.generated.resources.settings_delete_account_success_title
+import studiosnap.composeapp.generated.resources.settings_delete_account_success_message
 import studiosnap.composeapp.generated.resources.settings_get_more_credits
 import studiosnap.composeapp.generated.resources.settings_privacy_policy
 import studiosnap.composeapp.generated.resources.settings_rate_app
@@ -190,6 +192,20 @@ fun SettingsScreenContent(
                 text = { Text(error) },
                 confirmButton = {
                     TextButton(onClick = { onAction(SettingsUiAction.OnSignOutErrorDismissed) }) {
+                        Text(stringResource(Res.string.settings_ok))
+                    }
+                }
+            )
+        }
+
+        // Delete account success dialog
+        if (state.showDeleteAccountSuccess) {
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text(stringResource(Res.string.settings_delete_account_success_title)) },
+                text = { Text(stringResource(Res.string.settings_delete_account_success_message)) },
+                confirmButton = {
+                    TextButton(onClick = { onAction(SettingsUiAction.OnDeleteAccountSuccessDismissed) }) {
                         Text(stringResource(Res.string.settings_ok))
                     }
                 }

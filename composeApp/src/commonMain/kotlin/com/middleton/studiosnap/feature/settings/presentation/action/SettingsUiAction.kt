@@ -14,5 +14,6 @@ sealed interface SettingsUiAction {
     data object OnDeleteAccountConfirmed : SettingsUiAction
     data object OnDeleteAccountDismissed : SettingsUiAction
     data object OnDeleteAccountErrorDismissed : SettingsUiAction
+    data object OnDeleteAccountSuccessDismissed : SettingsUiAction
     data object OnRateAppClicked : SettingsUiAction
 }

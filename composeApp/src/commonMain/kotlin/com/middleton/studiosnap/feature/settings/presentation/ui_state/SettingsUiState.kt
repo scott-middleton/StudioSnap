@@ -9,5 +9,6 @@ data class SettingsUiState(
     val signOutError: String? = null,
     val showDeleteAccountConfirmation: Boolean = false,
     val isDeletingAccount: Boolean = false,
-    val deleteAccountError: String? = null
+    val deleteAccountError: String? = null,
+    val showDeleteAccountSuccess: Boolean = false
 )

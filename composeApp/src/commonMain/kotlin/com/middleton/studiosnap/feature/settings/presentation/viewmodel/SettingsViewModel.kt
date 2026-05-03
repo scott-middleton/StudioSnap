@@ -61,6 +61,10 @@ class SettingsViewModel(
             SettingsUiAction.OnDeleteAccountConfirmed -> deleteAccount()
             SettingsUiAction.OnDeleteAccountErrorDismissed ->
                 _uiState.update { it.copy(deleteAccountError = null) }
+            SettingsUiAction.OnDeleteAccountSuccessDismissed -> {
+                _uiState.update { it.copy(showDeleteAccountSuccess = false) }
+                _navigationEvent.value = SettingsNavigationAction.GoToSplashAfterSignOut
+            }
 
             SettingsUiAction.OnRateAppClicked -> {
                 viewModelScope.launch { ratingService.openStoreReviewPage() }
@@ -98,8 +102,7 @@ class SettingsViewModel(
             authService.deleteAccount()
                 .onSuccess {
                     purchasesIdentifier.clearIdentity()
-                    _uiState.update { it.copy(isDeletingAccount = false) }
-                    _navigationEvent.value = SettingsNavigationAction.GoToSplashAfterSignOut
+                    _uiState.update { it.copy(isDeletingAccount = false, showDeleteAccountSuccess = true) }
                 }
                 .onFailure { error ->
                     _uiState.update {
