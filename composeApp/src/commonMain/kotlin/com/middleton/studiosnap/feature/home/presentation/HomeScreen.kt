@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -32,7 +33,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -98,6 +100,7 @@ import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeError
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
 import com.middleton.studiosnap.feature.home.presentation.viewmodel.HomeViewModel
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -141,6 +144,7 @@ import studiosnap.composeapp.generated.resources.ic_diamond
 import studiosnap.composeapp.generated.resources.ic_chevron_right
 import studiosnap.composeapp.generated.resources.ic_aspect_ratio
 import studiosnap.composeapp.generated.resources.ic_palette
+import studiosnap.composeapp.generated.resources.credits_count
 import studiosnap.composeapp.generated.resources.home_credits_error
 import studiosnap.composeapp.generated.resources.home_recent_title
 import studiosnap.composeapp.generated.resources.home_recent_view_all
@@ -224,7 +228,7 @@ fun HomeScreenContent(
                             contentDescription = stringResource(Res.string.content_history)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.History,
+                                imageVector = Icons.Default.PhotoLibrary,
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -361,15 +365,33 @@ private fun CreditBalancePill(
     isSigningIn: Boolean,
     onClick: () -> Unit
 ) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(100.dp),
-        color = AppColors.PrimaryGreenDark,
-        shadowElevation = 2.dp,
-        modifier = Modifier.padding(end = 8.dp)
+    val gradientBrush = remember(creditLoadingState) {
+        when {
+            creditLoadingState is UserCreditLoadingState.Loaded &&
+                    creditLoadingState.credits.amount == 0 ->
+                Brush.linearGradient(listOf(AppColors.PrimaryGreen.copy(alpha = 0.6f), AppColors.PrimaryGreenDark.copy(alpha = 0.6f)))
+            else ->
+                Brush.linearGradient(listOf(AppColors.PrimaryGreen, AppColors.PrimaryGreenDark))
+        }
+    }
+    val borderBrush = remember {
+        Brush.verticalGradient(
+            listOf(Color.White.copy(alpha = 0.35f), Color.White.copy(alpha = 0.1f))
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .padding(end = 8.dp, top = 4.dp, bottom = 4.dp)
+            .clip(RoundedCornerShape(100.dp))
+            .background(gradientBrush)
+            .border(width = 1.dp, brush = borderBrush, shape = RoundedCornerShape(100.dp))
+            .clickable(onClick = onClick)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            modifier = Modifier
+                .widthIn(min = 72.dp)
+                .padding(horizontal = 14.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
@@ -383,15 +405,19 @@ private fun CreditBalancePill(
                 }
                 is UserCreditLoadingState.Loaded -> {
                     Icon(
-                        painter = painterResource(Res.drawable.ic_diamond),
+                        imageVector = Icons.Default.MonetizationOn,
                         contentDescription = null,
-                        modifier = Modifier.size(11.dp),
+                        modifier = Modifier.size(15.dp),
                         tint = Color.White
                     )
                     Text(
-                        text = "${creditLoadingState.credits.amount}",
+                        text = pluralStringResource(
+                            Res.plurals.credits_count,
+                            creditLoadingState.credits.amount,
+                            creditLoadingState.credits.amount
+                        ),
                         color = Color.White,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = (-0.1).sp
                     )
@@ -407,28 +433,28 @@ private fun CreditBalancePill(
                         Icon(
                             imageVector = Icons.Default.AccountCircle,
                             contentDescription = null,
-                            modifier = Modifier.size(14.dp),
+                            modifier = Modifier.size(15.dp),
                             tint = Color.White
                         )
                     }
                     Text(
                         text = stringResource(Res.string.home_sign_in),
                         color = Color.White,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 UserCreditLoadingState.Error -> {
                     Icon(
-                        painter = painterResource(Res.drawable.ic_diamond),
+                        imageVector = Icons.Default.MonetizationOn,
                         contentDescription = null,
-                        modifier = Modifier.size(11.dp),
+                        modifier = Modifier.size(15.dp),
                         tint = Color.White
                     )
                     Text(
                         text = stringResource(Res.string.home_credits_error),
                         color = Color.White,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
