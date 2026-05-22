@@ -156,6 +156,73 @@ class HomeScreenSnapshotTest {
 
     // endregion
 
+    // region — Loading States
+
+    @Test
+    fun creditPill_loadingState() {
+        snapshotWithResources {
+            HomeScreenContent(
+                state = HomeUiState(creditLoadingState = UserCreditLoadingState.Loading),
+                onAction = {}
+            )
+        }
+    }
+
+    @Test
+    fun creditPill_errorState() {
+        snapshotWithResources {
+            HomeScreenContent(
+                state = HomeUiState(creditLoadingState = UserCreditLoadingState.Error),
+                onAction = {}
+            )
+        }
+    }
+
+    @Test
+    fun bottomBar_spinnerDuringCreditLoad() {
+        snapshotWithResources {
+            HomeScreenContent(
+                state = HomeUiState(
+                    photos = fakePhotos(2),
+                    selectedStyle = fakeStyle(),
+                    creditLoadingState = UserCreditLoadingState.Loading
+                ),
+                onAction = {}
+            )
+        }
+    }
+
+    @Test
+    fun bottomBar_spinnerDuringGeneration() {
+        snapshotWithResources {
+            HomeScreenContent(
+                state = HomeUiState(
+                    photos = fakePhotos(2),
+                    selectedStyle = fakeStyle(),
+                    creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(10)),
+                    isGenerating = true
+                ),
+                onAction = {}
+            )
+        }
+    }
+
+    @Test
+    fun bottomBar_spinnerDuringSignIn() {
+        snapshotWithResources {
+            HomeScreenContent(
+                state = HomeUiState(
+                    photos = fakePhotos(1),
+                    selectedStyle = fakeStyle(),
+                    isSigningIn = true
+                ),
+                onAction = {}
+            )
+        }
+    }
+
+    // endregion
+
     // region — Dark Theme
 
     @Test

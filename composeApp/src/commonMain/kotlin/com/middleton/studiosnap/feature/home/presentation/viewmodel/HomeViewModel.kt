@@ -87,7 +87,8 @@ class HomeViewModel(
             it.copy(
                 showGalleryPicker = false,
                 showSignIn = false,
-                isSigningIn = false
+                isSigningIn = false,
+                isGenerating = false
             )
         }
     }
@@ -246,12 +247,20 @@ class HomeViewModel(
             )
         )
 
+        _uiState.update { it.copy(isGenerating = true) }
         _navigationEvent.value = HomeNavigationAction.GoToProcessing
     }
 
     private fun onSignInResult(success: Boolean) {
         val wasPendingFreeGeneration = _uiState.value.pendingFreeGeneration
-        _uiState.update { it.copy(showSignIn = false, isSigningIn = false, pendingFreeGeneration = false) }
+        _uiState.update {
+            it.copy(
+                showSignIn = false,
+                isSigningIn = false,
+                pendingFreeGeneration = false,
+                isGenerating = success && wasPendingFreeGeneration
+            )
+        }
 
         if (success && wasPendingFreeGeneration) {
             onGenerateClicked()

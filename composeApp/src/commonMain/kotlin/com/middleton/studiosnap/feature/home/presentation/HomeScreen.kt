@@ -90,6 +90,7 @@ import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
+import com.middleton.studiosnap.core.presentation.state.UserCreditLoadingState
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeError
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
 import com.middleton.studiosnap.feature.home.presentation.viewmodel.HomeViewModel
@@ -137,6 +138,7 @@ import studiosnap.composeapp.generated.resources.ic_diamond
 import studiosnap.composeapp.generated.resources.ic_chevron_right
 import studiosnap.composeapp.generated.resources.ic_aspect_ratio
 import studiosnap.composeapp.generated.resources.ic_palette
+import studiosnap.composeapp.generated.resources.home_credits_error
 import studiosnap.composeapp.generated.resources.home_recent_title
 import studiosnap.composeapp.generated.resources.home_recent_view_all
 
@@ -210,9 +212,8 @@ fun HomeScreenContent(
                     },
                     actions = {
                         CreditBalancePill(
-                            isSignedIn = state.isSignedIn,
+                            creditLoadingState = state.creditLoadingState,
                             isSigningIn = state.isSigningIn,
-                            balance = state.creditBalance,
                             onClick = { onAction(HomeUiAction.OnCreditBalanceClicked) }
                         )
                         NavIconButton(
@@ -353,9 +354,8 @@ private fun NavIconButton(
 
 @Composable
 private fun CreditBalancePill(
-    isSignedIn: Boolean,
+    creditLoadingState: UserCreditLoadingState,
     isSigningIn: Boolean,
-    balance: Int,
     onClick: () -> Unit
 ) {
     Surface(
@@ -370,41 +370,65 @@ private fun CreditBalancePill(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            if (isSignedIn) {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_diamond),
-                    contentDescription = null,
-                    modifier = Modifier.size(11.dp),
-                    tint = Color.White
-                )
-                Text(
-                    text = "$balance",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-0.1).sp
-                )
-            } else {
-                if (isSigningIn) {
+            when (creditLoadingState) {
+                UserCreditLoadingState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.size(14.dp),
                         color = Color.White,
                         strokeWidth = 2.dp
                     )
-                } else {
+                }
+                is UserCreditLoadingState.Loaded -> {
                     Icon(
-                        imageVector = Icons.Default.AccountCircle,
+                        painter = painterResource(Res.drawable.ic_diamond),
                         contentDescription = null,
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(11.dp),
                         tint = Color.White
                     )
+                    Text(
+                        text = "${creditLoadingState.credits.amount}",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.1).sp
+                    )
                 }
-                Text(
-                    text = stringResource(Res.string.home_sign_in),
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                UserCreditLoadingState.LoggedOut -> {
+                    if (isSigningIn) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(14.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = Color.White
+                        )
+                    }
+                    Text(
+                        text = stringResource(Res.string.home_sign_in),
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                UserCreditLoadingState.Error -> {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_diamond),
+                        contentDescription = null,
+                        modifier = Modifier.size(11.dp),
+                        tint = Color.White
+                    )
+                    Text(
+                        text = stringResource(Res.string.home_credits_error),
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
@@ -962,8 +986,8 @@ private fun GenerateBottomBar(
         else -> stringResource(Res.string.home_generate_preview, state.generationCost)
     }
 
-    // Button is always tappable (signs in, buys credits, or generates) unless loading credits, signing in, or no style
-    val isActionable = !state.isLoadingCredits && !state.isSigningIn && state.selectedStyle != null
+    // Button is always tappable (signs in, buys credits, or generates) unless loading, signing in, generating, or no style
+    val isActionable = !state.isLoadingCredits && !state.isSigningIn && !state.isGenerating && state.selectedStyle != null
 
     // Fade gradient overlay above button
     Box(
@@ -1028,7 +1052,7 @@ private fun GenerateBottomBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (state.isSigningIn) {
+                    if (state.isGenerating || state.isSigningIn || state.isLoadingCredits) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             color = Color.White,

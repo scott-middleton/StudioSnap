@@ -16,6 +16,7 @@ data class HomeUiState(
     val creditLoadingState: UserCreditLoadingState = UserCreditLoadingState.LoggedOut,
     val showSignIn: Boolean = false,
     val isSigningIn: Boolean = false,
+    val isGenerating: Boolean = false,
     val pendingFreeGeneration: Boolean = false,
     val hasUsedFreeGeneration: Boolean = false,
     val recentGenerations: List<HistoryItem> = emptyList(),
