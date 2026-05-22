@@ -90,6 +90,9 @@ import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import com.middleton.studiosnap.core.presentation.state.UserCreditLoadingState
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeError
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
@@ -991,9 +994,11 @@ private fun GenerateBottomBar(
 
     // Fade gradient overlay above button
     Box(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
-        // Background fade
+        // Background fade — extends upward behind the button
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1012,7 +1017,6 @@ private fun GenerateBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 12.dp)
-                .padding(bottom = 28.dp)
                 .align(Alignment.BottomCenter)
         ) {
             val gradientBrush = remember {
