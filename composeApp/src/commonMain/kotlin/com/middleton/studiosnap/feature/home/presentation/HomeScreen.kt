@@ -885,10 +885,10 @@ private fun ExportFormatChip(
 private fun exportFormatDisplayName(format: ExportFormat): String {
     return stringResource(
         when (format) {
-            ExportFormat.ETSY_SQUARE -> Res.string.home_export_etsy
-            ExportFormat.EBAY_LANDSCAPE -> Res.string.home_export_ebay
-            ExportFormat.VINTED_PORTRAIT -> Res.string.home_export_vinted
             ExportFormat.ORIGINAL -> Res.string.home_export_original
+            ExportFormat.ETSY_SQUARE -> Res.string.home_export_etsy
+            ExportFormat.EBAY_SQUARE -> Res.string.home_export_ebay
+            ExportFormat.VINTED_PORTRAIT -> Res.string.home_export_vinted
         }
     )
 }

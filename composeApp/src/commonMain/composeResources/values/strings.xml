@@ -48,7 +48,7 @@
     <string name="home_reflection">Add Reflection</string>
     <string name="home_export_format">Export Size</string>
     <string name="home_export_etsy">Etsy Square</string>
-    <string name="home_export_ebay">eBay Landscape</string>
+    <string name="home_export_ebay">eBay Square</string>
     <string name="home_export_vinted">Vinted Portrait</string>
     <string name="home_export_original">Original</string>
     <string name="home_generate_preview">Generate (%1$d credits)</string>
