@@ -207,32 +207,38 @@ fun HomeScreenContent(
                         )
                     },
                     actions = {
-                        CreditBalancePill(
-                            creditLoadingState = state.creditLoadingState,
-                            isSigningIn = state.isSigningIn,
-                            onClick = { onAction(HomeUiAction.OnCreditBalanceClicked) }
-                        )
-                        NavIconButton(
-                            onClick = { onAction(HomeUiAction.OnHistoryClicked) },
-                            contentDescription = stringResource(Res.string.content_history)
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.PhotoLibrary,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            CreditBalancePill(
+                                creditLoadingState = state.creditLoadingState,
+                                isSigningIn = state.isSigningIn,
+                                onClick = { onAction(HomeUiAction.OnCreditBalanceClicked) }
                             )
-                        }
-                        NavIconButton(
-                            onClick = { onAction(HomeUiAction.OnSettingsClicked) },
-                            contentDescription = stringResource(Res.string.content_settings)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            NavIconButton(
+                                onClick = { onAction(HomeUiAction.OnHistoryClicked) },
+                                contentDescription = stringResource(Res.string.content_history)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PhotoLibrary,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            NavIconButton(
+                                onClick = { onAction(HomeUiAction.OnSettingsClicked) },
+                                contentDescription = stringResource(Res.string.content_settings)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -368,7 +374,6 @@ private fun CreditBalancePill(
 
     Box(
         modifier = Modifier
-            .padding(end = 8.dp, top = 4.dp, bottom = 4.dp)
             .clip(RoundedCornerShape(100.dp))
             .background(gradientBrush)
             .border(width = 1.dp, brush = borderBrush, shape = RoundedCornerShape(100.dp))
