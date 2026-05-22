@@ -17,13 +17,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -36,14 +39,11 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -58,44 +58,38 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Brush
+import androidx.lifecycle.repeatOnLifecycle
 import com.middleton.studiosnap.core.presentation.components.GalleryImage
 import com.middleton.studiosnap.core.presentation.components.NativeSignInEffect
 import com.middleton.studiosnap.core.presentation.components.RestorationImage
-import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
-import com.middleton.studiosnap.core.presentation.util.asString
-import androidx.compose.ui.text.style.TextOverflow
-import com.middleton.studiosnap.core.presentation.util.formatRelativeTime
-import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
-import com.middleton.studiosnap.core.presentation.components.StudioSnapFilterChip
 import com.middleton.studiosnap.core.presentation.imagepicker.ImagePickerLauncher
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
+import com.middleton.studiosnap.core.presentation.state.UserCreditLoadingState
 import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
+import com.middleton.studiosnap.core.presentation.util.asString
+import com.middleton.studiosnap.core.presentation.util.formatRelativeTime
+import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.windowInsetsPadding
-import com.middleton.studiosnap.core.presentation.state.UserCreditLoadingState
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeError
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
 import com.middleton.studiosnap.feature.home.presentation.viewmodel.HomeViewModel
@@ -105,13 +99,13 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import studiosnap.composeapp.generated.resources.Res
-import studiosnap.composeapp.generated.resources.content_credits
 import studiosnap.composeapp.generated.resources.content_history
 import studiosnap.composeapp.generated.resources.content_settings
-// hero_before/hero_after removed — reserved for onboarding
-import studiosnap.composeapp.generated.resources.home_add_photos
+import studiosnap.composeapp.generated.resources.credits_count
 import studiosnap.composeapp.generated.resources.home_add_more_photos
+import studiosnap.composeapp.generated.resources.home_add_photos
 import studiosnap.composeapp.generated.resources.home_background_style
+import studiosnap.composeapp.generated.resources.home_credits_error
 import studiosnap.composeapp.generated.resources.home_error_generation_failed
 import studiosnap.composeapp.generated.resources.home_error_too_many_photos
 import studiosnap.composeapp.generated.resources.home_export_ebay
@@ -119,35 +113,30 @@ import studiosnap.composeapp.generated.resources.home_export_etsy
 import studiosnap.composeapp.generated.resources.home_export_format
 import studiosnap.composeapp.generated.resources.home_export_original
 import studiosnap.composeapp.generated.resources.home_export_vinted
+import studiosnap.composeapp.generated.resources.home_generate_button
 import studiosnap.composeapp.generated.resources.home_generate_preview
 import studiosnap.composeapp.generated.resources.home_get_credits
-import studiosnap.composeapp.generated.resources.home_photo_limit_hint
 import studiosnap.composeapp.generated.resources.home_loading_credits
+import studiosnap.composeapp.generated.resources.home_photo_limit_hint
+import studiosnap.composeapp.generated.resources.home_photos_header
+import studiosnap.composeapp.generated.resources.home_recent_title
+import studiosnap.composeapp.generated.resources.home_recent_view_all
+import studiosnap.composeapp.generated.resources.home_remove_photo
+import studiosnap.composeapp.generated.resources.home_select_style_first
 import studiosnap.composeapp.generated.resources.home_sign_in
 import studiosnap.composeapp.generated.resources.home_signing_in
-import studiosnap.composeapp.generated.resources.home_generate_button
-import studiosnap.composeapp.generated.resources.home_photos_header
-import studiosnap.composeapp.generated.resources.home_select_style_first
-import studiosnap.composeapp.generated.resources.home_remove_photo
 import studiosnap.composeapp.generated.resources.home_style_choose
 import studiosnap.composeapp.generated.resources.home_style_choose_hint
 import studiosnap.composeapp.generated.resources.home_style_tap_to_change
 import studiosnap.composeapp.generated.resources.home_title
+import studiosnap.composeapp.generated.resources.ic_bolt
+import studiosnap.composeapp.generated.resources.ic_chevron_right
+import studiosnap.composeapp.generated.resources.ic_palette
+import studiosnap.composeapp.generated.resources.ic_transform_photos
 import studiosnap.composeapp.generated.resources.style_botanical_garden
 import studiosnap.composeapp.generated.resources.style_dark_moody
 import studiosnap.composeapp.generated.resources.style_marble_luxe
 import studiosnap.composeapp.generated.resources.style_rustic_wood
-import studiosnap.composeapp.generated.resources.home_add_label
-import studiosnap.composeapp.generated.resources.ic_bolt
-import studiosnap.composeapp.generated.resources.ic_transform_photos
-import studiosnap.composeapp.generated.resources.ic_diamond
-import studiosnap.composeapp.generated.resources.ic_chevron_right
-import studiosnap.composeapp.generated.resources.ic_aspect_ratio
-import studiosnap.composeapp.generated.resources.ic_palette
-import studiosnap.composeapp.generated.resources.credits_count
-import studiosnap.composeapp.generated.resources.home_credits_error
-import studiosnap.composeapp.generated.resources.home_recent_title
-import studiosnap.composeapp.generated.resources.home_recent_view_all
 
 @Composable
 fun HomeScreen(
@@ -343,8 +332,16 @@ private fun NavIconButton(
     contentDescription: String,
     content: @Composable () -> Unit
 ) {
-    IconButton(onClick = onClick) {
-        content()
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.size(38.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 1.dp
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            content()
+        }
     }
 }
 
