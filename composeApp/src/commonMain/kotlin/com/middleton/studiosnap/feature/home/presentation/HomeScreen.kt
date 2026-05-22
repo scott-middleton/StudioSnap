@@ -343,20 +343,9 @@ private fun NavIconButton(
     contentDescription: String,
     content: @Composable () -> Unit
 ) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier
-            .size(38.dp)
-            .border(1.dp, extendedColorScheme().ink10, RoundedCornerShape(12.dp)),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 1.dp
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            content()
-        }
+    IconButton(onClick = onClick) {
+        content()
     }
-    Spacer(modifier = Modifier.width(7.dp))
 }
 
 @Composable
