@@ -7,5 +7,10 @@ enum class StyleCategory {
     HOMEWARE,
     COSMETICS,
     FOOD,
+    ELECTRONICS,
+    PETS,
+    TOYS_KIDS,
+    BOOKS_STATIONERY,
+    SPORTS_FITNESS,
     OTHER
 }

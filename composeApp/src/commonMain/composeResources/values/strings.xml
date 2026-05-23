@@ -75,6 +75,11 @@
     <string name="category_homeware">Homeware</string>
     <string name="category_cosmetics">Cosmetics</string>
     <string name="category_food">Food</string>
+    <string name="category_electronics">Electronics</string>
+    <string name="category_pets">Pets</string>
+    <string name="category_toys">Toys &amp; Kids</string>
+    <string name="category_books">Books &amp; Stationery</string>
+    <string name="category_sports">Sports &amp; Fitness</string>
     <string name="category_other">Other</string>
 
     <!-- Processing Screen -->
@@ -232,6 +237,24 @@
     <string name="style_spring_garden">Spring Garden</string>
     <string name="style_gradient_studio">Gradient Studio</string>
     <string name="style_neon_pop">Neon Pop</string>
+    <string name="style_artisan_bakery">Artisan Bakery</string>
+    <string name="style_cafe_morning">Café Morning</string>
+    <string name="style_restaurant_plating">Restaurant Plating</string>
+    <string name="style_health_bowl">Health Bowl</string>
+    <string name="style_street_food_grit">Street Food</string>
+    <string name="style_spice_market">Spice Market</string>
+    <string name="style_chocolate_indulgence">Chocolate Indulgence</string>
+    <string name="style_minimalist_studio">Minimalist Studio</string>
+    <string name="style_vintage_antique">Vintage Antique</string>
+    <string name="style_golden_hour_glow">Golden Hour Glow</string>
+    <string name="style_dewy_skincare">Dewy Skincare</string>
+    <string name="style_natural_organic">Natural Organic</string>
+    <string name="style_tech_sleek">Tech Sleek</string>
+    <string name="style_unboxing_moment">Unboxing</string>
+    <string name="style_valentines_romance">Valentine\'s Romance</string>
+    <string name="style_autumn_harvest">Autumn Harvest</string>
+    <string name="style_halloween_spooky">Halloween Spooky</string>
+    <string name="style_pet_lifestyle">Pet Lifestyle</string>
 
     <!-- Settings (additional) -->
     <string name="settings_credit_count">%1$d credits</string>
