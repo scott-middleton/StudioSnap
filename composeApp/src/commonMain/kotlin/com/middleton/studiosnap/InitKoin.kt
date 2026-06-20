@@ -11,6 +11,7 @@ import com.middleton.studiosnap.feature.onboarding.presentation.di.onboardingMod
 import com.middleton.studiosnap.feature.paywall.presentation.di.paywallModule
 import com.middleton.studiosnap.feature.processing.presentation.di.processingModule
 import com.middleton.studiosnap.feature.results.presentation.di.resultsModule
+import com.middleton.studiosnap.feature.sessiondetail.presentation.di.sessionDetailModule
 import com.middleton.studiosnap.feature.settings.presentation.di.settingsModule
 import com.middleton.studiosnap.feature.splash.presentation.di.splashModule
 import org.koin.core.context.startKoin
@@ -39,6 +40,7 @@ fun initKoin() {
             processingModule,
             resultsModule,
             historyModule,
+            sessionDetailModule,
             settingsModule
         )
     }

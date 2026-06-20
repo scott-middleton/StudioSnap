@@ -10,6 +10,22 @@ import kotlinx.datetime.Month
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.style_artisan_bakery
 import studiosnap.composeapp.generated.resources.style_autumn_harvest
+import studiosnap.composeapp.generated.resources.style_cafe_morning
+import studiosnap.composeapp.generated.resources.style_chocolate_indulgence
+import studiosnap.composeapp.generated.resources.style_dewy_skincare
+import studiosnap.composeapp.generated.resources.style_golden_hour_glow
+import studiosnap.composeapp.generated.resources.style_halloween_spooky
+import studiosnap.composeapp.generated.resources.style_health_bowl
+import studiosnap.composeapp.generated.resources.style_minimalist_studio
+import studiosnap.composeapp.generated.resources.style_natural_organic
+import studiosnap.composeapp.generated.resources.style_pet_lifestyle
+import studiosnap.composeapp.generated.resources.style_restaurant_plating
+import studiosnap.composeapp.generated.resources.style_spice_market
+import studiosnap.composeapp.generated.resources.style_street_food_grit
+import studiosnap.composeapp.generated.resources.style_tech_sleek
+import studiosnap.composeapp.generated.resources.style_unboxing_moment
+import studiosnap.composeapp.generated.resources.style_valentines_romance
+import studiosnap.composeapp.generated.resources.style_vintage_antique
 import studiosnap.composeapp.generated.resources.style_beach_vibes
 import studiosnap.composeapp.generated.resources.style_botanical_garden
 import studiosnap.composeapp.generated.resources.style_cafe_morning
@@ -31,7 +47,7 @@ import studiosnap.composeapp.generated.resources.style_neon_pop
 import studiosnap.composeapp.generated.resources.style_paper_craft
 import studiosnap.composeapp.generated.resources.style_pastel_dream
 import studiosnap.composeapp.generated.resources.style_pet_lifestyle
-import studiosnap.composeapp.generated.resources.style_placeholder
+
 import studiosnap.composeapp.generated.resources.style_restaurant_plating
 import studiosnap.composeapp.generated.resources.style_rustic_wood
 import studiosnap.composeapp.generated.resources.style_silk_velvet
@@ -56,8 +72,7 @@ import studiosnap.composeapp.generated.resources.style_warm_linen
  * 2. Add a new Style entry below with the DrawableResource reference
  * 3. Add a string resource for the display name in strings.xml
  *
- * Styles with [style_placeholder] thumbnails are awaiting generated images.
- * Run scripts/generate-thumbnails.js to produce them.
+ * Run scripts/generate-thumbnails.js to regenerate thumbnails with --force if needed.
  */
 class StyleRepositoryImpl : StyleRepository {
 
@@ -97,7 +112,7 @@ class StyleRepositoryImpl : StyleRepository {
                 id = "minimalist_studio",
                 displayName = UiText.StringResource(Res.string.style_minimalist_studio),
                 categories = setOf(JEWELLERY, COSMETICS, ELECTRONICS),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_minimalist_studio,
                 kontextPrompt = "Place the product on a perfectly clean light grey surface, bright soft even studio lighting with a single directional rim light, pure white seamless background, absolute negative space, ultra-modern minimal aesthetic. Keep the product exactly as-is, change only the background."
             ),
 
@@ -135,7 +150,7 @@ class StyleRepositoryImpl : StyleRepository {
                 id = "golden_hour_glow",
                 displayName = UiText.StringResource(Res.string.style_golden_hour_glow),
                 categories = setOf(JEWELLERY, COSMETICS, CLOTHING),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_golden_hour_glow,
                 kontextPrompt = "Place the product bathed in warm golden late-afternoon sunlight on a neutral stone surface, soft natural bokeh background with gold and amber tones, romantic dreamy lighting. Keep the product exactly as-is, change only the background."
             ),
             Style(
@@ -173,21 +188,21 @@ class StyleRepositoryImpl : StyleRepository {
                 id = "dewy_skincare",
                 displayName = UiText.StringResource(Res.string.style_dewy_skincare),
                 categories = setOf(COSMETICS),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_dewy_skincare,
                 kontextPrompt = "Place the product on a wet reflective white surface with water droplets, bright fresh natural morning light, glass dropper bottles and botanical extracts slightly visible in background, clean minimalist spa aesthetic. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "natural_organic",
                 displayName = UiText.StringResource(Res.string.style_natural_organic),
                 categories = setOf(COSMETICS, FOOD),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_natural_organic,
                 kontextPrompt = "Place the product on a natural woven surface surrounded by organic botanicals—dried flowers, fresh herbs, small glass jars of oils—soft diffused natural daylight, earthy warm tones, clean ethical aesthetic. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "vintage_antique",
                 displayName = UiText.StringResource(Res.string.style_vintage_antique),
                 categories = setOf(JEWELLERY, HOMEWARE, BOOKS_STATIONERY),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_vintage_antique,
                 kontextPrompt = "Place the product on aged parchment paper with an antique wooden surface beneath, warm candlelight, subtle vintage lace or aged fabric nearby, muted earth tones, nostalgic timeless atmosphere. Keep the product exactly as-is, change only the background."
             ),
 
@@ -221,49 +236,49 @@ class StyleRepositoryImpl : StyleRepository {
                 id = "artisan_bakery",
                 displayName = UiText.StringResource(Res.string.style_artisan_bakery),
                 categories = setOf(FOOD),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_artisan_bakery,
                 kontextPrompt = "Place the product on a rustic wooden cutting board with a warm linen cloth draped beside it, soft golden window light from the left casting long shadows, scattered flour, a pastry brush, and blurred fresh herbs in the background. Artisan bakery aesthetic. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "cafe_morning",
                 displayName = UiText.StringResource(Res.string.style_cafe_morning),
                 categories = setOf(FOOD),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_cafe_morning,
                 kontextPrompt = "Place the product on a white ceramic surface beside a ceramic mug of black coffee, soft morning light filtering through a café window, neutral cream and grey tones, blurred newspaper and pastry in the background. Cozy coffee shop ambiance. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "restaurant_plating",
                 displayName = UiText.StringResource(Res.string.style_restaurant_plating),
                 categories = setOf(FOOD),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_restaurant_plating,
                 kontextPrompt = "Place the product on a clean white plate or slate serving board with professional restaurant overhead lighting, artistic negative space, subtle garnish elements and blurred utensils in the background. Fine dining presentation. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "health_bowl",
                 displayName = UiText.StringResource(Res.string.style_health_bowl),
                 categories = setOf(FOOD),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_health_bowl,
                 kontextPrompt = "Place the product on a white marble countertop with bright midday natural light, fresh green elements (herbs, spinach leaves) nearby, a glass of water and fitness towel slightly visible in background, clean wellness aesthetic. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "street_food_grit",
                 displayName = UiText.StringResource(Res.string.style_street_food_grit),
                 categories = setOf(FOOD),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_street_food_grit,
                 kontextPrompt = "Place the product on a dark grey concrete surface with vibrant warm accent lighting, wooden serving board texture nearby, casual street food energy, food truck aesthetic. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "spice_market",
                 displayName = UiText.StringResource(Res.string.style_spice_market),
                 categories = setOf(FOOD),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_spice_market,
                 kontextPrompt = "Place the product on a light neutral linen surface with scattered whole spices—star anise, cardamom, dried chiles—nearby, warm golden diffused light, burlap texture and small brass scoops in soft focus background. Artisanal spice market aesthetic. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "chocolate_indulgence",
                 displayName = UiText.StringResource(Res.string.style_chocolate_indulgence),
                 categories = setOf(FOOD),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_chocolate_indulgence,
                 kontextPrompt = "Place the product on a dark rich wooden surface with scattered cocoa powder, cocoa beans, and gold leaf accents, warm dramatic side lighting, blurred chocolate pieces and deep burgundy velvet fabric in background. Luxurious indulgent mood. Keep the product exactly as-is, change only the background.",
                 seasonal = SeasonalWindow(Month.JANUARY, Month.FEBRUARY)
             ),
@@ -274,14 +289,14 @@ class StyleRepositoryImpl : StyleRepository {
                 id = "tech_sleek",
                 displayName = UiText.StringResource(Res.string.style_tech_sleek),
                 categories = setOf(ELECTRONICS),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_tech_sleek,
                 kontextPrompt = "Place the product on a dark gunmetal metallic surface with clean hard-edged shadows from cool directional studio lighting, subtle glass or carbon fibre texture in background, futuristic minimal tech aesthetic. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "unboxing_moment",
                 displayName = UiText.StringResource(Res.string.style_unboxing_moment),
                 categories = setOf(ELECTRONICS, TOYS_KIDS),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_unboxing_moment,
                 kontextPrompt = "Place the product on a cream surface surrounded by premium unboxing elements—tissue paper, satin ribbon, clean white gift box—soft warm studio lighting, excitement and luxury gift aesthetic. Keep the product exactly as-is, change only the background.",
                 seasonal = SeasonalWindow(Month.OCTOBER, Month.DECEMBER)
             ),
@@ -292,7 +307,7 @@ class StyleRepositoryImpl : StyleRepository {
                 id = "pet_lifestyle",
                 displayName = UiText.StringResource(Res.string.style_pet_lifestyle),
                 categories = setOf(PETS),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_pet_lifestyle,
                 kontextPrompt = "Place the product on a warm light oak wooden floor with a cozy knitted blanket nearby, soft natural afternoon window light, scattered pet toys (ball, rope toy) blurred in background, warm homely pet lifestyle aesthetic. Keep the product exactly as-is, change only the background."
             ),
 
@@ -332,7 +347,7 @@ class StyleRepositoryImpl : StyleRepository {
                 id = "valentines_romance",
                 displayName = UiText.StringResource(Res.string.style_valentines_romance),
                 categories = setOf(JEWELLERY, COSMETICS, CLOTHING),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_valentines_romance,
                 kontextPrompt = "Place the product on a soft rose-pink velvet surface with romantic candlelight, fresh red roses softly arranged nearby, scattered rose petals, warm intimate lighting, love letter and luxury ribbon in background. Keep the product exactly as-is, change only the background.",
                 seasonal = SeasonalWindow(Month.JANUARY, Month.FEBRUARY)
             ),
@@ -340,7 +355,7 @@ class StyleRepositoryImpl : StyleRepository {
                 id = "autumn_harvest",
                 displayName = UiText.StringResource(Res.string.style_autumn_harvest),
                 categories = setOf(FOOD, HOMEWARE, CLOTHING),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_autumn_harvest,
                 kontextPrompt = "Place the product on a rich burgundy or burnt orange surface with fall foliage, dried leaves, and small pumpkins softly blurred nearby, warm golden hour light, cozy autumn harvest mood. Keep the product exactly as-is, change only the background.",
                 seasonal = SeasonalWindow(Month.AUGUST, Month.OCTOBER)
             ),
@@ -348,7 +363,7 @@ class StyleRepositoryImpl : StyleRepository {
                 id = "halloween_spooky",
                 displayName = UiText.StringResource(Res.string.style_halloween_spooky),
                 categories = setOf(OTHER, TOYS_KIDS, CLOTHING),
-                thumbnail = Res.drawable.style_placeholder,
+                thumbnail = Res.drawable.style_halloween_spooky,
                 kontextPrompt = "Place the product on a dark moody surface with subtle Halloween elements—faint pumpkins, spider webs, melting candles—dramatic lighting with deep shadows and muted orange accent glow, playful spooky atmosphere. Keep the product exactly as-is, change only the background.",
                 seasonal = SeasonalWindow(Month.SEPTEMBER, Month.OCTOBER)
             ),
