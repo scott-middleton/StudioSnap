@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -132,14 +134,14 @@ internal fun StylePickerScreenContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 20.dp),
+                    .padding(padding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
                 CategoryChipRow(
                     selectedCategory = selectedCategory,
-                    onCategorySelected = onCategorySelected
+                    onCategorySelected = onCategorySelected,
+                    edgePadding = 20.dp
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Icon(
@@ -152,55 +154,55 @@ internal fun StylePickerScreenContent(
                 Text(
                     text = stringResource(Res.string.style_picker_empty_category),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 20.dp)
                 )
                 Spacer(modifier = Modifier.weight(1f))
             }
         } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Selected style hero preview
                 if (selectedStyle != null) {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        SelectedStyleHero(
-                            style = selectedStyle,
-                            onClick = { onStyleSelected(selectedStyle.id) }
-                        )
-                    }
-                }
-
-                // Category filter chips
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Column {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        CategoryChipRow(
-                            selectedCategory = selectedCategory,
-                            onCategorySelected = onCategorySelected
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
-
-                // Style cards
-                items(styles, key = { it.id }) { style ->
-                    StylePickerCard(
-                        styleName = style.displayName.asString(),
-                        thumbnail = style.thumbnail,
-                        isSelected = style.id == selectedStyleId,
-                        onClick = { onStyleSelected(style.id) }
+                    SelectedStyleHero(
+                        style = selectedStyle,
+                        onClick = { onStyleSelected(selectedStyle.id) },
+                        modifier = Modifier.padding(horizontal = 20.dp)
                     )
+                    Spacer(modifier = Modifier.height(10.dp))
                 }
 
-                // Bottom padding
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+                CategoryChipRow(
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = onCategorySelected,
+                    edgePadding = 20.dp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Style cards
+                    items(styles, key = { it.id }) { style ->
+                        StylePickerCard(
+                            styleName = style.displayName.asString(),
+                            thumbnail = style.thumbnail,
+                            isSelected = style.id == selectedStyleId,
+                            onClick = { onStyleSelected(style.id) }
+                        )
+                    }
+
+                    // Bottom padding
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }
@@ -293,12 +295,16 @@ private fun SelectedStyleHero(
 private fun CategoryChipRow(
     selectedCategory: StyleCategory,
     onCategorySelected: (StyleCategory) -> Unit,
+    edgePadding: androidx.compose.ui.unit.Dp = 0.dp,
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()),
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        Spacer(modifier = Modifier.width(edgePadding))
         StyleCategory.entries.forEach { category ->
             CategoryChip(
                 label = categoryDisplayName(category),
@@ -306,6 +312,7 @@ private fun CategoryChipRow(
                 onClick = { onCategorySelected(category) }
             )
         }
+        Spacer(modifier = Modifier.width(edgePadding))
     }
 }
 
