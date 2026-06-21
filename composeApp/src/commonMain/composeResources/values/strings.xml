@@ -276,6 +276,7 @@
     <string name="style_picker_title">Choose Style</string>
     <string name="style_picker_empty_category">No styles in this category</string>
     <string name="style_picker_selected">SELECTED</string>
+    <string name="style_picker_use_this_style">Use this style</string>
 
     <!-- Home - Style Section -->
     <string name="home_background_style">Background Style</string>

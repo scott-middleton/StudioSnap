@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ImageSearch
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,8 +38,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +56,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.middleton.studiosnap.core.presentation.components.FullScreenDrawableOverlay
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
@@ -69,6 +75,7 @@ import studiosnap.composeapp.generated.resources.ic_palette
 import studiosnap.composeapp.generated.resources.style_picker_empty_category
 import studiosnap.composeapp.generated.resources.style_picker_selected
 import studiosnap.composeapp.generated.resources.style_picker_title
+import studiosnap.composeapp.generated.resources.style_picker_use_this_style
 
 @Composable
 fun StylePickerScreen(
@@ -79,15 +86,20 @@ fun StylePickerScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    val selectedStyle = uiState.allStyles.find { it.id == currentSelectedStyleId }
+    LaunchedEffect(currentSelectedStyleId) {
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(currentSelectedStyleId))
+    }
+
+    val heroStyle = uiState.allStyles.find { it.id == uiState.heroStyleId }
 
     StylePickerScreenContent(
         styles = uiState.styles,
-        allStyles = uiState.allStyles,
-        selectedStyleId = currentSelectedStyleId,
-        selectedStyle = selectedStyle,
+        heroStyleId = uiState.heroStyleId,
+        heroStyle = heroStyle,
+        isHeroUnconfirmedPreview = uiState.isHeroUnconfirmedPreview,
         selectedCategory = uiState.selectedCategory,
         onCategorySelected = { viewModel.handleAction(StylePickerUiAction.OnCategorySelected(it)) },
+        onStylePreviewed = { viewModel.handleAction(StylePickerUiAction.OnStylePreviewed(it)) },
         onStyleSelected = onStyleSelected,
         onClose = onClose
     )
@@ -97,113 +109,138 @@ fun StylePickerScreen(
 @Composable
 internal fun StylePickerScreenContent(
     styles: List<Style>,
-    allStyles: List<Style>,
-    selectedStyleId: String?,
-    selectedStyle: Style?,
+    heroStyleId: String?,
+    heroStyle: Style?,
+    isHeroUnconfirmedPreview: Boolean,
     selectedCategory: StyleCategory,
     onCategorySelected: (StyleCategory) -> Unit,
+    onStylePreviewed: (String) -> Unit,
     onStyleSelected: (String) -> Unit,
     onClose: () -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.style_picker_title),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = (-1.0).sp
-                    )
-                },
-                actions = {
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(Res.string.content_close)
+    var fullScreenStyle by remember { mutableStateOf<Style?>(null) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(Res.string.style_picker_title),
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-1.0).sp
                         )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    },
+                    actions = {
+                        IconButton(onClick = onClose) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = stringResource(Res.string.content_close)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
-            )
-        }
-    ) { padding ->
-        if (styles.isEmpty() && selectedCategory != StyleCategory.ALL) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
-                CategoryChipRow(
-                    selectedCategory = selectedCategory,
-                    onCategorySelected = onCategorySelected,
-                    edgePadding = 20.dp
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(
-                    imageVector = Icons.Default.ImageSearch,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = stringResource(Res.string.style_picker_empty_category),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-                Spacer(modifier = Modifier.weight(1f))
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                if (selectedStyle != null) {
-                    SelectedStyleHero(
-                        style = selectedStyle,
-                        onClick = { onStyleSelected(selectedStyle.id) },
+        ) { padding ->
+            if (styles.isEmpty() && selectedCategory != StyleCategory.ALL) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    CategoryChipRow(
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = onCategorySelected,
+                        edgePadding = 20.dp
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Icon(
+                        imageVector = Icons.Default.ImageSearch,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(Res.string.style_picker_empty_category),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.weight(1f))
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                CategoryChipRow(
-                    selectedCategory = selectedCategory,
-                    onCategorySelected = onCategorySelected,
-                    edgePadding = 20.dp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
                 ) {
-                    // Style cards
-                    items(styles, key = { it.id }) { style ->
-                        StylePickerCard(
-                            styleName = style.displayName.asString(),
-                            thumbnail = style.thumbnail,
-                            isSelected = style.id == selectedStyleId,
-                            onClick = { onStyleSelected(style.id) }
+                    if (heroStyle != null) {
+                        SelectedStyleHero(
+                            style = heroStyle,
+                            showSelectedBadge = !isHeroUnconfirmedPreview,
+                            onClick = { fullScreenStyle = heroStyle },
+                            modifier = Modifier.padding(horizontal = 20.dp)
                         )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Button(
+                            onClick = { onStyleSelected(heroStyle.id) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp)
+                        ) {
+                            Text(text = stringResource(Res.string.style_picker_use_this_style))
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
                     }
 
-                    // Bottom padding
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    CategoryChipRow(
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = onCategorySelected,
+                        edgePadding = 20.dp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // Style cards
+                        items(styles, key = { it.id }) { style ->
+                            StylePickerCard(
+                                styleName = style.displayName.asString(),
+                                thumbnail = style.thumbnail,
+                                isSelected = style.id == heroStyleId,
+                                onClick = { onStylePreviewed(style.id) }
+                            )
+                        }
+
+                        // Bottom padding
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
                 }
+            }
+        }
+
+        fullScreenStyle?.let { style ->
+            style.thumbnail?.let { thumbnail ->
+                FullScreenDrawableOverlay(
+                    thumbnail = thumbnail,
+                    contentDescription = style.displayName.asString(),
+                    onDismiss = { fullScreenStyle = null }
+                )
             }
         }
     }
@@ -214,6 +251,7 @@ internal fun StylePickerScreenContent(
 @Composable
 private fun SelectedStyleHero(
     style: Style,
+    showSelectedBadge: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -258,22 +296,24 @@ private fun SelectedStyleHero(
         )
 
         // Selected badge
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(10.dp)
-                .background(
-                    color = AppColors.PrimaryGreen,
-                    shape = RoundedCornerShape(100.dp)
+        if (showSelectedBadge) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(10.dp)
+                    .background(
+                        color = AppColors.PrimaryGreen,
+                        shape = RoundedCornerShape(100.dp)
+                    )
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    text = stringResource(Res.string.style_picker_selected),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
                 )
-                .padding(horizontal = 10.dp, vertical = 5.dp)
-        ) {
-            Text(
-                text = stringResource(Res.string.style_picker_selected),
-                fontSize = 9.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White
-            )
+            }
         }
 
         // Style name

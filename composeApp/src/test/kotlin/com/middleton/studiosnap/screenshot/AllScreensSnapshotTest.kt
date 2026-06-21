@@ -306,11 +306,12 @@ class AllScreensSnapshotTest {
             val styles = fakeStyles()
             StylePickerScreenContent(
                 styles = styles,
-                allStyles = styles,
-                selectedStyleId = null,
-                selectedStyle = null,
+                heroStyleId = null,
+                heroStyle = null,
+                isHeroUnconfirmedPreview = false,
                 selectedCategory = StyleCategory.ALL,
                 onCategorySelected = {},
+                onStylePreviewed = {},
                 onStyleSelected = {},
                 onClose = {}
             )
@@ -324,11 +325,12 @@ class AllScreensSnapshotTest {
             val selectedStyle = styles.find { it.id == "rustic_wood" }
             StylePickerScreenContent(
                 styles = styles,
-                allStyles = styles,
-                selectedStyleId = "rustic_wood",
-                selectedStyle = selectedStyle,
+                heroStyleId = "rustic_wood",
+                heroStyle = selectedStyle,
+                isHeroUnconfirmedPreview = false,
                 selectedCategory = StyleCategory.ALL,
                 onCategorySelected = {},
+                onStylePreviewed = {},
                 onStyleSelected = {},
                 onClose = {}
             )

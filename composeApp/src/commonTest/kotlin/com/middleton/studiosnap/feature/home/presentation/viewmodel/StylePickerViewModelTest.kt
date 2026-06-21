@@ -117,6 +117,46 @@ class StylePickerViewModelTest : BaseViewModelTest() {
         assertEquals(StyleCategory.HOMEWARE, viewModel.uiState.value.selectedCategory)
     }
 
+    @Test
+    fun `previewing a style sets previewedStyleId without touching other state`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnStylePreviewed("warm_linen"))
+        val state = viewModel.uiState.value
+        assertEquals("warm_linen", state.previewedStyleId)
+        assertEquals(StyleCategory.ALL, state.selectedCategory)
+        assertEquals(3, state.styles.size)
+    }
+
+    @Test
+    fun `heroStyleId returns previewedStyleId when a preview is active`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise("clean_white"))
+        viewModel.handleAction(StylePickerUiAction.OnStylePreviewed("warm_linen"))
+        assertEquals("warm_linen", viewModel.uiState.value.heroStyleId)
+    }
+
+    @Test
+    fun `heroStyleId falls back to confirmedStyleId when no preview exists`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise("clean_white"))
+        assertEquals("clean_white", viewModel.uiState.value.heroStyleId)
+    }
+
+    @Test
+    fun `onInitialise seeds confirmedStyleId`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise("morning_kitchen"))
+        assertEquals("morning_kitchen", viewModel.uiState.value.confirmedStyleId)
+    }
+
+    @Test
+    fun `switching category preserves an active preview`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnStylePreviewed("morning_kitchen"))
+        viewModel.handleAction(StylePickerUiAction.OnCategorySelected(StyleCategory.CLOTHING))
+        assertEquals("morning_kitchen", viewModel.uiState.value.previewedStyleId)
+    }
+
     // --- Fakes ---
 
     private class FakeStyleRepository(private val styles: List<Style>) : StyleRepository {

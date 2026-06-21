@@ -3,12 +3,16 @@ package com.middleton.studiosnap.core.presentation.components
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,6 +33,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.middleton.studiosnap.core.presentation.util.LockLandscapeOrientation
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 // coil3.toUri removed
 
 /**
@@ -40,6 +46,46 @@ fun FullScreenImageOverlay(
     imagePath: String,
     imageAspectRatio: Float? = null,
     onDismiss: () -> Unit
+) = ZoomableFullScreenContainer(imageAspectRatio = imageAspectRatio, onDismiss = onDismiss) { imageModifier ->
+    RestorationImage(
+        imagePath = imagePath,
+        contentDescription = null,
+        modifier = imageModifier,
+        contentScale = ContentScale.Fit,
+        loading = {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.White)
+            }
+        }
+    )
+}
+
+/**
+ * Full-screen overlay for bundled [DrawableResource] images (e.g. style thumbnails),
+ * with the same pinch-to-zoom and animated entry as [FullScreenImageOverlay].
+ */
+@Composable
+fun FullScreenDrawableOverlay(
+    thumbnail: DrawableResource,
+    contentDescription: String?,
+    onDismiss: () -> Unit
+) = ZoomableFullScreenContainer(imageAspectRatio = null, onDismiss = onDismiss) { imageModifier ->
+    Image(
+        painter = painterResource(thumbnail),
+        contentDescription = contentDescription,
+        modifier = imageModifier,
+        contentScale = ContentScale.Fit
+    )
+}
+
+@Composable
+private fun ZoomableFullScreenContainer(
+    imageAspectRatio: Float?,
+    onDismiss: () -> Unit,
+    image: @Composable (imageModifier: Modifier) -> Unit
 ) {
     val isLandscapeImage = imageAspectRatio != null && imageAspectRatio > 1f
 
@@ -64,58 +110,55 @@ fun FullScreenImageOverlay(
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer { alpha = enterAlpha.value }
-            .background(Color.Black)
-            .pointerInput(Unit) {
-                detectTransformGestures { _, pan, zoom, _ ->
-                    val newScale = (scale * zoom).coerceIn(1f, 5f)
-                    val maxOffsetX = (newScale - 1f) * size.width / 2f
-                    val maxOffsetY = (newScale - 1f) * size.height / 2f
-                    offsetX = (offsetX + pan.x).coerceIn(-maxOffsetX, maxOffsetX)
-                    offsetY = (offsetY + pan.y).coerceIn(-maxOffsetY, maxOffsetY)
-                    scale = newScale
-                    if (newScale == 1f) {
-                        offsetX = 0f
-                        offsetY = 0f
-                    }
-                }
-            },
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
-        RestorationImage(
-            imagePath = imagePath,
-            contentDescription = null,
-            modifier = Modifier
+        image(
+            Modifier
                 .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTransformGestures { _, pan, zoom, _ ->
+                        val newScale = (scale * zoom).coerceIn(1f, 5f)
+                        val maxOffsetX = (newScale - 1f) * size.width / 2f
+                        val maxOffsetY = (newScale - 1f) * size.height / 2f
+                        offsetX = (offsetX + pan.x).coerceIn(-maxOffsetX, maxOffsetX)
+                        offsetY = (offsetY + pan.y).coerceIn(-maxOffsetY, maxOffsetY)
+                        scale = newScale
+                        if (newScale == 1f) {
+                            offsetX = 0f
+                            offsetY = 0f
+                        }
+                    }
+                }
                 .graphicsLayer {
                     scaleX = scale * enterScale.value
                     scaleY = scale * enterScale.value
                     translationX = offsetX
                     translationY = offsetY
-                },
-            contentScale = ContentScale.Fit,
-            loading = {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Color.White)
                 }
-            }
         )
 
-        IconButton(
-            onClick = onDismiss,
+        // Image draws full-bleed behind the status bar; only the button is inset
+        // so it doesn't render under the status bar/notch and miss real touches.
+        Box(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(8.dp)
-                .size(40.dp)
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.systemBars)
         ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Close",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     }
 
