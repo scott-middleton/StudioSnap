@@ -35,6 +35,9 @@ import androidx.compose.ui.unit.dp
 import com.middleton.studiosnap.core.presentation.util.LockLandscapeOrientation
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import studiosnap.composeapp.generated.resources.Res
+import studiosnap.composeapp.generated.resources.content_close
 // coil3.toUri removed
 
 /**
@@ -154,7 +157,7 @@ private fun ZoomableFullScreenContainer(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
+                    contentDescription = stringResource(Res.string.content_close),
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
                 )

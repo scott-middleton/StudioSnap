@@ -143,6 +143,23 @@ class StylePickerViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun `isHeroUnconfirmedPreview is false when previewing the already-confirmed style`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise("warm_linen"))
+        viewModel.handleAction(StylePickerUiAction.OnStylePreviewed("warm_linen"))
+        assertEquals(false, viewModel.uiState.value.isHeroUnconfirmedPreview)
+    }
+
+    @Test
+    fun `onInitialise clears any stale previewedStyleId`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnStylePreviewed("warm_linen"))
+        viewModel.handleAction(StylePickerUiAction.OnInitialise("clean_white"))
+        assertEquals(null, viewModel.uiState.value.previewedStyleId)
+        assertEquals("clean_white", viewModel.uiState.value.heroStyleId)
+    }
+
+    @Test
     fun `onInitialise seeds confirmedStyleId`() {
         val viewModel = createViewModel()
         viewModel.handleAction(StylePickerUiAction.OnInitialise("morning_kitchen"))

@@ -28,7 +28,9 @@ class StylePickerViewModel(
     fun handleAction(action: StylePickerUiAction) {
         when (action) {
             is StylePickerUiAction.OnCategorySelected -> selectCategory(action.category)
-            is StylePickerUiAction.OnInitialise -> _uiState.update { it.copy(confirmedStyleId = action.confirmedStyleId) }
+            is StylePickerUiAction.OnInitialise -> _uiState.update {
+                it.copy(confirmedStyleId = action.confirmedStyleId, previewedStyleId = null)
+            }
             is StylePickerUiAction.OnStylePreviewed -> _uiState.update { it.copy(previewedStyleId = action.styleId) }
         }
     }
