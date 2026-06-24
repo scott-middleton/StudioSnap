@@ -10,22 +10,6 @@ import kotlinx.datetime.Month
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.style_artisan_bakery
 import studiosnap.composeapp.generated.resources.style_autumn_harvest
-import studiosnap.composeapp.generated.resources.style_cafe_morning
-import studiosnap.composeapp.generated.resources.style_chocolate_indulgence
-import studiosnap.composeapp.generated.resources.style_dewy_skincare
-import studiosnap.composeapp.generated.resources.style_golden_hour_glow
-import studiosnap.composeapp.generated.resources.style_halloween_spooky
-import studiosnap.composeapp.generated.resources.style_health_bowl
-import studiosnap.composeapp.generated.resources.style_minimalist_studio
-import studiosnap.composeapp.generated.resources.style_natural_organic
-import studiosnap.composeapp.generated.resources.style_pet_lifestyle
-import studiosnap.composeapp.generated.resources.style_restaurant_plating
-import studiosnap.composeapp.generated.resources.style_spice_market
-import studiosnap.composeapp.generated.resources.style_street_food_grit
-import studiosnap.composeapp.generated.resources.style_tech_sleek
-import studiosnap.composeapp.generated.resources.style_unboxing_moment
-import studiosnap.composeapp.generated.resources.style_valentines_romance
-import studiosnap.composeapp.generated.resources.style_vintage_antique
 import studiosnap.composeapp.generated.resources.style_beach_vibes
 import studiosnap.composeapp.generated.resources.style_botanical_garden
 import studiosnap.composeapp.generated.resources.style_cafe_morning
@@ -47,7 +31,6 @@ import studiosnap.composeapp.generated.resources.style_neon_pop
 import studiosnap.composeapp.generated.resources.style_paper_craft
 import studiosnap.composeapp.generated.resources.style_pastel_dream
 import studiosnap.composeapp.generated.resources.style_pet_lifestyle
-
 import studiosnap.composeapp.generated.resources.style_restaurant_plating
 import studiosnap.composeapp.generated.resources.style_rustic_wood
 import studiosnap.composeapp.generated.resources.style_silk_velvet
