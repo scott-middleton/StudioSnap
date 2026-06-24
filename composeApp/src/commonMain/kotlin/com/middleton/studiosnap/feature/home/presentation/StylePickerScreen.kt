@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ImageSearch
+import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -76,6 +77,7 @@ import studiosnap.composeapp.generated.resources.style_picker_empty_category
 import studiosnap.composeapp.generated.resources.style_picker_selected
 import studiosnap.composeapp.generated.resources.style_picker_title
 import studiosnap.composeapp.generated.resources.style_picker_use_this_style
+import studiosnap.composeapp.generated.resources.style_picker_view_fullscreen
 
 @Composable
 fun StylePickerScreen(
@@ -325,6 +327,17 @@ private fun SelectedStyleHero(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(14.dp)
+        )
+
+        // Zoom hint
+        Icon(
+            imageVector = Icons.Default.ZoomIn,
+            contentDescription = stringResource(Res.string.style_picker_view_fullscreen),
+            tint = Color.White,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(14.dp)
+                .size(22.dp)
         )
     }
 }

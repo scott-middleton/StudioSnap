@@ -51,6 +51,9 @@
     <string name="home_export_ebay">eBay Square</string>
     <string name="home_export_vinted">Vinted Portrait</string>
     <string name="home_export_original">Original</string>
+    <string name="home_export_ratio_original">Matches your photo</string>
+    <string name="home_export_ratio_square">Square · 1:1</string>
+    <string name="home_export_ratio_portrait">Portrait · 4:5</string>
     <string name="home_generate_preview">Generate (%1$d credits)</string>
     <string name="home_sign_in">Sign In</string>
     <string name="home_signing_in">Signing In…</string>
@@ -61,7 +64,11 @@
     <string name="results_credits_refunded">%1$d of %2$d images failed — %1$d credits refunded</string>
     <string name="home_before_label">Before</string>
     <string name="home_after_label">After</string>
-    <string name="home_select_style_first">Select a style first</string>
+    <string name="home_select_style_first">Choose a style or describe your own</string>
+    <string name="home_custom_description_toggle">✨ Describe your own background</string>
+    <string name="home_custom_description_placeholder">e.g. "Marble countertop with soft morning light" or "Rustic wooden table, warm tones"</string>
+    <string name="home_custom_description_disclaimer">Custom descriptions may vary in quality — try to be specific.</string>
+    <string name="home_custom_description_char_count">%1$d / %2$d</string>
     <string name="home_photos_count">%1$d / %2$d photos</string>
     <string name="home_remove_photo">Remove photo</string>
     <string name="home_error_too_many_photos">Maximum %1$d photos allowed</string>
@@ -277,6 +284,7 @@
     <string name="style_picker_empty_category">No styles in this category</string>
     <string name="style_picker_selected">SELECTED</string>
     <string name="style_picker_use_this_style">Use this style</string>
+    <string name="style_picker_view_fullscreen">View fullscreen</string>
 
     <!-- Home - Style Section -->
     <string name="home_background_style">Background Style</string>
