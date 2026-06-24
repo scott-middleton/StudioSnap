@@ -324,9 +324,12 @@ private fun SelectedStyleHero(
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(14.dp)
+                .fillMaxWidth()
+                .padding(start = 14.dp, top = 14.dp, bottom = 14.dp, end = 44.dp)
         )
 
         // Zoom hint
