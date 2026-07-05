@@ -5,6 +5,7 @@ import com.middleton.studiosnap.core.domain.model.AuthProvider
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.FakeAnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
+import com.middleton.studiosnap.core.domain.service.CreditManager
 import com.middleton.studiosnap.core.domain.service.CreditQueries
 import com.middleton.studiosnap.core.domain.service.RatingService
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
@@ -99,6 +100,14 @@ class SettingsViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun `sign out confirmed clears cached credits`() {
+        val fakeCreditManager = FakeCreditManager()
+        val vm = createViewModel(isSignedIn = true, creditManager = fakeCreditManager)
+        vm.handleAction(SettingsUiAction.OnSignOutConfirmed)
+        assertTrue(fakeCreditManager.clearCreditsCalled)
+    }
+
+    @Test
     fun `sign out confirmed shows error on failure`() {
         val failingAuth = FakeAuthService(signedIn = true, signOutFails = true)
         val vm = createViewModel(authService = failingAuth)
@@ -107,6 +116,15 @@ class SettingsViewModelTest : BaseViewModelTest() {
         assertNull(vm.navigationEvent.value)
         assertEquals("Sign out failed", vm.uiState.value.signOutError)
         assertFalse(vm.uiState.value.isSigningOut)
+    }
+
+    @Test
+    fun `sign out confirmed does not clear credits on failure`() {
+        val failingAuth = FakeAuthService(signedIn = true, signOutFails = true)
+        val fakeCreditManager = FakeCreditManager()
+        val vm = createViewModel(authService = failingAuth, creditManager = fakeCreditManager)
+        vm.handleAction(SettingsUiAction.OnSignOutConfirmed)
+        assertFalse(fakeCreditManager.clearCreditsCalled)
     }
 
     @Test
@@ -161,6 +179,14 @@ class SettingsViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun `delete account confirmed clears cached credits`() {
+        val fakeCreditManager = FakeCreditManager()
+        val vm = createViewModel(isSignedIn = true, creditManager = fakeCreditManager)
+        vm.handleAction(SettingsUiAction.OnDeleteAccountConfirmed)
+        assertTrue(fakeCreditManager.clearCreditsCalled)
+    }
+
+    @Test
     fun `delete account confirmed shows error on failure`() {
         val failingAuth = FakeAuthService(signedIn = true, deleteAccountFails = true)
         val vm = createViewModel(authService = failingAuth)
@@ -168,6 +194,15 @@ class SettingsViewModelTest : BaseViewModelTest() {
 
         assertNull(vm.navigationEvent.value)
         assertEquals("Delete failed", vm.uiState.value.deleteAccountError)
+    }
+
+    @Test
+    fun `delete account confirmed does not clear credits on failure`() {
+        val failingAuth = FakeAuthService(signedIn = true, deleteAccountFails = true)
+        val fakeCreditManager = FakeCreditManager()
+        val vm = createViewModel(authService = failingAuth, creditManager = fakeCreditManager)
+        vm.handleAction(SettingsUiAction.OnDeleteAccountConfirmed)
+        assertFalse(fakeCreditManager.clearCreditsCalled)
     }
 
     @Test
@@ -198,14 +233,16 @@ class SettingsViewModelTest : BaseViewModelTest() {
         creditsFlow: Flow<UserCredits> = flowOf(UserCredits(10)),
         authService: AuthService = FakeAuthService(isSignedIn),
         ratingService: RatingService = FakeRatingService(),
-        purchasesIdentifier: PurchasesIdentifier = FakePurchasesIdentifier()
+        purchasesIdentifier: PurchasesIdentifier = FakePurchasesIdentifier(),
+        creditManager: CreditManager = FakeCreditManager()
     ): SettingsViewModel {
         return SettingsViewModel(
             creditQueries = FakeCreditQueries(creditsFlow),
             authService = authService,
             analyticsService = FakeAnalyticsService(),
             ratingService = ratingService,
-            purchasesIdentifier = purchasesIdentifier
+            purchasesIdentifier = purchasesIdentifier,
+            creditManager = creditManager
         )
     }
 
@@ -217,6 +254,19 @@ class SettingsViewModelTest : BaseViewModelTest() {
         override suspend fun getUserCredits() = Result.success(UserCredits(10))
         override suspend fun refreshCredits() = Result.success(UserCredits(10))
         override fun observeCredits() = flow
+    }
+
+    private class FakeCreditManager : CreditManager {
+        var clearCreditsCalled = false
+            private set
+
+        override val credits: StateFlow<UserCredits?> = MutableStateFlow(UserCredits(10))
+        override val isLoading: StateFlow<Boolean> = MutableStateFlow(false)
+        override suspend fun loadCredits() = Result.success(UserCredits(10))
+        override suspend fun refreshCredits() = Result.success(UserCredits(10))
+        override fun clearCredits() {
+            clearCreditsCalled = true
+        }
     }
 
     private class FakeAuthService(

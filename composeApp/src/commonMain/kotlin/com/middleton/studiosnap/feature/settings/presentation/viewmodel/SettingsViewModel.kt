@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
+import com.middleton.studiosnap.core.domain.service.CreditManager
 import com.middleton.studiosnap.core.domain.service.CreditQueries
 import com.middleton.studiosnap.core.domain.service.RatingService
 import com.middleton.studiosnap.feature.settings.presentation.action.SettingsUiAction
@@ -22,7 +23,8 @@ class SettingsViewModel(
     private val authService: AuthService,
     analyticsService: AnalyticsService,
     private val ratingService: RatingService,
-    private val purchasesIdentifier: PurchasesIdentifier
+    private val purchasesIdentifier: PurchasesIdentifier,
+    private val creditManager: CreditManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -79,6 +81,7 @@ class SettingsViewModel(
             authService.signOut()
                 .onSuccess {
                     purchasesIdentifier.clearIdentity()
+                    creditManager.clearCredits()
                     _uiState.update { it.copy(isSigningOut = false) }
                     _navigationEvent.value = SettingsNavigationAction.GoToSplashAfterSignOut
                 }
@@ -102,6 +105,7 @@ class SettingsViewModel(
             authService.deleteAccount()
                 .onSuccess {
                     purchasesIdentifier.clearIdentity()
+                    creditManager.clearCredits()
                     _uiState.update { it.copy(isDeletingAccount = false, showDeleteAccountSuccess = true) }
                 }
                 .onFailure { error ->

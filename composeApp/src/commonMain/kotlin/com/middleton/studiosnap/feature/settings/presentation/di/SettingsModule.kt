@@ -19,7 +19,8 @@ val settingsModule = module {
             authService = get(),
             analyticsService = get(),
             ratingService = get(),
-            purchasesIdentifier = get()
+            purchasesIdentifier = get(),
+            creditManager = get()
         )
     }
 }
