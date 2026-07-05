@@ -140,11 +140,23 @@ class SettingsViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `delete account confirmed shows loading then navigates on success`() {
+    fun `delete account confirmed shows success dialog without navigating`() {
         val vm = createViewModel(isSignedIn = true)
         vm.handleAction(SettingsUiAction.OnDeleteAccountConfirmed)
 
         assertFalse(vm.uiState.value.showDeleteAccountConfirmation)
+        assertTrue(vm.uiState.value.showDeleteAccountSuccess)
+        assertNull(vm.navigationEvent.value)
+    }
+
+    @Test
+    fun `delete account success dismissed navigates to splash`() {
+        val vm = createViewModel(isSignedIn = true)
+        vm.handleAction(SettingsUiAction.OnDeleteAccountConfirmed)
+        assertTrue(vm.uiState.value.showDeleteAccountSuccess)
+
+        vm.handleAction(SettingsUiAction.OnDeleteAccountSuccessDismissed)
+        assertFalse(vm.uiState.value.showDeleteAccountSuccess)
         assertIs<SettingsNavigationAction.GoToSplashAfterSignOut>(vm.navigationEvent.value)
     }
 
