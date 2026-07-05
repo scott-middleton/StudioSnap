@@ -26,9 +26,7 @@ val processingModule = module {
     factory {
         GenerateBatchPreviewsUseCase(
             generatePreviewUseCase = get(),
-            creditDeductor = get(),
-            freeGenerationGate = get(),
-            userPreferencesRepository = get()
+            creditDeductor = get()
         )
     }
 

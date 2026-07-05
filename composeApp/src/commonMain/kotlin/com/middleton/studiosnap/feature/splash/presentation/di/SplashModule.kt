@@ -8,11 +8,10 @@ val splashModule = module {
     viewModel {
         SplashViewModel(
             authService = get(),
-            creditManager = get(),
+            ensureWelcomeCreditsUseCase = get(),
             userPreferencesRepository = get(),
             purchasesIdentifier = get(),
-            analyticsService = get(),
-            freeGenerationGate = get()
+            analyticsService = get()
         )
     }
 }

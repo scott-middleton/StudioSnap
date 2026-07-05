@@ -195,9 +195,6 @@ class StylePickerViewModelTest : BaseViewModelTest() {
         override suspend fun setHasCompletedOnboarding() {}
         override suspend fun hasPurchasedCredits() = false
         override suspend fun setHasPurchasedCredits() {}
-        override fun observeHasUsedFreeGeneration(): Flow<Boolean> = flowOf(false)
-        override suspend fun hasUsedFreeGeneration() = false
-        override suspend fun setHasUsedFreeGeneration() {}
         override suspend fun getFreeDownloadsUsed() = 0
         override suspend fun incrementFreeDownloads() {}
         override suspend fun incrementAndGetPaidDownloads() = 0
@@ -209,7 +206,6 @@ class StylePickerViewModelTest : BaseViewModelTest() {
             UserPreferencesSnapshot(
                 hasCompletedOnboarding = true,
                 hasPurchasedCredits = false,
-                hasUsedFreeGeneration = false,
                 freeDownloadsUsed = 0,
                 totalPaidDownloads = 0,
                 lastUsedCategoryFilter = lastCategory

@@ -8,7 +8,8 @@ import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditManager
-import com.middleton.studiosnap.core.domain.service.FreeGenerationGate
+import com.middleton.studiosnap.core.domain.service.WelcomeCreditGranter
+import com.middleton.studiosnap.core.domain.usecase.EnsureWelcomeCreditsUseCase
 import com.middleton.studiosnap.feature.splash.presentation.navigation.SplashNavigationAction
 import com.middleton.studiosnap.purchases.PurchasesIdentifier
 import kotlinx.coroutines.Dispatchers
@@ -57,33 +58,37 @@ class SplashViewModelTest {
     }
 
     @Test
-    fun `loads credits when signed in`() = runTest(testDispatcher) {
+    fun `claims welcome credits when signed in`() = runTest(testDispatcher) {
         val creditManager = FakeCreditManager()
-        createViewModel(isSignedIn = true, creditManager = creditManager)
+        val granter = FakeWelcomeCreditGranter()
+        createViewModel(isSignedIn = true, creditManager = creditManager, granter = granter)
         advanceUntilIdle()
-        assert(creditManager.loadCreditsCalled)
+        assert(granter.claimCalled)
+        assert(creditManager.refreshCalled)
     }
 
     @Test
-    fun `does not load credits when signed out`() = runTest(testDispatcher) {
+    fun `does not claim welcome credits when signed out`() = runTest(testDispatcher) {
         val creditManager = FakeCreditManager()
-        createViewModel(isSignedIn = false, creditManager = creditManager)
+        val granter = FakeWelcomeCreditGranter()
+        createViewModel(isSignedIn = false, creditManager = creditManager, granter = granter)
         advanceUntilIdle()
-        assert(!creditManager.loadCreditsCalled)
+        assert(!granter.claimCalled)
+        assert(!creditManager.refreshCalled)
     }
 
     private fun createViewModel(
         hasCompletedOnboarding: Boolean = false,
         isSignedIn: Boolean = false,
-        creditManager: FakeCreditManager = FakeCreditManager()
+        creditManager: FakeCreditManager = FakeCreditManager(),
+        granter: FakeWelcomeCreditGranter = FakeWelcomeCreditGranter()
     ): SplashViewModel {
         return SplashViewModel(
             authService = FakeAuthService(isSignedIn),
-            creditManager = creditManager,
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager),
             userPreferencesRepository = FakeUserPreferencesRepository(hasCompletedOnboarding),
             purchasesIdentifier = FakePurchasesIdentifier(),
-            analyticsService = FakeAnalyticsService(),
-            freeGenerationGate = FakeFreeGenerationGate()
+            analyticsService = FakeAnalyticsService()
         )
     }
 
@@ -100,14 +105,14 @@ class SplashViewModelTest {
     }
 
     private class FakeCreditManager : CreditManager {
-        var loadCreditsCalled = false
+        var refreshCalled = false
         override val credits: StateFlow<UserCredits?> = MutableStateFlow(UserCredits(0))
         override val isLoading: StateFlow<Boolean> = MutableStateFlow(false)
-        override suspend fun loadCredits(): Result<UserCredits> {
-            loadCreditsCalled = true
+        override suspend fun loadCredits(): Result<UserCredits> = refreshCredits()
+        override suspend fun refreshCredits(): Result<UserCredits> {
+            refreshCalled = true
             return Result.success(UserCredits(0))
         }
-        override suspend fun refreshCredits() = Result.success(UserCredits(0))
         override fun clearCredits() {}
     }
 
@@ -118,22 +123,22 @@ class SplashViewModelTest {
         override suspend fun setHasCompletedOnboarding() {}
         override suspend fun hasPurchasedCredits() = false
         override suspend fun setHasPurchasedCredits() {}
-        override fun observeHasUsedFreeGeneration(): Flow<Boolean> = flowOf(false)
-        override suspend fun hasUsedFreeGeneration() = false
-        override suspend fun setHasUsedFreeGeneration() {}
         override suspend fun getFreeDownloadsUsed() = 0
         override suspend fun incrementFreeDownloads() {}
         override suspend fun incrementAndGetPaidDownloads() = 0
         override suspend fun getLastUsedCategoryFilter() = "ALL"
         override suspend fun setLastUsedCategoryFilter(category: String) {}
         override fun observePreferences(): Flow<UserPreferencesSnapshot> = flowOf(
-            UserPreferencesSnapshot(onboardingCompleted, false, false, 0, 0, "ALL")
+            UserPreferencesSnapshot(onboardingCompleted, false, 0, 0, "ALL")
         )
     }
 
-    private class FakeFreeGenerationGate : FreeGenerationGate {
-        override suspend fun checkFreeGenerationUsed() = false
-        override suspend fun claimFreeGeneration() = true
+    private class FakeWelcomeCreditGranter : WelcomeCreditGranter {
+        var claimCalled = false
+        override suspend fun claimWelcomeCredits(): Boolean {
+            claimCalled = true
+            return true
+        }
     }
 
     private class FakePurchasesIdentifier : PurchasesIdentifier {

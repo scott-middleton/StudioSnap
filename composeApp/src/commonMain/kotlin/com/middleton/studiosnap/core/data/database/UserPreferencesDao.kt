@@ -25,9 +25,6 @@ interface UserPreferencesDao {
     @Query("UPDATE user_preferences SET hasPurchasedCredits = 1 WHERE id = 1")
     suspend fun setHasPurchasedCredits()
 
-    @Query("UPDATE user_preferences SET hasUsedFreeGeneration = 1 WHERE id = 1")
-    suspend fun setHasUsedFreeGeneration()
-
     @Query("UPDATE user_preferences SET freeDownloadsUsed = freeDownloadsUsed + 1 WHERE id = 1")
     suspend fun incrementFreeDownloads()
 

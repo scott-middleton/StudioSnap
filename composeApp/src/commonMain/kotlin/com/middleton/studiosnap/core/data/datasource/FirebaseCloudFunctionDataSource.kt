@@ -23,9 +23,7 @@ interface CloudFunctionDataSource {
 
     suspend fun refundGenerationCredit(): Int
 
-    suspend fun checkFreeGenerationUsed(): Boolean
-
-    suspend fun claimFreeGeneration(): Boolean
+    suspend fun claimWelcomeCredits(): Boolean
 }
 
 class FirebaseCloudFunctionDataSource : CloudFunctionDataSource {
@@ -91,18 +89,11 @@ class FirebaseCloudFunctionDataSource : CloudFunctionDataSource {
         return (data["balance"] as? Number)?.toInt() ?: 0
     }
 
-    override suspend fun checkFreeGenerationUsed(): Boolean {
-        val callable = functions.httpsCallable("checkFreeGenerationUsed")
+    override suspend fun claimWelcomeCredits(): Boolean {
+        val callable = functions.httpsCallable("claimWelcomeCredits")
         val result = callable.invoke(emptyMap<String, Any>())
-        val data = result.dataAsMap("checkFreeGenerationUsed")
-        return data["used"] as? Boolean ?: true
-    }
-
-    override suspend fun claimFreeGeneration(): Boolean {
-        val callable = functions.httpsCallable("claimFreeGeneration")
-        val result = callable.invoke(emptyMap<String, Any>())
-        val data = result.dataAsMap("claimFreeGeneration")
-        return data["claimed"] as? Boolean ?: false
+        val data = result.dataAsMap("claimWelcomeCredits")
+        return data["granted"] as? Boolean ?: false
     }
 }
 

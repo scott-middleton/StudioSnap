@@ -47,7 +47,7 @@ val homeModule = module {
             generationConfigHolder = get(),
             analyticsService = get(),
             historyRepository = get<HistoryRepository>(),
-            userPreferencesRepository = get(),
+            ensureWelcomeCreditsUseCase = get(),
             buildKontextPromptUseCase = get()
         )
     }

@@ -54,8 +54,8 @@ import studiosnap.composeapp.generated.resources.benefit_batch_subtitle
 import studiosnap.composeapp.generated.resources.benefit_batch_title
 import studiosnap.composeapp.generated.resources.benefit_export_subtitle
 import studiosnap.composeapp.generated.resources.benefit_export_title
-import studiosnap.composeapp.generated.resources.benefit_free_trial_subtitle
-import studiosnap.composeapp.generated.resources.benefit_free_trial_title
+import studiosnap.composeapp.generated.resources.benefit_welcome_credit_subtitle
+import studiosnap.composeapp.generated.resources.benefit_welcome_credit_title
 import studiosnap.composeapp.generated.resources.benefit_no_subscriptions_subtitle
 import studiosnap.composeapp.generated.resources.benefit_no_subscriptions_title
 import studiosnap.composeapp.generated.resources.get_started_button
@@ -84,8 +84,8 @@ fun OnboardingValuePage(
     val benefits = listOf(
         Benefit(
             icon = Res.drawable.ic_gift,
-            title = stringResource(Res.string.benefit_free_trial_title),
-            subtitle = stringResource(Res.string.benefit_free_trial_subtitle)
+            title = stringResource(Res.string.benefit_welcome_credit_title),
+            subtitle = stringResource(Res.string.benefit_welcome_credit_subtitle)
         ),
         Benefit(
             icon = Res.drawable.ic_bolt,

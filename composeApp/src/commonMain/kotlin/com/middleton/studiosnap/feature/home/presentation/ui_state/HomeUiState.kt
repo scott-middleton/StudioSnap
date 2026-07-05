@@ -17,8 +17,7 @@ data class HomeUiState(
     val showSignIn: Boolean = false,
     val isSigningIn: Boolean = false,
     val isGenerating: Boolean = false,
-    val pendingFreeGeneration: Boolean = false,
-    val hasUsedFreeGeneration: Boolean = false,
+    val pendingGeneration: Boolean = false,
     val recentGenerations: List<HistoryItem> = emptyList(),
     val error: HomeError? = null
 ) {
@@ -37,15 +36,8 @@ data class HomeUiState(
         get() = creditLoadingState is UserCreditLoadingState.Loaded &&
                 (creditLoadingState as UserCreditLoadingState.Loaded).credits.amount >= generationCost
 
-    val isFreeTrialMode: Boolean
-        get() = !hasUsedFreeGeneration && when (creditLoadingState) {
-            UserCreditLoadingState.LoggedOut -> true
-            is UserCreditLoadingState.Loaded -> !canAffordGeneration
-            UserCreditLoadingState.Loading, UserCreditLoadingState.Error -> false
-        }
-
     val canGenerate: Boolean
-        get() = photos.isNotEmpty() && isBackgroundChoiceUsable && (isFreeTrialMode || (isSignedIn && canAffordGeneration))
+        get() = photos.isNotEmpty() && isBackgroundChoiceUsable && isSignedIn && canAffordGeneration
 
     val isBackgroundChoiceUsable: Boolean
         get() = when (val choice = backgroundChoice) {

@@ -6,8 +6,8 @@ import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditManager
-import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
-import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
+import com.middleton.studiosnap.core.domain.service.WelcomeCreditGranter
+import com.middleton.studiosnap.core.domain.usecase.EnsureWelcomeCreditsUseCase
 import com.middleton.studiosnap.core.domain.usecase.ObserveCreditStateUseCase
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
 import com.middleton.studiosnap.feature.history.domain.model.HistorySession
@@ -66,17 +66,18 @@ class HomeViewModelTest : BaseViewModelTest() {
         creditBalance: Int = 10,
         isSignedIn: Boolean = false,
         historyItems: List<GenerationResult.Success> = emptyList(),
-        configHolder: GenerationConfigHolder = GenerationConfigHolderImpl()
+        configHolder: GenerationConfigHolder = GenerationConfigHolderImpl(),
+        creditManager: CreditManager? = null
     ): HomeViewModel {
         val authService = FakeAuthService(isSignedIn)
-        val creditManager = FakeCreditManager(creditBalance)
+        val resolvedCreditManager = creditManager ?: FakeCreditManager(creditBalance)
         return HomeViewModel(
             styleRepository = FakeStyleRepository(styles),
-            observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
+            observeCreditStateUseCase = ObserveCreditStateUseCase(authService, resolvedCreditManager),
             generationConfigHolder = configHolder,
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(historyItems),
-            userPreferencesRepository = FakeUserPreferencesRepository(),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), resolvedCreditManager),
             buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
     }
@@ -258,6 +259,73 @@ class HomeViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun `sign in success claims welcome credits and resumes pending generation`() {
+        val authService = MutableFakeAuthService()
+        val creditManager = FakeCreditManager(balance = 0)
+        val granter = FakeWelcomeCreditGranter(granted = true)
+        val viewModel = HomeViewModel(
+            styleRepository = FakeStyleRepository(testStyles),
+            observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
+            generationConfigHolder = GenerationConfigHolderImpl(),
+            analyticsService = FakeAnalyticsService(),
+            historyRepository = FakeHistoryRepository(),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager),
+            buildKontextPromptUseCase = BuildKontextPromptUseCase()
+        )
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+        assertTrue(viewModel.uiState.value.showSignIn)
+
+        creditManager.setBalance(1)
+        authService.setSignedIn(true)
+        viewModel.handleAction(HomeUiAction.OnSignInResult(true))
+
+        assertTrue(granter.claimCalled)
+        assertFalse(viewModel.uiState.value.showSignIn)
+        assertTrue(viewModel.navigationEvent.value is HomeNavigationAction.GoToProcessing)
+    }
+
+    @Test
+    fun `sign in success with insufficient balance navigates to credit store`() {
+        val authService = MutableFakeAuthService()
+        val creditManager = FakeCreditManager(balance = 0)
+        val granter = FakeWelcomeCreditGranter(granted = false)
+        val viewModel = HomeViewModel(
+            styleRepository = FakeStyleRepository(testStyles),
+            observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
+            generationConfigHolder = GenerationConfigHolderImpl(),
+            analyticsService = FakeAnalyticsService(),
+            historyRepository = FakeHistoryRepository(),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager),
+            buildKontextPromptUseCase = BuildKontextPromptUseCase()
+        )
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+
+        authService.setSignedIn(true)
+        viewModel.handleAction(HomeUiAction.OnSignInResult(true))
+
+        assertTrue(viewModel.navigationEvent.value is HomeNavigationAction.GoToCreditStore)
+    }
+
+    @Test
+    fun `sign in failure does not claim welcome credits or navigate`() {
+        val granter = FakeWelcomeCreditGranter()
+        val creditManager = FakeCreditManager(balance = 0)
+        val viewModel = createViewModel(isSignedIn = false, creditManager = creditManager)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+
+        viewModel.handleAction(HomeUiAction.OnSignInResult(false))
+
+        assertFalse(viewModel.uiState.value.showSignIn)
+        assertNull(viewModel.navigationEvent.value)
+    }
+
+    @Test
     fun `generate does nothing without photos when signed in`() {
         val viewModel = createViewModel(isSignedIn = true, creditBalance = 5)
         viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
@@ -410,7 +478,7 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            userPreferencesRepository = FakeUserPreferencesRepository(),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), creditManager),
             buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
         // Signed in, but credits failed to load
@@ -430,7 +498,7 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            userPreferencesRepository = FakeUserPreferencesRepository(),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), creditManager),
             buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
 
@@ -456,7 +524,7 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            userPreferencesRepository = FakeUserPreferencesRepository(),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), creditManager),
             buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
 
@@ -497,9 +565,11 @@ class HomeViewModelTest : BaseViewModelTest() {
      * is fully awaited before combine() subscribes. Loading exists for potential future use.
      */
     private class FakeCreditManager(
-        private val balance: Int,
+        balance: Int,
         private val shouldFail: Boolean = false
     ) : CreditManager {
+        private var balance: Int = balance
+        fun setBalance(value: Int) { balance = value }
         private val _credits = MutableStateFlow<UserCredits?>(null)
         override val credits: StateFlow<UserCredits?> = _credits
         private val _isLoading = MutableStateFlow(false)
@@ -544,23 +614,13 @@ class HomeViewModelTest : BaseViewModelTest() {
         override suspend fun deleteSession(sessionId: String) {}
     }
 
-    private class FakeUserPreferencesRepository(
-        private val hasUsedFreeGen: Boolean = true
-    ) : UserPreferencesRepository {
-        override suspend fun hasCompletedOnboarding() = true
-        override suspend fun setHasCompletedOnboarding() {}
-        override suspend fun hasPurchasedCredits() = false
-        override suspend fun setHasPurchasedCredits() {}
-        override fun observeHasUsedFreeGeneration(): Flow<Boolean> = flowOf(hasUsedFreeGen)
-        override suspend fun hasUsedFreeGeneration() = hasUsedFreeGen
-        override suspend fun setHasUsedFreeGeneration() {}
-        override suspend fun getFreeDownloadsUsed() = 0
-        override suspend fun incrementFreeDownloads() {}
-        override suspend fun incrementAndGetPaidDownloads() = 0
-        override suspend fun getLastUsedCategoryFilter() = "ALL"
-        override suspend fun setLastUsedCategoryFilter(category: String) {}
-        override fun observePreferences(): Flow<UserPreferencesSnapshot> = flowOf(
-            UserPreferencesSnapshot(true, false, hasUsedFreeGen, 0, 0, "ALL")
-        )
+    private class FakeWelcomeCreditGranter(
+        private val granted: Boolean = false
+    ) : WelcomeCreditGranter {
+        var claimCalled = false
+        override suspend fun claimWelcomeCredits(): Boolean {
+            claimCalled = true
+            return granted
+        }
     }
 }

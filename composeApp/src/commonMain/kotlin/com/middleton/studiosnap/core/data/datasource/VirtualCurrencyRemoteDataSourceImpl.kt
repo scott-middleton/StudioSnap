@@ -56,27 +56,15 @@ class VirtualCurrencyRemoteDataSourceImpl(
         }
     }
 
-    override suspend fun checkFreeGenerationUsed(): Result<Boolean> {
+    override suspend fun claimWelcomeCredits(): Result<Boolean> {
         return try {
             requireAuthenticated()
-            val used = cloudFunctions.checkFreeGenerationUsed()
-            Result.success(used)
+            val granted = cloudFunctions.claimWelcomeCredits()
+            Result.success(granted)
         } catch (e: NotAuthenticatedException) {
             Result.failure(e)
         } catch (e: Exception) {
-            Result.failure(Exception("Error checking free generation: ${e.message}", e))
-        }
-    }
-
-    override suspend fun claimFreeGeneration(): Result<Boolean> {
-        return try {
-            requireAuthenticated()
-            val claimed = cloudFunctions.claimFreeGeneration()
-            Result.success(claimed)
-        } catch (e: NotAuthenticatedException) {
-            Result.failure(e)
-        } catch (e: Exception) {
-            Result.failure(Exception("Error claiming free generation: ${e.message}", e))
+            Result.failure(Exception("Error claiming welcome credits: ${e.message}", e))
         }
     }
 

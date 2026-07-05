@@ -2,9 +2,9 @@ package com.middleton.studiosnap.feature.home.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
+import com.middleton.studiosnap.core.domain.usecase.EnsureWelcomeCreditsUseCase
 import com.middleton.studiosnap.core.domain.usecase.ObserveCreditStateUseCase
 import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
@@ -41,7 +41,7 @@ class HomeViewModel(
     private val generationConfigHolder: GenerationConfigHolder,
     private val analyticsService: AnalyticsService,
     private val historyRepository: HistoryRepository,
-    private val userPreferencesRepository: UserPreferencesRepository,
+    private val ensureWelcomeCreditsUseCase: EnsureWelcomeCreditsUseCase,
     private val buildKontextPromptUseCase: BuildKontextPromptUseCase
 ) : ViewModel() {
 
@@ -54,7 +54,6 @@ class HomeViewModel(
     init {
         observeCreditState()
         observeRecentGenerations()
-        observeFreeTrialState()
     }
 
     fun handleAction(action: HomeUiAction) {
@@ -103,7 +102,7 @@ class HomeViewModel(
 
     private fun onCreditBalanceClicked() {
         if (!_uiState.value.isSignedIn) {
-            _uiState.update { it.copy(showSignIn = true, isSigningIn = true, pendingFreeGeneration = false) }
+            _uiState.update { it.copy(showSignIn = true, isSigningIn = true, pendingGeneration = false) }
         } else {
             navigateTo(HomeNavigationAction.GoToCreditStore)
         }
@@ -113,14 +112,6 @@ class HomeViewModel(
         observeCreditStateUseCase()
             .onEach { creditState ->
                 _uiState.update { it.copy(creditLoadingState = creditState) }
-            }
-            .launchIn(viewModelScope)
-    }
-
-    private fun observeFreeTrialState() {
-        userPreferencesRepository.observeHasUsedFreeGeneration()
-            .onEach { hasUsed ->
-                _uiState.update { it.copy(hasUsedFreeGeneration = hasUsed) }
             }
             .launchIn(viewModelScope)
     }
@@ -220,7 +211,7 @@ class HomeViewModel(
 
         // Sign-in takes priority - user should sign in first
         if (!state.isSignedIn) {
-            _uiState.update { it.copy(showSignIn = true, isSigningIn = true, pendingFreeGeneration = state.isFreeTrialMode) }
+            _uiState.update { it.copy(showSignIn = true, isSigningIn = true, pendingGeneration = true) }
             return
         }
 
@@ -228,21 +219,16 @@ class HomeViewModel(
         if (!state.isBackgroundChoiceUsable) return
         if (state.photos.isEmpty()) return
 
-        if (state.isFreeTrialMode) {
-            startGeneration(state, choice, isFreeGeneration = true)
-            return
-        }
-
         if (!state.canAffordGeneration) {
             navigateTo(HomeNavigationAction.GoToCreditStore)
             return
         }
 
-        startGeneration(state, choice, isFreeGeneration = false)
+        startGeneration(state, choice)
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    private fun startGeneration(state: HomeUiState, choice: BackgroundChoice, isFreeGeneration: Boolean) {
+    private fun startGeneration(state: HomeUiState, choice: BackgroundChoice) {
         val (style, resolvedPrompt) = when (choice) {
             is BackgroundChoice.Preset -> choice.style to buildKontextPromptUseCase(
                 choice.style, state.shadow, state.reflection
@@ -269,8 +255,7 @@ class HomeViewModel(
             reflection = state.reflection,
             exportFormat = state.exportFormat,
             quality = GenerationQuality.DEFAULT,
-            batchId = Uuid.random().toString(),
-            isFreeGeneration = isFreeGeneration
+            batchId = Uuid.random().toString()
         )
 
         generationConfigHolder.currentConfig = config
@@ -281,8 +266,7 @@ class HomeViewModel(
                 "photo_count" to state.photos.size.toString(),
                 "export_format" to state.exportFormat.name,
                 "shadow" to state.shadow.toString(),
-                "reflection" to state.reflection.toString(),
-                "is_free" to isFreeGeneration.toString()
+                "reflection" to state.reflection.toString()
             )
         )
 
@@ -291,18 +275,31 @@ class HomeViewModel(
     }
 
     private fun onSignInResult(success: Boolean) {
-        val wasPendingFreeGeneration = _uiState.value.pendingFreeGeneration
+        val wasPendingGeneration = _uiState.value.pendingGeneration
         _uiState.update {
-            it.copy(
-                showSignIn = false,
-                isSigningIn = false,
-                pendingFreeGeneration = false,
-                isGenerating = success && wasPendingFreeGeneration
-            )
+            it.copy(showSignIn = false, isSigningIn = false, pendingGeneration = false)
         }
 
-        if (success && wasPendingFreeGeneration) {
-            onGenerateClicked()
+        if (!success || !wasPendingGeneration) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isGenerating = true) }
+            val balance = ensureWelcomeCreditsUseCase().getOrNull()?.amount ?: 0
+            val state = _uiState.value
+            val choice = state.backgroundChoice
+
+            if (choice == null || !state.isBackgroundChoiceUsable || state.photos.isEmpty()) {
+                _uiState.update { it.copy(isGenerating = false) }
+                return@launch
+            }
+
+            if (balance < state.generationCost) {
+                _uiState.update { it.copy(isGenerating = false) }
+                navigateTo(HomeNavigationAction.GoToCreditStore)
+                return@launch
+            }
+
+            startGeneration(state, choice)
         }
     }
 

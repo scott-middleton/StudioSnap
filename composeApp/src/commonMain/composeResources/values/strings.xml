@@ -18,7 +18,7 @@
     <string name="onboarding_showcase_headline">Curated scenes for every product</string>
     <string name="onboarding_showcase_subheadline">Pick the vibe that matches your brand</string>
     <string name="onboarding_value_headline">No Subscription. Pay Per Photo.</string>
-    <string name="onboarding_value_subheadline">Try your first photo free</string>
+    <string name="onboarding_value_subheadline">Sign in for a free credit to get started</string>
     <string name="get_started_button">Get Started</string>
     <string name="next_button">Next</string>
 
@@ -31,8 +31,8 @@
     <string name="benefit_batch_subtitle">Style multiple photos at once</string>
     <string name="benefit_export_title">Marketplace-ready</string>
     <string name="benefit_export_subtitle">Optimised sizes for Etsy, eBay, Vinted</string>
-    <string name="benefit_free_trial_title">Try before you buy</string>
-    <string name="benefit_free_trial_subtitle">Your first photo is completely free</string>
+    <string name="benefit_welcome_credit_title">Start with a free credit</string>
+    <string name="benefit_welcome_credit_subtitle">Get 1 free credit when you sign in</string>
 
     <!-- Home Screen -->
     <string name="home_title">StudioSnap</string>

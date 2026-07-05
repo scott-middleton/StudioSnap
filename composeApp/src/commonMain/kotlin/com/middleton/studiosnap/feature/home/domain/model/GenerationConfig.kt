@@ -12,6 +12,5 @@ data class GenerationConfig(
     val reflection: Boolean,
     val exportFormat: ExportFormat,
     val quality: GenerationQuality,
-    val batchId: String,
-    val isFreeGeneration: Boolean = false
+    val batchId: String
 )

@@ -6,13 +6,14 @@ import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.CreditDeductor
 import com.middleton.studiosnap.core.domain.service.CreditManager
 import com.middleton.studiosnap.core.domain.service.CreditQueries
+import com.middleton.studiosnap.core.domain.service.WelcomeCreditGranter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 
 class CreditRepository(
     private val remoteDataSource: VirtualCurrencyRemoteDataSource,
     private val creditManager: CreditManager
-) : CreditQueries, CreditDeductor {
+) : CreditQueries, CreditDeductor, WelcomeCreditGranter {
 
     override fun observeCredits(): Flow<UserCredits> {
         return creditManager.credits.filterNotNull()
@@ -40,5 +41,9 @@ class CreditRepository(
             .onSuccess {
                 creditManager.refreshCredits()
             }
+    }
+
+    override suspend fun claimWelcomeCredits(): Boolean {
+        return remoteDataSource.claimWelcomeCredits().getOrDefault(false)
     }
 }
