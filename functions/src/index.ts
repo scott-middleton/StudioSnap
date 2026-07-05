@@ -56,12 +56,15 @@ async function enforceRateLimit(uid: string, functionName: string): Promise<void
 
 const PENDING_DEDUCTION_TTL_MS = 60 * 60 * 1000; // 1 hour
 
-interface PendingEntry { ts: number; status: "pending" | "confirmed" }
+interface PendingEntry { ts: number; status: "pending" | "confirmed"; predictionId?: string }
 
 function isValidEntry(val: unknown): val is PendingEntry {
   if (typeof val !== "object" || val === null) return false;
   const obj = val as Record<string, unknown>;
-  return typeof obj.ts === "number" && (obj.status === "pending" || obj.status === "confirmed");
+  if (typeof obj.ts !== "number") return false;
+  if (obj.status !== "pending" && obj.status !== "confirmed") return false;
+  if (obj.predictionId !== undefined && typeof obj.predictionId !== "string") return false;
+  return true;
 }
 
 /**
@@ -102,12 +105,13 @@ async function removePendingDeduction(uid: string, idempotencyKey: string): Prom
 }
 
 /**
- * Finds and consumes the most recent confirmed (refundable) pending
- * deduction for a user. Returns the idempotencyKey of the consumed
- * deduction (needed for RevenueCat idempotent refund), or null if
- * none found. Also cleans up any expired entries.
+ * Atomically consumes a specific pending deduction by its idempotency key.
+ * Only a confirmed, non-expired entry is consumable — returns null and
+ * leaves Firestore untouched if the key is missing, still pending, or
+ * expired. Also sweeps any expired entries found along the way so stale
+ * data doesn't accumulate.
  */
-async function consumeLatestPendingDeduction(uid: string): Promise<string | null> {
+async function consumePendingDeduction(uid: string, idempotencyKey: string): Promise<PendingEntry | null> {
   const db = admin.firestore();
   const ref = db.collection("pendingDeductions").doc(uid);
   const now = Date.now();
@@ -117,44 +121,56 @@ async function consumeLatestPendingDeduction(uid: string): Promise<string | null
     if (!doc.exists) return null;
 
     const data = doc.data() ?? {};
-
-    // Find the most recent confirmed, non-expired entry
-    let latestKey: string | null = null;
-    let latestTimestamp = 0;
     const expiredKeys: string[] = [];
-
     for (const [key, val] of Object.entries(data)) {
-      if (!isValidEntry(val)) continue;
-      if (now - val.ts > PENDING_DEDUCTION_TTL_MS) {
+      if (key === idempotencyKey) continue;
+      if (isValidEntry(val) && now - val.ts > PENDING_DEDUCTION_TTL_MS) {
         expiredKeys.push(key);
-      } else if (val.status === "confirmed" && val.ts > latestTimestamp) {
-        latestKey = key;
-        latestTimestamp = val.ts;
       }
     }
 
-    if (!latestKey) {
-      // No valid entries — just clean up expired ones if any
-      if (expiredKeys.length > 0) {
-        const cleanup: Record<string, ReturnType<typeof admin.firestore.FieldValue.delete>> = {};
-        for (const key of expiredKeys) {
-          cleanup[key] = admin.firestore.FieldValue.delete();
-        }
-        tx.update(ref, cleanup);
+    const target = data[idempotencyKey];
+    const isConsumable =
+      isValidEntry(target) &&
+      target.status === "confirmed" &&
+      now - target.ts <= PENDING_DEDUCTION_TTL_MS;
+
+    if (expiredKeys.length > 0 || isConsumable) {
+      const updates: Record<string, ReturnType<typeof admin.firestore.FieldValue.delete>> = {};
+      for (const key of expiredKeys) {
+        updates[key] = admin.firestore.FieldValue.delete();
       }
-      return null;
+      if (isConsumable) {
+        updates[idempotencyKey] = admin.firestore.FieldValue.delete();
+      }
+      tx.update(ref, updates);
     }
 
-    // Remove the consumed key and any expired entries
-    const updates: Record<string, ReturnType<typeof admin.firestore.FieldValue.delete>> = {
-      [latestKey]: admin.firestore.FieldValue.delete(),
-    };
-    for (const key of expiredKeys) {
-      updates[key] = admin.firestore.FieldValue.delete();
-    }
-    tx.update(ref, updates);
-    return latestKey;
+    return isConsumable ? (target as PendingEntry) : null;
   });
+}
+
+/**
+ * Best-effort link from a pending deduction to the Replicate prediction
+ * it paid for. Uses FieldPath (not a dotted string) because idempotency
+ * keys contain hyphens, which would otherwise be misparsed as nested paths.
+ * A failed attach degrades gracefully: refund falls back to the lenient
+ * "no prediction created" rule.
+ */
+async function attachPredictionToDeduction(
+  uid: string,
+  deductionKey: string,
+  predictionId: string
+): Promise<void> {
+  try {
+    const db = admin.firestore();
+    await db.collection("pendingDeductions").doc(uid).update(
+      new admin.firestore.FieldPath(deductionKey, "predictionId"),
+      predictionId
+    );
+  } catch (error) {
+    console.error(`attachPredictionToDeduction: failed to attach — ${error}`);
+  }
 }
 
 const GENERATION_CREDIT_COST = 1;
@@ -254,7 +270,7 @@ export const createVersionPrediction = onCall(async (request) => {
     throw new HttpsError("internal", "Replicate API token not configured");
   }
 
-  const {version, input} = request.data;
+  const {version, input, deductionKey} = request.data;
   if (!version || !input) {
     throw new HttpsError("invalid-argument", "Missing version or input");
   }
@@ -272,7 +288,11 @@ export const createVersionPrediction = onCall(async (request) => {
     "createVersionPrediction"
   );
 
-  return await response.json();
+  const prediction = (await response.json()) as {id?: string};
+  if (deductionKey && typeof deductionKey === "string" && prediction?.id) {
+    await attachPredictionToDeduction(uid, deductionKey, prediction.id);
+  }
+  return prediction;
 });
 
 // ─── Replicate: Get Prediction Status ─────────────────────────────────────
@@ -444,6 +464,7 @@ async function addCreditsInternal(uid: string, idempotencyKey: string): Promise<
 
 export const deductGenerationCredit = onCall(async (request) => {
   const uid = requireAuth(request);
+  await enforceRateLimit(uid, "deductGenerationCredit");
   const {idempotencyKey} = request.data;
   if (!idempotencyKey || typeof idempotencyKey !== "string") {
     throw new HttpsError("invalid-argument", "Missing idempotencyKey");
@@ -468,43 +489,101 @@ export const deductGenerationCredit = onCall(async (request) => {
   }
 });
 
+/**
+ * Fetches a Replicate prediction's current state. Returns null if the
+ * prediction can't be found (treated as "never created" by callers).
+ */
+async function fetchPredictionStatus(predictionId: string): Promise<string | null> {
+  const apiToken = process.env.REPLICATE_API_TOKEN;
+  if (!apiToken) {
+    throw new HttpsError("internal", "Replicate API token not configured");
+  }
+
+  const response = await fetch(`${REPLICATE_BASE_URL}/predictions/${predictionId}`, {
+    headers: {Authorization: `Token ${apiToken}`},
+  });
+
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const errorBody = await response.text();
+    console.error(`fetchPredictionStatus failed: HTTP ${response.status} — ${errorBody}`);
+    throw new HttpsError("internal", `Replicate API error ${response.status}`);
+  }
+
+  const body = (await response.json()) as {status: string};
+  return body.status;
+}
+
+/** Best-effort cancel — a failed cancel does not block the refund. */
+async function cancelPredictionBestEffort(predictionId: string): Promise<void> {
+  try {
+    const apiToken = process.env.REPLICATE_API_TOKEN;
+    if (!apiToken) return;
+    await fetch(`${REPLICATE_BASE_URL}/predictions/${predictionId}/cancel`, {
+      method: "POST",
+      headers: {Authorization: `Token ${apiToken}`},
+    });
+  } catch (error) {
+    console.error(`cancelPredictionBestEffort: failed to cancel ${predictionId} — ${error}`);
+  }
+}
+
 // ─── RevenueCat: Refund Generation Credit (callable) ─────────────────────
 
 export const refundGenerationCredit = onCall(async (request) => {
   const uid = requireAuth(request);
   await enforceRateLimit(uid, "refundGenerationCredit");
 
-  const deductionKey = await consumeLatestPendingDeduction(uid);
-  if (!deductionKey) {
+  const {idempotencyKey} = request.data;
+  if (!idempotencyKey || typeof idempotencyKey !== "string") {
+    throw new HttpsError("invalid-argument", "Missing idempotencyKey");
+  }
+
+  const entry = await consumePendingDeduction(uid, idempotencyKey);
+  if (!entry) {
     throw new HttpsError("failed-precondition", "No matching deduction to refund");
+  }
+
+  // Server-verify against Replicate before paying out: a prediction that
+  // actually succeeded already delivered the image, so it is not refundable.
+  // This closes the deduct -> generate -> refund exploit where a scripted
+  // client calls refund unconditionally after a successful generation.
+  if (entry.predictionId) {
+    let status: string | null = null;
+    try {
+      status = await fetchPredictionStatus(entry.predictionId);
+    } catch (error) {
+      console.error(`refundGenerationCredit: prediction status check failed — ${error}`);
+    }
+
+    if (status === "succeeded") {
+      await confirmPendingDeduction(uid, idempotencyKey);
+      throw new HttpsError("failed-precondition", "Generation succeeded — not refundable");
+    }
+    if (status === "starting" || status === "processing") {
+      // Client's poll timed out while Replicate was still working.
+      // Best-effort cancel, then refund regardless — favors the honest
+      // user over the rare case where the prediction finishes anyway.
+      await cancelPredictionBestEffort(entry.predictionId);
+    }
   }
 
   // Use a refund-specific key for RevenueCat idempotency so the refund
   // transaction is distinct from the original deduction transaction.
   try {
-    const refundKey = `refund-${deductionKey}`;
+    const refundKey = `refund-${idempotencyKey}`;
     const balance = await addCreditsInternal(uid, refundKey);
     return {balance};
   } catch (error) {
     // Restore the pending deduction so the client can retry the refund.
     try {
-      await confirmPendingDeduction(uid, deductionKey);
+      await confirmPendingDeduction(uid, idempotencyKey);
     } catch (restoreError) {
       console.error(`refundGenerationCredit: failed to restore pending deduction — ${restoreError}`);
     }
     if (error instanceof HttpsError) throw error;
     throw new HttpsError("internal", `Refund failed: ${error}`);
   }
-});
-
-// ─── Free Generation: Check if already used (read-only) ─────────────────
-
-export const checkFreeGenerationUsed = onCall(async (request) => {
-  const uid = requireAuth(request);
-  const db = admin.firestore();
-  const doc = await db.collection("users").doc(uid).get();
-  const used = doc.exists && doc.data()?.hasUsedFreeGeneration === true;
-  return {used};
 });
 
 // ─── Auth: Delete user data on account deletion ───────────────────────────
@@ -527,23 +606,40 @@ export const onUserDeleted = authUser().onDelete(async (user) => {
   console.log(`onUserDeleted: cleaned up Firestore data for uid=${uid}`);
 });
 
-// ─── Free Generation: Atomic claim (server-side gate) ────────────────────
+// ─── Welcome Credits: Atomic first-sign-in grant (server-side gate) ───────
 
-export const claimFreeGeneration = onCall(async (request) => {
+export const claimWelcomeCredits = onCall(async (request) => {
   const uid = requireAuth(request);
+  await enforceRateLimit(uid, "claimWelcomeCredits");
   const db = admin.firestore();
   const userRef = db.collection("users").doc(uid);
 
-  // Atomically check and set hasUsedFreeGeneration in a transaction.
-  // Returns { claimed: true } if this is the first claim, { claimed: false } if already used.
-  const claimed = await db.runTransaction(async (tx) => {
+  // Atomically check and set welcomeCreditsGranted so concurrent calls
+  // (e.g. splash + sign-in racing) grant at most once per user.
+  const firstClaim = await db.runTransaction(async (tx) => {
     const doc = await tx.get(userRef);
-    if (doc.exists && doc.data()?.hasUsedFreeGeneration === true) {
+    if (doc.exists && doc.data()?.welcomeCreditsGranted === true) {
       return false;
     }
-    tx.set(userRef, {hasUsedFreeGeneration: true}, {merge: true});
+    tx.set(userRef, {welcomeCreditsGranted: true}, {merge: true});
     return true;
   });
 
-  return {claimed};
+  if (!firstClaim) {
+    return {granted: false};
+  }
+
+  try {
+    const balance = await addCreditsInternal(uid, `welcome-${uid}`);
+    return {granted: true, balance};
+  } catch (error) {
+    // Roll back the flag so the client can retry the grant later.
+    try {
+      await userRef.set({welcomeCreditsGranted: false}, {merge: true});
+    } catch (rollbackError) {
+      console.error(`claimWelcomeCredits: failed to roll back flag — ${rollbackError}`);
+    }
+    if (error instanceof HttpsError) throw error;
+    throw new HttpsError("internal", `Welcome credit grant failed: ${error}`);
+  }
 });
