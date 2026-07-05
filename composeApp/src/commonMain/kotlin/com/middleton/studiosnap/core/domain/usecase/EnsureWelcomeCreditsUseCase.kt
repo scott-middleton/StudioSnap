@@ -2,6 +2,7 @@ package com.middleton.studiosnap.core.domain.usecase
 
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.CreditManager
+import com.middleton.studiosnap.core.domain.service.ErrorReporter
 import com.middleton.studiosnap.core.domain.service.WelcomeCreditGranter
 
 /**
@@ -11,10 +12,12 @@ import com.middleton.studiosnap.core.domain.service.WelcomeCreditGranter
  */
 class EnsureWelcomeCreditsUseCase(
     private val welcomeCreditGranter: WelcomeCreditGranter,
-    private val creditManager: CreditManager
+    private val creditManager: CreditManager,
+    private val errorReporter: ErrorReporter
 ) {
     suspend operator fun invoke(): Result<UserCredits> {
         runCatching { welcomeCreditGranter.claimWelcomeCredits() }
+            .onFailure { errorReporter.recordException(it) }
         return creditManager.refreshCredits()
     }
 }

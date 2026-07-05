@@ -8,6 +8,7 @@ import com.middleton.studiosnap.core.domain.repository.UserPreferencesSnapshot
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditManager
+import com.middleton.studiosnap.core.domain.service.FakeErrorReporter
 import com.middleton.studiosnap.core.domain.service.WelcomeCreditGranter
 import com.middleton.studiosnap.core.domain.usecase.EnsureWelcomeCreditsUseCase
 import com.middleton.studiosnap.feature.splash.presentation.navigation.SplashNavigationAction
@@ -85,7 +86,7 @@ class SplashViewModelTest {
     ): SplashViewModel {
         return SplashViewModel(
             authService = FakeAuthService(isSignedIn),
-            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager, FakeErrorReporter()),
             userPreferencesRepository = FakeUserPreferencesRepository(hasCompletedOnboarding),
             purchasesIdentifier = FakePurchasesIdentifier(),
             analyticsService = FakeAnalyticsService()

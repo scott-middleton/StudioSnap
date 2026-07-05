@@ -98,7 +98,8 @@ val coreDataModule = module {
     factory {
         EnsureWelcomeCreditsUseCase(
             welcomeCreditGranter = get(),
-            creditManager = get()
+            creditManager = get(),
+            errorReporter = get()
         )
     }
 

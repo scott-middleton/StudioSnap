@@ -2,6 +2,7 @@ package com.middleton.studiosnap.core.domain.usecase
 
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.CreditManager
+import com.middleton.studiosnap.core.domain.service.FakeErrorReporter
 import com.middleton.studiosnap.core.domain.service.WelcomeCreditGranter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,7 @@ class EnsureWelcomeCreditsUseCaseTest {
     fun `claims welcome credits then refreshes balance`() = kotlinx.coroutines.test.runTest {
         val granter = FakeWelcomeCreditGranter(granted = true)
         val creditManager = FakeCreditManager(balance = 1)
-        val useCase = EnsureWelcomeCreditsUseCase(granter, creditManager)
+        val useCase = EnsureWelcomeCreditsUseCase(granter, creditManager, FakeErrorReporter())
 
         val result = useCase()
 
@@ -25,22 +26,24 @@ class EnsureWelcomeCreditsUseCaseTest {
     }
 
     @Test
-    fun `claim failure is non-fatal and still refreshes balance`() = kotlinx.coroutines.test.runTest {
+    fun `claim failure is non-fatal, reported, and still refreshes balance`() = kotlinx.coroutines.test.runTest {
         val granter = FakeWelcomeCreditGranter(shouldThrow = true)
         val creditManager = FakeCreditManager(balance = 0)
-        val useCase = EnsureWelcomeCreditsUseCase(granter, creditManager)
+        val errorReporter = FakeErrorReporter()
+        val useCase = EnsureWelcomeCreditsUseCase(granter, creditManager, errorReporter)
 
         val result = useCase()
 
         assertTrue(creditManager.refreshCalled)
         assertEquals(0, result.getOrNull()?.amount)
+        assertEquals(1, errorReporter.recordedExceptions.size)
     }
 
     @Test
     fun `returns failure when refresh fails`() = kotlinx.coroutines.test.runTest {
         val granter = FakeWelcomeCreditGranter(granted = false)
         val creditManager = FakeCreditManager(balance = 0, shouldFailRefresh = true)
-        val useCase = EnsureWelcomeCreditsUseCase(granter, creditManager)
+        val useCase = EnsureWelcomeCreditsUseCase(granter, creditManager, FakeErrorReporter())
 
         val result = useCase()
 

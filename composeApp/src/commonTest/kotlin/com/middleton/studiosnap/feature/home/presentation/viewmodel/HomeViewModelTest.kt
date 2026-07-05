@@ -6,6 +6,7 @@ import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.AuthService
 import com.middleton.studiosnap.core.domain.service.CreditManager
+import com.middleton.studiosnap.core.domain.service.FakeErrorReporter
 import com.middleton.studiosnap.core.domain.service.WelcomeCreditGranter
 import com.middleton.studiosnap.core.domain.usecase.EnsureWelcomeCreditsUseCase
 import com.middleton.studiosnap.core.domain.usecase.ObserveCreditStateUseCase
@@ -77,7 +78,7 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = configHolder,
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(historyItems),
-            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), resolvedCreditManager),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), resolvedCreditManager, FakeErrorReporter()),
             buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
     }
@@ -269,7 +270,7 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager, FakeErrorReporter()),
             buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
         viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
@@ -297,7 +298,7 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager, FakeErrorReporter()),
             buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
         viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
@@ -478,7 +479,7 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), creditManager),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), creditManager, FakeErrorReporter()),
             buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
         // Signed in, but credits failed to load
@@ -498,7 +499,7 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), creditManager),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), creditManager, FakeErrorReporter()),
             buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
 
@@ -524,7 +525,7 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), creditManager),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(FakeWelcomeCreditGranter(), creditManager, FakeErrorReporter()),
             buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
 
