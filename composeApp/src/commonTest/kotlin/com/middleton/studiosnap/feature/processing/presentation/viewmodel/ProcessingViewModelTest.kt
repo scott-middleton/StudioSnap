@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.processing.presentation.viewmodel
 
+import com.middleton.studiosnap.core.domain.exception.InsufficientCreditsException
 import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
@@ -20,6 +21,7 @@ import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigH
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationRepository
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.processing.domain.usecase.BatchProgress
+import com.middleton.studiosnap.feature.processing.domain.usecase.BatchResumeState
 import com.middleton.studiosnap.feature.processing.domain.usecase.GenerateBatchPreviewsUseCase
 import com.middleton.studiosnap.feature.processing.domain.usecase.GeneratePreviewUseCase
 import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationResultsHolder
@@ -207,25 +209,82 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `retry restarts processing`() {
-        var callCount = 0
-        val repo = object : FakeGenerationRepository() {
-            override suspend fun generateImage(
-                photo: ProductPhoto, prompt: String, style: Style,
-                exportFormat: ExportFormat, quality: GenerationQuality,
-                deductionKey: String?,
-                onProgress: (suspend (Float) -> Unit)?
-            ): Result<GenerationResult.Success> {
-                callCount++
-                return super.generateImage(photo, prompt, style, exportFormat, quality, deductionKey, onProgress)
-            }
-        }
+    fun `retry resumes from the first unfinished photo instead of restarting the batch`() {
+        // 2 photos: photo1's deduction succeeds and it generates fine. Photo2's
+        // deduction fails once (e.g. a transient RC error), which aborts the flow
+        // and surfaces the error state. Retry should resume at photo2 only —
+        // photo1 must not be re-deducted or re-generated.
+        val creditDeductor = FakeCreditDeductor(failDeductAtCall = 2)
+        val repo = FakeGenerationRepository()
+        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
+        val vm = createViewModelWithDeductor(
+            config = twoPhotoConfig,
+            generationRepo = repo,
+            creditDeductor = creditDeductor
+        )
 
-        val vm = createViewModel(generationRepo = repo)
-        val firstCount = callCount
+        assertIs<ProcessingUiState.Error>(vm.uiState.value)
+        assertEquals(1, repo.callCountByPhotoId[testPhoto.id])
+        assertEquals(null, repo.callCountByPhotoId[testPhoto2.id])
 
         vm.handleAction(ProcessingUiAction.OnRetryClicked)
-        assertTrue(callCount > firstCount)
+
+        // Total deductions across both attempts: photo1 once, photo2's failed
+        // attempt once, photo2's retry once = 3, not 4 (which a full restart
+        // would produce: photo1 twice + photo2 twice).
+        assertEquals(3, creditDeductor.deductCalled)
+        assertEquals(1, repo.callCountByPhotoId[testPhoto.id], "photo1 must not be re-generated")
+        assertIs<ProcessingUiState.Complete>(vm.uiState.value)
+    }
+
+    @Test
+    fun `refunded credits count is preserved across a retry`() {
+        // Photo1 generates but fails (refunded). Photo2's deduction then fails,
+        // aborting the flow — the refund from photo1 must survive into retry.
+        val creditDeductor = FakeCreditDeductor(failDeductAtCall = 2)
+        val repo = FakeGenerationRepository(shouldFail = true)
+        val resultsHolder = FakeGenerationResultsHolder()
+        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
+        val vm = createViewModelWithDeductor(
+            config = twoPhotoConfig,
+            generationRepo = repo,
+            creditDeductor = creditDeductor,
+            resultsHolder = resultsHolder
+        )
+
+        assertIs<ProcessingUiState.Error>(vm.uiState.value)
+        assertEquals(1, creditDeductor.refundCalled)
+
+        // Retry: photo2's deduction now succeeds, but its generation also fails
+        // (repo.shouldFail = true), so it gets refunded too.
+        creditDeductor.stopFailingDeductions()
+        vm.handleAction(ProcessingUiAction.OnRetryClicked)
+
+        assertEquals(2, creditDeductor.refundCalled)
+        assertEquals(2, resultsHolder.refundedCredits)
+    }
+
+    @Test
+    fun `insufficient credits exception maps to dedicated error state`() {
+        val failingDeductor = FakeCreditDeductor(insufficientCredits = true)
+        val errorReporter = FakeErrorReporter()
+        val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), errorReporter)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor)
+        val vm = createViewModelWithBatchUseCase(batchUseCase = batchUseCase)
+
+        assertIs<ProcessingUiState.Error.InsufficientCredits>(vm.uiState.value)
+    }
+
+    @Test
+    fun `get credits click navigates to credit store`() {
+        val failingDeductor = FakeCreditDeductor(insufficientCredits = true)
+        val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter())
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor)
+        val vm = createViewModelWithBatchUseCase(batchUseCase = batchUseCase)
+
+        vm.handleAction(ProcessingUiAction.OnGetCreditsClicked)
+
+        assertIs<ProcessingNavigationAction.GoToCreditStore>(vm.navigationEvent.value)
     }
 
     @Test
@@ -297,6 +356,27 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         )
     }
 
+    private fun createViewModelWithDeductor(
+        config: GenerationConfig? = testConfig,
+        resultsHolder: GenerationResultsHolder = FakeGenerationResultsHolder(),
+        generationRepo: GenerationRepository = FakeGenerationRepository(),
+        creditDeductor: CreditDeductor = FakeCreditDeductor(),
+        historyRepo: HistoryRepository = FakeHistoryRepository(),
+        analyticsService: AnalyticsService = FakeAnalyticsService()
+    ): ProcessingViewModel {
+        val errorReporter = FakeErrorReporter()
+        val generatePreview = GeneratePreviewUseCase(generationRepo, historyRepo, errorReporter)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor)
+
+        return ProcessingViewModel(
+            generationConfigHolder = FakeGenerationConfigHolder(config),
+            generationResultsHolder = resultsHolder,
+            generateBatchPreviewsUseCase = batchUseCase,
+            analyticsService = analyticsService,
+            completionDelayMs = 0L
+        )
+    }
+
     // --- Fakes ---
 
     private class FakeGenerationConfigHolder(
@@ -309,15 +389,24 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     }
 
     private class FakeCreditDeductor(
-        private val deductShouldFail: Boolean = false
+        private val deductShouldFail: Boolean = false,
+        private val insufficientCredits: Boolean = false,
+        private val failDeductAtCall: Int = -1
     ) : CreditDeductor {
         var deductCalled = 0
         var refundCalled = 0
+        private var stopFailing = false
+
+        fun stopFailingDeductions() { stopFailing = true }
 
         override suspend fun deductGenerationCredit(idempotencyKey: String): Result<UserCredits> {
             deductCalled++
-            return if (deductShouldFail) Result.failure(RuntimeException("Insufficient credits"))
-            else Result.success(UserCredits(100 - deductCalled))
+            return when {
+                insufficientCredits -> Result.failure(InsufficientCreditsException())
+                deductShouldFail -> Result.failure(RuntimeException("Insufficient credits"))
+                deductCalled == failDeductAtCall && !stopFailing -> Result.failure(RuntimeException("Transient RC error"))
+                else -> Result.success(UserCredits(100 - deductCalled))
+            }
         }
 
         override suspend fun refundGenerationCredit(idempotencyKey: String): Result<UserCredits> {
@@ -331,6 +420,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         private val failOnIndex: Int = -1
     ) : GenerationRepository {
         private var counter = 0
+        val callCountByPhotoId = mutableMapOf<String, Int>()
 
         override suspend fun generateImage(
             photo: ProductPhoto, prompt: String, style: Style,
@@ -339,6 +429,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
             onProgress: (suspend (Float) -> Unit)?
         ): Result<GenerationResult.Success> {
             val index = counter++
+            callCountByPhotoId[photo.id] = (callCountByPhotoId[photo.id] ?: 0) + 1
             if (shouldFail || index == failOnIndex) {
                 return Result.failure(RuntimeException("API failure"))
             }
@@ -416,6 +507,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     ) {
         override fun invoke(
             config: GenerationConfig,
+            resumeState: BatchResumeState,
             onPhotoProgress: (suspend (photoIndex: Int, progress: Float) -> Unit)?
         ): Flow<BatchProgress> = flow {
             throw exception

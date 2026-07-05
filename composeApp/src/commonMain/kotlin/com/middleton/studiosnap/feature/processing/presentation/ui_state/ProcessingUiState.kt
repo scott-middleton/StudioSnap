@@ -41,7 +41,10 @@ sealed interface ProcessingUiState {
             }
     }
 
-    data class Error(val message: String) : ProcessingUiState
+    sealed interface Error : ProcessingUiState {
+        data class Generic(val message: UiText) : Error
+        data object InsufficientCredits : Error
+    }
 
     data object Complete : ProcessingUiState
 }

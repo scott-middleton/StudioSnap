@@ -8,11 +8,29 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.datetime.Clock
 
 /**
+ * Progress carried across a retry so already-processed photos are never re-run.
+ * [results] holds one entry per photo already attempted (successes and refunded
+ * failures alike); [refundedCredits] is the running refund count so far.
+ */
+data class BatchResumeState(
+    val results: List<GenerationResult> = emptyList(),
+    val refundedCredits: Int = 0
+) {
+    companion object {
+        val EMPTY = BatchResumeState()
+    }
+}
+
+/**
  * Sequentially generates styled images for all photos in a batch.
  * Deducts 1 credit per photo with server-side pending deduction tracking.
  * If generation fails, requests a refund of the most recent pending deduction.
  * Emits progress after each image completes. Does NOT run in parallel —
  * Replicate has rate limits and sequential is simpler for error handling.
+ *
+ * A [resumeState] resumes a batch after a mid-batch failure + retry: photos
+ * already present in [BatchResumeState.results] (successes and refunded
+ * failures alike) are skipped entirely — never re-deducted, never re-run.
  */
 open class GenerateBatchPreviewsUseCase(
     private val generatePreviewUseCase: GeneratePreviewUseCase,
@@ -25,13 +43,16 @@ open class GenerateBatchPreviewsUseCase(
      */
     open operator fun invoke(
         config: GenerationConfig,
+        resumeState: BatchResumeState = BatchResumeState.EMPTY,
         onPhotoProgress: (suspend (photoIndex: Int, progress: Float) -> Unit)? = null
     ): Flow<BatchProgress> = flow {
         val photoCount = config.photos.size
-        val results = mutableListOf<GenerationResult>()
-        var refundedCredits = 0
+        val results = resumeState.results.toMutableList()
+        val baseIndex = results.size
+        var refundedCredits = resumeState.refundedCredits
 
-        config.photos.forEachIndexed { index, photo ->
+        config.photos.drop(baseIndex).forEachIndexed { offset, photo ->
+            val index = baseIndex + offset
             val idempotencyKey = "${config.batchId}-${photo.id}-${Clock.System.now().toEpochMilliseconds()}"
             creditDeductor.deductGenerationCredit(idempotencyKey)
                 .getOrElse { throw it }

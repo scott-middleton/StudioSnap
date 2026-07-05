@@ -13,4 +13,8 @@ sealed class ProcessingNavigationAction : NavigationAction {
     data object GoBack : ProcessingNavigationAction() {
         override val navigationCommand = NavigationCommand.NavigateBack
     }
+
+    data object GoToCreditStore : ProcessingNavigationAction() {
+        override val navigationCommand = NavigationCommand.Navigate(Route.CreditStore)
+    }
 }

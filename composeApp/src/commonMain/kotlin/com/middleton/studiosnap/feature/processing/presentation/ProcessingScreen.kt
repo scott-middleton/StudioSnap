@@ -72,6 +72,7 @@ import com.middleton.studiosnap.core.presentation.components.PickedImage
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
 import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
+import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.feature.onboarding.presentation.PlatformBackHandler
 import com.middleton.studiosnap.feature.processing.presentation.action.ProcessingUiAction
 import com.middleton.studiosnap.feature.processing.presentation.navigation.ProcessingNavigationAction
@@ -86,8 +87,11 @@ import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.processing_cancel
 import studiosnap.composeapp.generated.resources.processing_do_not_close
 import studiosnap.composeapp.generated.resources.processing_downloading
+import studiosnap.composeapp.generated.resources.processing_error_insufficient_credits_body
+import studiosnap.composeapp.generated.resources.processing_error_insufficient_credits_title
 import studiosnap.composeapp.generated.resources.processing_error_title
 import studiosnap.composeapp.generated.resources.processing_generating
+import studiosnap.composeapp.generated.resources.processing_get_credits
 import studiosnap.composeapp.generated.resources.processing_go_back
 import studiosnap.composeapp.generated.resources.processing_patience
 import studiosnap.composeapp.generated.resources.processing_photo_progress
@@ -165,8 +169,13 @@ fun ProcessingScreenContent(
                 state = state,
                 onCancel = { onAction(ProcessingUiAction.OnCancelClicked) }
             )
-            is ProcessingUiState.Error -> ErrorContent(
-                message = state.message,
+            is ProcessingUiState.Error.Generic -> GenericErrorContent(
+                message = state.message.asString(),
+                onRetry = { onAction(ProcessingUiAction.OnRetryClicked) },
+                onGoBack = { onAction(ProcessingUiAction.OnCancelClicked) }
+            )
+            ProcessingUiState.Error.InsufficientCredits -> InsufficientCreditsErrorContent(
+                onGetCredits = { onAction(ProcessingUiAction.OnGetCreditsClicked) },
                 onRetry = { onAction(ProcessingUiAction.OnRetryClicked) },
                 onGoBack = { onAction(ProcessingUiAction.OnCancelClicked) }
             )
@@ -726,7 +735,64 @@ private fun StepConnector(isComplete: Boolean) {
 // ─── Error Content ──────────────────────────────────────────────────────────
 
 @Composable
-private fun ErrorContent(
+private fun ErrorIconHeader(title: String, message: String) {
+    Box(
+        modifier = Modifier
+            .size(72.dp)
+            .background(
+                color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                shape = CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.ErrorOutline,
+            contentDescription = null,
+            modifier = Modifier.size(36.dp),
+            tint = MaterialTheme.colorScheme.error
+        )
+    }
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    Text(
+        text = title,
+        style = MaterialTheme.typography.headlineSmall.copy(
+            fontWeight = FontWeight.Bold
+        ),
+        color = MaterialTheme.colorScheme.onSurface
+    )
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    Text(
+        text = message,
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+}
+
+@Composable
+private fun GoBackButton(onGoBack: () -> Unit) {
+    OutlinedButton(
+        onClick = onGoBack,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        shape = ButtonShape
+    ) {
+        Text(
+            text = stringResource(Res.string.processing_go_back),
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.SemiBold
+            )
+        )
+    }
+}
+
+@Composable
+private fun GenericErrorContent(
     message: String,
     onRetry: () -> Unit,
     onGoBack: () -> Unit
@@ -738,40 +804,9 @@ private fun ErrorContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.ErrorOutline,
-                contentDescription = null,
-                modifier = Modifier.size(36.dp),
-                tint = MaterialTheme.colorScheme.error
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = stringResource(Res.string.processing_error_title),
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.Bold
-            ),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+        ErrorIconHeader(
+            title = stringResource(Res.string.processing_error_title),
+            message = message
         )
 
         Spacer(modifier = Modifier.height(36.dp))
@@ -783,19 +818,54 @@ private fun ErrorContent(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        GoBackButton(onGoBack = onGoBack)
+    }
+}
+
+@Composable
+private fun InsufficientCreditsErrorContent(
+    onGetCredits: () -> Unit,
+    onRetry: () -> Unit,
+    onGoBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        ErrorIconHeader(
+            title = stringResource(Res.string.processing_error_insufficient_credits_title),
+            message = stringResource(Res.string.processing_error_insufficient_credits_body)
+        )
+
+        Spacer(modifier = Modifier.height(36.dp))
+
+        GradientButton(
+            text = stringResource(Res.string.processing_get_credits),
+            onClick = onGetCredits
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
         OutlinedButton(
-            onClick = onGoBack,
+            onClick = onRetry,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
             shape = ButtonShape
         ) {
             Text(
-                text = stringResource(Res.string.processing_go_back),
+                text = stringResource(Res.string.processing_retry),
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.SemiBold
                 )
             )
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        GoBackButton(onGoBack = onGoBack)
     }
 }

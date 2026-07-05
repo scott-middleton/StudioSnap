@@ -96,6 +96,52 @@ class GenerateBatchPreviewsUseCaseTest {
     }
 
     @Test
+    fun `resume skips already-processed photos and does not re-deduct them`() = runTest {
+        val creditDeductor = FakeCreditDeductor()
+        val repo = FakeGenerationRepository()
+        val useCase = GenerateBatchPreviewsUseCase(
+            GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
+            creditDeductor
+        )
+        val priorResult = GenerationResult.Success(
+            generationId = "gen_prior",
+            inputPhoto = photo1,
+            previewUri = "preview_prior.jpg",
+            style = testStyle,
+            createdAt = 0L
+        )
+        val resumeState = BatchResumeState(results = listOf(priorResult))
+
+        val progress = useCase(config, resumeState = resumeState).collectAll()
+
+        // Only photo2 (the unfinished one) is deducted/generated — photo1 is not re-run.
+        assertEquals(1, creditDeductor.deductKeys.size)
+        assertEquals(1, repo.generateCallCount)
+        assertEquals(2, progress.last().results.size)
+        assertEquals(1, progress.last().currentIndex)
+        assertTrue(progress.last().isComplete)
+    }
+
+    @Test
+    fun `resume preserves refundedCredits carried over from the prior attempt`() = runTest {
+        val creditDeductor = FakeCreditDeductor()
+        val repo = FakeGenerationRepository()
+        val useCase = GenerateBatchPreviewsUseCase(
+            GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
+            creditDeductor
+        )
+        val priorFailure = GenerationResult.Failure(
+            inputPhoto = photo1,
+            error = com.middleton.studiosnap.feature.home.domain.model.GenerationError.NETWORK
+        )
+        val resumeState = BatchResumeState(results = listOf(priorFailure), refundedCredits = 1)
+
+        val progress = useCase(config, resumeState = resumeState).collectAll()
+
+        assertEquals(1, progress.last().refundedCredits)
+    }
+
+    @Test
     fun `deduction failure aborts the flow`() = runTest {
         val creditDeductor = FakeCreditDeductor(deductShouldFail = true)
         val repo = FakeGenerationRepository()

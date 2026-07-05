@@ -273,6 +273,9 @@
     <!-- Processing (additional) -->
     <string name="processing_error_no_config">No generation config found</string>
     <string name="processing_error_unknown">Generation failed</string>
+    <string name="processing_get_credits">Get Credits</string>
+    <string name="processing_error_insufficient_credits_title">Out of credits</string>
+    <string name="processing_error_insufficient_credits_body">You don\'t have enough credits to continue. Buy more credits, then retry to pick up right where you left off.</string>
 
     <!-- History (additional) -->
     <string name="history_product_photo">Product photo</string>

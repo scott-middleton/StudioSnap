@@ -2,10 +2,13 @@ package com.middleton.studiosnap.feature.processing.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.middleton.studiosnap.core.domain.exception.InsufficientCreditsException
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
+import com.middleton.studiosnap.feature.processing.domain.usecase.BatchResumeState
 import com.middleton.studiosnap.feature.processing.domain.usecase.GenerateBatchPreviewsUseCase
 import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationProgressStages
 import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationResultsHolder
@@ -20,6 +23,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import studiosnap.composeapp.generated.resources.Res
+import studiosnap.composeapp.generated.resources.processing_error_no_config
+import studiosnap.composeapp.generated.resources.processing_error_unknown
 
 class ProcessingViewModel(
     private val generationConfigHolder: GenerationConfigHolder,
@@ -38,6 +44,10 @@ class ProcessingViewModel(
     private var processingJob: Job? = null
     private var config: GenerationConfig? = null
 
+    // Progress carried across retries so a mid-batch failure doesn't re-run or
+    // re-charge photos already processed. Reset only when starting a fresh batch.
+    private var progressSoFar: BatchResumeState = BatchResumeState.EMPTY
+
     init {
         config = generationConfigHolder.currentConfig
         startProcessing()
@@ -48,6 +58,9 @@ class ProcessingViewModel(
             ProcessingUiAction.OnRetryClicked -> startProcessing()
             ProcessingUiAction.OnCancelClicked -> {
                 _navigationEvent.value = ProcessingNavigationAction.GoBack
+            }
+            ProcessingUiAction.OnGetCreditsClicked -> {
+                _navigationEvent.value = ProcessingNavigationAction.GoToCreditStore
             }
             ProcessingUiAction.OnNavigationHandled -> _navigationEvent.value = null
         }
@@ -66,16 +79,18 @@ class ProcessingViewModel(
     private fun startProcessing() {
         val currentConfig = config
         if (currentConfig == null) {
-            _uiState.value = ProcessingUiState.Error("No generation config found")
+            _uiState.value = ProcessingUiState.Error.Generic(UiText.StringResource(Res.string.processing_error_no_config))
             return
         }
 
+        val resumeState = progressSoFar
         processingJob?.cancel()
         processingJob = viewModelScope.launch {
-            val firstPhotoUri = currentConfig.photos.firstOrNull()?.localUri
+            val startIndex = resumeState.results.size
+            val firstPhotoUri = currentConfig.photos.getOrNull(startIndex)?.localUri
 
             _uiState.value = ProcessingUiState.Processing(
-                currentPhotoIndex = 0,
+                currentPhotoIndex = startIndex,
                 totalPhotos = currentConfig.photos.size,
                 styleName = currentConfig.style.displayName,
                 status = ProcessingStatus.Preparing,
@@ -83,7 +98,7 @@ class ProcessingViewModel(
             )
 
             try {
-                generateBatchPreviewsUseCase(currentConfig) { photoIndex, photoProgress ->
+                generateBatchPreviewsUseCase(currentConfig, resumeState) { photoIndex, photoProgress ->
                     val status = when {
                         photoProgress < GenerationProgressStages.GENERATING_START -> ProcessingStatus.Preparing
                         photoProgress < GenerationProgressStages.DOWNLOADING_START -> ProcessingStatus.Generating
@@ -98,6 +113,11 @@ class ProcessingViewModel(
                         )
                     }
                 }.collect { batchProgress ->
+                    progressSoFar = BatchResumeState(
+                        results = batchProgress.results,
+                        refundedCredits = batchProgress.refundedCredits
+                    )
+
                     if (batchProgress.isComplete) {
                         generationResultsHolder.currentResults = batchProgress.results
                         generationResultsHolder.refundedCredits = batchProgress.refundedCredits
@@ -132,9 +152,14 @@ class ProcessingViewModel(
                 }
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                _uiState.value = ProcessingUiState.Error(
-                    e.message ?: "Generation failed"
-                )
+                _uiState.value = if (e is InsufficientCreditsException) {
+                    ProcessingUiState.Error.InsufficientCredits
+                } else {
+                    ProcessingUiState.Error.Generic(
+                        e.message?.let { UiText.DynamicString(it) }
+                            ?: UiText.StringResource(Res.string.processing_error_unknown)
+                    )
+                }
                 analyticsService.logEvent(
                     AnalyticsEvents.BATCH_GENERATION_FAILED,
                     mapOf("error" to (e.message ?: "unknown"))

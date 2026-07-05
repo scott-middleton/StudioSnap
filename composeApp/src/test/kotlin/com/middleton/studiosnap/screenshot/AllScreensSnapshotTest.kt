@@ -158,7 +158,19 @@ class AllScreensSnapshotTest {
     fun processing_error() {
         snapshot {
             ProcessingScreenContent(
-                state = ProcessingUiState.Error("Network connection lost. Please check your connection and try again."),
+                state = ProcessingUiState.Error.Generic(
+                    UiText.DynamicString("Network connection lost. Please check your connection and try again.")
+                ),
+                onAction = {}
+            )
+        }
+    }
+
+    @Test
+    fun processing_error_insufficientCredits() {
+        snapshot {
+            ProcessingScreenContent(
+                state = ProcessingUiState.Error.InsufficientCredits,
                 onAction = {}
             )
         }
