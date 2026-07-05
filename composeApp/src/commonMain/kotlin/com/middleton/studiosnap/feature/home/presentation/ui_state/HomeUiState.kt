@@ -4,11 +4,11 @@ import com.middleton.studiosnap.core.presentation.state.UserCreditLoadingState
 import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
-import com.middleton.studiosnap.feature.home.domain.model.Style
 
 data class HomeUiState(
     val photos: List<ProductPhoto> = emptyList(),
-    val selectedStyle: Style? = null,
+    val backgroundChoice: BackgroundChoice? = null,
+    val isCustomDescriptionExpanded: Boolean = false,
     val showGalleryPicker: Boolean = false,
     val shadow: Boolean = false,
     val reflection: Boolean = false,
@@ -45,7 +45,14 @@ data class HomeUiState(
         }
 
     val canGenerate: Boolean
-        get() = photos.isNotEmpty() && selectedStyle != null && (isFreeTrialMode || (isSignedIn && canAffordGeneration))
+        get() = photos.isNotEmpty() && isBackgroundChoiceUsable && (isFreeTrialMode || (isSignedIn && canAffordGeneration))
+
+    val isBackgroundChoiceUsable: Boolean
+        get() = when (val choice = backgroundChoice) {
+            is BackgroundChoice.Preset -> true
+            is BackgroundChoice.Custom -> choice.description.trim().length >= MIN_CUSTOM_DESCRIPTION_LENGTH
+            null -> false
+        }
 
     val hasPhotos: Boolean
         get() = photos.isNotEmpty()
@@ -55,6 +62,8 @@ data class HomeUiState(
 
     companion object {
         const val MAX_PHOTOS = 10
+        const val MAX_CUSTOM_DESCRIPTION_LENGTH = 150
+        const val MIN_CUSTOM_DESCRIPTION_LENGTH = 3
     }
 }
 

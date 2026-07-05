@@ -55,6 +55,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     private val testConfig = GenerationConfig(
         photos = listOf(testPhoto),
         style = testStyle,
+        resolvedPrompt = testStyle.kontextPrompt,
         shadow = false,
         reflection = false,
         exportFormat = ExportFormat.DEFAULT,
@@ -213,12 +214,12 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         var callCount = 0
         val repo = object : FakeGenerationRepository() {
             override suspend fun generateImage(
-                photo: ProductPhoto, style: Style, shadow: Boolean,
-                reflection: Boolean, exportFormat: ExportFormat, quality: GenerationQuality,
+                photo: ProductPhoto, prompt: String, style: Style,
+                exportFormat: ExportFormat, quality: GenerationQuality,
                 onProgress: (suspend (Float) -> Unit)?
             ): Result<GenerationResult.Success> {
                 callCount++
-                return super.generateImage(photo, style, shadow, reflection, exportFormat, quality, onProgress)
+                return super.generateImage(photo, prompt, style, exportFormat, quality, onProgress)
             }
         }
 
@@ -336,8 +337,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         private var counter = 0
 
         override suspend fun generateImage(
-            photo: ProductPhoto, style: Style, shadow: Boolean,
-            reflection: Boolean, exportFormat: ExportFormat, quality: GenerationQuality,
+            photo: ProductPhoto, prompt: String, style: Style,
+            exportFormat: ExportFormat, quality: GenerationQuality,
             onProgress: (suspend (Float) -> Unit)?
         ): Result<GenerationResult.Success> {
             val index = counter++
@@ -366,15 +367,15 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val reportedProgress = mutableListOf<Float>()
 
         override suspend fun generateImage(
-            photo: ProductPhoto, style: Style, shadow: Boolean,
-            reflection: Boolean, exportFormat: ExportFormat, quality: GenerationQuality,
+            photo: ProductPhoto, prompt: String, style: Style,
+            exportFormat: ExportFormat, quality: GenerationQuality,
             onProgress: (suspend (Float) -> Unit)?
         ): Result<GenerationResult.Success> {
             progressToEmit.forEach { value ->
                 reportedProgress.add(value)
                 onProgress?.invoke(value)
             }
-            return super.generateImage(photo, style, shadow, reflection, exportFormat, quality, onProgress)
+            return super.generateImage(photo, prompt, style, exportFormat, quality, onProgress)
         }
     }
 

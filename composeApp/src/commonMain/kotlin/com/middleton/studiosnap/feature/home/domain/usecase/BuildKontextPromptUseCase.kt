@@ -8,11 +8,13 @@ import com.middleton.studiosnap.feature.home.domain.model.Style
  */
 class BuildKontextPromptUseCase {
 
-    operator fun invoke(style: Style, shadow: Boolean, reflection: Boolean): String {
-        val base = style.kontextPrompt
+    operator fun invoke(style: Style, shadow: Boolean, reflection: Boolean): String =
+        invoke(style.kontextPrompt, shadow, reflection)
+
+    operator fun invoke(basePrompt: String, shadow: Boolean, reflection: Boolean): String {
         val shadowSuffix = if (shadow) SHADOW_SUFFIX else ""
         val reflectionSuffix = if (reflection) REFLECTION_SUFFIX else ""
-        return "$base$shadowSuffix$reflectionSuffix"
+        return "$basePrompt$shadowSuffix$reflectionSuffix"
     }
 
     companion object {

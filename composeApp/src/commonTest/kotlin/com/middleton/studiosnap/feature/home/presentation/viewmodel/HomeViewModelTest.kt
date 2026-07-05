@@ -20,8 +20,10 @@ import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
+import com.middleton.studiosnap.feature.home.domain.usecase.BuildKontextPromptUseCase
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
+import com.middleton.studiosnap.feature.home.presentation.ui_state.BackgroundChoice
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,7 +76,8 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = configHolder,
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(historyItems),
-            userPreferencesRepository = FakeUserPreferencesRepository()
+            userPreferencesRepository = FakeUserPreferencesRepository(),
+            buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
     }
 
@@ -108,8 +111,87 @@ class HomeViewModelTest : BaseViewModelTest() {
     fun `selecting style updates state`() {
         val viewModel = createViewModel()
         viewModel.handleAction(HomeUiAction.OnStyleSelected("warm_linen"))
-        assertNotNull(viewModel.uiState.value.selectedStyle)
-        assertEquals("warm_linen", viewModel.uiState.value.selectedStyle!!.id)
+        val choice = viewModel.uiState.value.backgroundChoice
+        assertNotNull(choice)
+        assertTrue(choice is BackgroundChoice.Preset)
+        assertEquals("warm_linen", (choice as BackgroundChoice.Preset).style.id)
+    }
+
+    @Test
+    fun `typing custom description sets Custom choice and clears preset highlight`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("warm_linen"))
+        viewModel.handleAction(HomeUiAction.OnCustomDescriptionChanged("Marble countertop"))
+        val choice = viewModel.uiState.value.backgroundChoice
+        assertTrue(choice is BackgroundChoice.Custom)
+        assertEquals("Marble countertop", (choice as BackgroundChoice.Custom).description)
+    }
+
+    @Test
+    fun `clearing custom description back to blank reverts choice to null`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(HomeUiAction.OnCustomDescriptionChanged("Marble countertop"))
+        viewModel.handleAction(HomeUiAction.OnCustomDescriptionChanged("   "))
+        assertNull(viewModel.uiState.value.backgroundChoice)
+    }
+
+    @Test
+    fun `custom description is capped at MAX_CUSTOM_DESCRIPTION_LENGTH`() {
+        val viewModel = createViewModel()
+        val longText = "a".repeat(200)
+        viewModel.handleAction(HomeUiAction.OnCustomDescriptionChanged(longText))
+        val choice = viewModel.uiState.value.backgroundChoice as BackgroundChoice.Custom
+        assertEquals(150, choice.description.length)
+    }
+
+    @Test
+    fun `toggling custom description expanded flips state`() {
+        val viewModel = createViewModel()
+        assertFalse(viewModel.uiState.value.isCustomDescriptionExpanded)
+        viewModel.handleAction(HomeUiAction.OnCustomDescriptionExpandedToggled)
+        assertTrue(viewModel.uiState.value.isCustomDescriptionExpanded)
+    }
+
+    @Test
+    fun `canGenerate false with custom description shorter than minimum length`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 5)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnCustomDescriptionChanged("ab"))
+        assertFalse(viewModel.uiState.value.canGenerate)
+    }
+
+    @Test
+    fun `canGenerate true with custom description at minimum length`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 5)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnCustomDescriptionChanged("abc"))
+        assertTrue(viewModel.uiState.value.canGenerate)
+    }
+
+    @Test
+    fun `generate with custom description builds placeholder style and resolved prompt`() {
+        val holder = GenerationConfigHolderImpl()
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 5, configHolder = holder)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnCustomDescriptionChanged("Marble countertop"))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+        val config = holder.currentConfig
+        assertNotNull(config)
+        assertEquals("Marble countertop", config!!.resolvedPrompt)
+        assertEquals("custom", config.style.id)
+    }
+
+    @Test
+    fun `generate with preset style resolves prompt from style kontextPrompt`() {
+        val holder = GenerationConfigHolderImpl()
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 5, configHolder = holder)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("warm_linen"))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+        val config = holder.currentConfig
+        assertNotNull(config)
+        assertEquals("Linen bg", config!!.resolvedPrompt)
+        assertEquals("warm_linen", config.style.id)
     }
 
     @Test
@@ -328,7 +410,8 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            userPreferencesRepository = FakeUserPreferencesRepository()
+            userPreferencesRepository = FakeUserPreferencesRepository(),
+            buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
         // Signed in, but credits failed to load
         assertTrue(viewModel.uiState.value.isSignedIn)
@@ -347,7 +430,8 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            userPreferencesRepository = FakeUserPreferencesRepository()
+            userPreferencesRepository = FakeUserPreferencesRepository(),
+            buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
 
         // Initially logged out
@@ -372,7 +456,8 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = GenerationConfigHolderImpl(),
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(),
-            userPreferencesRepository = FakeUserPreferencesRepository()
+            userPreferencesRepository = FakeUserPreferencesRepository(),
+            buildKontextPromptUseCase = BuildKontextPromptUseCase()
         )
 
         authService.setSignedIn(true)

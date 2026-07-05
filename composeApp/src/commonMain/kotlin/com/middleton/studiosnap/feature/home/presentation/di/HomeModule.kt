@@ -28,7 +28,6 @@ val homeModule = module {
         GenerationRepositoryImpl(
             kontextDataSource = get(),
             imageCacheManager = get(),
-            buildKontextPromptUseCase = get(),
             generationDao = get()
         )
     }
@@ -48,7 +47,8 @@ val homeModule = module {
             generationConfigHolder = get(),
             analyticsService = get(),
             historyRepository = get<HistoryRepository>(),
-            userPreferencesRepository = get()
+            userPreferencesRepository = get(),
+            buildKontextPromptUseCase = get()
         )
     }
     viewModelOf(::StylePickerViewModel)

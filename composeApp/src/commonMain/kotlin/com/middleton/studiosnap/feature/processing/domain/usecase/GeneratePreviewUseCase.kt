@@ -26,9 +26,8 @@ class GeneratePreviewUseCase(
     ): GenerationResult {
         val result = generationRepository.generateImage(
             photo = photo,
+            prompt = config.resolvedPrompt,
             style = config.style,
-            shadow = config.shadow,
-            reflection = config.reflection,
             exportFormat = config.exportFormat,
             quality = config.quality,
             onProgress = onProgress

@@ -18,7 +18,6 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationRepository
-import com.middleton.studiosnap.feature.home.domain.usecase.BuildKontextPromptUseCase
 import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationProgressStages
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
@@ -27,15 +26,13 @@ import kotlinx.serialization.json.jsonPrimitive
 class GenerationRepositoryImpl(
     private val kontextDataSource: KontextRemoteDataSource,
     private val imageCacheManager: ImageCacheManager,
-    private val buildKontextPromptUseCase: BuildKontextPromptUseCase,
     private val generationDao: GenerationDao
 ) : GenerationRepository {
 
     override suspend fun generateImage(
         photo: ProductPhoto,
+        prompt: String,
         style: Style,
-        shadow: Boolean,
-        reflection: Boolean,
         exportFormat: ExportFormat,
         quality: GenerationQuality,
         onProgress: (suspend (Float) -> Unit)?
@@ -54,10 +51,7 @@ class GenerationRepositoryImpl(
         val base64DataUri = resizedBytes.toBase64DataUri()
         onProgress?.invoke(STAGE_PREPARING_IMAGE_READY)
 
-        // 2. Build the Kontext prompt
-        val prompt = buildKontextPromptUseCase(style, shadow, reflection)
-
-        // 3. Create the prediction
+        // 2. Create the prediction
         val request = KontextPredictionRequest(
             version = KONTEXT_MODEL_VERSION,
             input = KontextInput(

@@ -45,6 +45,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -90,6 +91,7 @@ import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
+import com.middleton.studiosnap.feature.home.presentation.ui_state.BackgroundChoice
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeError
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
 import com.middleton.studiosnap.feature.home.presentation.viewmodel.HomeViewModel
@@ -112,6 +114,9 @@ import studiosnap.composeapp.generated.resources.home_export_ebay
 import studiosnap.composeapp.generated.resources.home_export_etsy
 import studiosnap.composeapp.generated.resources.home_export_format
 import studiosnap.composeapp.generated.resources.home_export_original
+import studiosnap.composeapp.generated.resources.home_export_ratio_original
+import studiosnap.composeapp.generated.resources.home_export_ratio_portrait
+import studiosnap.composeapp.generated.resources.home_export_ratio_square
 import studiosnap.composeapp.generated.resources.home_export_vinted
 import studiosnap.composeapp.generated.resources.home_generate_button
 import studiosnap.composeapp.generated.resources.home_generate_preview
@@ -123,6 +128,10 @@ import studiosnap.composeapp.generated.resources.home_recent_title
 import studiosnap.composeapp.generated.resources.home_recent_view_all
 import studiosnap.composeapp.generated.resources.home_remove_photo
 import studiosnap.composeapp.generated.resources.home_select_style_first
+import studiosnap.composeapp.generated.resources.home_custom_description_toggle
+import studiosnap.composeapp.generated.resources.home_custom_description_placeholder
+import studiosnap.composeapp.generated.resources.home_custom_description_disclaimer
+import studiosnap.composeapp.generated.resources.home_custom_description_char_count
 import studiosnap.composeapp.generated.resources.home_sign_in
 import studiosnap.composeapp.generated.resources.home_signing_in
 import studiosnap.composeapp.generated.resources.home_style_choose
@@ -297,8 +306,16 @@ fun HomeScreenContent(
             }
 
             BackgroundStyleSection(
-                selectedStyle = state.selectedStyle,
+                selectedStyle = (state.backgroundChoice as? BackgroundChoice.Preset)?.style,
                 onChangeStyle = { onAction(HomeUiAction.OnStylePickerClicked) },
+                modifier = Modifier.padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
+            )
+
+            CustomDescriptionSection(
+                backgroundChoice = state.backgroundChoice,
+                isExpanded = state.isCustomDescriptionExpanded,
+                onToggleExpanded = { onAction(HomeUiAction.OnCustomDescriptionExpandedToggled) },
+                onDescriptionChanged = { onAction(HomeUiAction.OnCustomDescriptionChanged(it)) },
                 modifier = Modifier.padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
             )
 
@@ -827,6 +844,88 @@ private fun SelectedStyleThumbnail(style: Style) {
 
 // endregion
 
+// region — Custom Description Section
+
+@Composable
+private fun CustomDescriptionSection(
+    backgroundChoice: BackgroundChoice?,
+    isExpanded: Boolean,
+    onToggleExpanded: () -> Unit,
+    onDescriptionChanged: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val customText = (backgroundChoice as? BackgroundChoice.Custom)?.description.orEmpty()
+
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Surface(
+            onClick = onToggleExpanded,
+            shape = RoundedCornerShape(100.dp),
+            color = if (isExpanded || customText.isNotEmpty()) {
+                extendedColorScheme().greenTint
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
+            border = if (!isExpanded && customText.isEmpty()) {
+                androidx.compose.foundation.BorderStroke(1.dp, extendedColorScheme().ink10)
+            } else null
+        ) {
+            Text(
+                text = stringResource(Res.string.home_custom_description_toggle),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isExpanded || customText.isNotEmpty()) {
+                    AppColors.PrimaryGreen
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+            )
+        }
+
+        if (isExpanded) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                OutlinedTextField(
+                    value = customText,
+                    onValueChange = onDescriptionChanged,
+                    placeholder = {
+                        Text(
+                            text = stringResource(Res.string.home_custom_description_placeholder),
+                            fontSize = 13.sp
+                        )
+                    },
+                    minLines = 3,
+                    maxLines = 4,
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(Res.string.home_custom_description_disclaimer),
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = stringResource(
+                            Res.string.home_custom_description_char_count,
+                            customText.length,
+                            HomeUiState.MAX_CUSTOM_DESCRIPTION_LENGTH
+                        ),
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+// endregion
+
 // region — Export Size Section
 
 @Composable
@@ -835,10 +934,19 @@ private fun ExportSizeSection(
     onExportFormatSelected: (ExportFormat) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionLabel(
-            text = stringResource(Res.string.home_export_format),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
-        )
+        ) {
+            SectionLabel(text = stringResource(Res.string.home_export_format))
+            Text(
+                text = exportFormatRatioDescription(exportFormat),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+        }
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -889,6 +997,17 @@ private fun exportFormatDisplayName(format: ExportFormat): String {
             ExportFormat.ETSY_SQUARE -> Res.string.home_export_etsy
             ExportFormat.EBAY_SQUARE -> Res.string.home_export_ebay
             ExportFormat.VINTED_PORTRAIT -> Res.string.home_export_vinted
+        }
+    )
+}
+
+@Composable
+private fun exportFormatRatioDescription(format: ExportFormat): String {
+    return stringResource(
+        when (format) {
+            ExportFormat.ORIGINAL -> Res.string.home_export_ratio_original
+            ExportFormat.ETSY_SQUARE, ExportFormat.EBAY_SQUARE -> Res.string.home_export_ratio_square
+            ExportFormat.VINTED_PORTRAIT -> Res.string.home_export_ratio_portrait
         }
     )
 }
@@ -1000,14 +1119,14 @@ private fun GenerateBottomBar(
         state.isSigningIn -> stringResource(Res.string.home_signing_in)
         !state.isSignedIn -> stringResource(Res.string.home_generate_button)
         state.isLoadingCredits -> stringResource(Res.string.home_loading_credits)
-        state.selectedStyle == null -> stringResource(Res.string.home_select_style_first)
+        !state.isBackgroundChoiceUsable -> stringResource(Res.string.home_select_style_first)
         !state.canAffordGeneration && state.hasPhotos ->
             stringResource(Res.string.home_get_credits, state.generationCost)
         else -> stringResource(Res.string.home_generate_preview, state.generationCost)
     }
 
-    // Button is always tappable (signs in, buys credits, or generates) unless loading, signing in, generating, or no style
-    val isActionable = !state.isLoadingCredits && !state.isSigningIn && !state.isGenerating && state.selectedStyle != null
+    // Button is always tappable (signs in, buys credits, or generates) unless loading, signing in, generating, or no usable background choice
+    val isActionable = !state.isLoadingCredits && !state.isSigningIn && !state.isGenerating && state.isBackgroundChoiceUsable
 
     // Fade gradient overlay above button
     Box(

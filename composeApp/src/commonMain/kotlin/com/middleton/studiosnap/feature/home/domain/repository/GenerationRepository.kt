@@ -17,9 +17,8 @@ interface GenerationRepository {
      */
     suspend fun generateImage(
         photo: ProductPhoto,
+        prompt: String,
         style: Style,
-        shadow: Boolean,
-        reflection: Boolean,
         exportFormat: ExportFormat,
         quality: GenerationQuality,
         onProgress: (suspend (Float) -> Unit)? = null

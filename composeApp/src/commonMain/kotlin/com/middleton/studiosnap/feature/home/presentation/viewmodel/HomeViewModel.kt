@@ -6,12 +6,14 @@ import com.middleton.studiosnap.core.domain.repository.UserPreferencesRepository
 import com.middleton.studiosnap.core.domain.service.AnalyticsEvents
 import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.usecase.ObserveCreditStateUseCase
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
 import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationQuality
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigHolder
+import com.middleton.studiosnap.feature.home.domain.usecase.BuildKontextPromptUseCase
 import com.middleton.studiosnap.core.presentation.util.asDisplayString
 import com.middleton.studiosnap.core.presentation.state.UserCreditLoadingState
 import com.middleton.studiosnap.feature.history.domain.model.HistoryItem
@@ -19,6 +21,7 @@ import com.middleton.studiosnap.feature.history.domain.repository.HistoryReposit
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
+import com.middleton.studiosnap.feature.home.presentation.ui_state.BackgroundChoice
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeError
 import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +41,8 @@ class HomeViewModel(
     private val generationConfigHolder: GenerationConfigHolder,
     private val analyticsService: AnalyticsService,
     private val historyRepository: HistoryRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val buildKontextPromptUseCase: BuildKontextPromptUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -63,11 +67,15 @@ class HomeViewModel(
             }
             is HomeUiAction.OnPhotoRemoved -> removePhoto(action.photoId)
             is HomeUiAction.OnStyleSelected -> selectStyle(action.styleId)
+            is HomeUiAction.OnCustomDescriptionChanged -> onCustomDescriptionChanged(action.text)
+            is HomeUiAction.OnCustomDescriptionExpandedToggled -> toggleCustomDescriptionExpanded()
             is HomeUiAction.OnShadowToggled -> toggleShadow(action.enabled)
             is HomeUiAction.OnReflectionToggled -> toggleReflection(action.enabled)
             is HomeUiAction.OnExportFormatSelected -> selectExportFormat(action.format)
             is HomeUiAction.OnStylePickerClicked -> navigateTo(
-                HomeNavigationAction.GoToStylePicker(_uiState.value.selectedStyle?.id)
+                HomeNavigationAction.GoToStylePicker(
+                    (_uiState.value.backgroundChoice as? BackgroundChoice.Preset)?.style?.id
+                )
             )
             is HomeUiAction.OnGenerateClicked -> onGenerateClicked()
             is HomeUiAction.OnSignInResult -> onSignInResult(action.success)
@@ -170,13 +178,24 @@ class HomeViewModel(
 
     private fun selectStyle(styleId: String) {
         val style = styleRepository.getStyleById(styleId)
-        _uiState.update { it.copy(selectedStyle = style) }
         if (style != null) {
+            _uiState.update { it.copy(backgroundChoice = BackgroundChoice.Preset(style)) }
             analyticsService.logEvent(
                 AnalyticsEvents.STYLE_SELECTED,
                 mapOf("style_id" to styleId, "category" to style.categories.first().name)
             )
         }
+    }
+
+    private fun onCustomDescriptionChanged(text: String) {
+        val capped = text.take(HomeUiState.MAX_CUSTOM_DESCRIPTION_LENGTH)
+        _uiState.update {
+            it.copy(backgroundChoice = if (capped.isBlank()) null else BackgroundChoice.Custom(capped))
+        }
+    }
+
+    private fun toggleCustomDescriptionExpanded() {
+        _uiState.update { it.copy(isCustomDescriptionExpanded = !it.isCustomDescriptionExpanded) }
     }
 
     private fun toggleShadow(enabled: Boolean) {
@@ -205,11 +224,12 @@ class HomeViewModel(
             return
         }
 
-        val style = state.selectedStyle ?: return
+        val choice = state.backgroundChoice ?: return
+        if (!state.isBackgroundChoiceUsable) return
         if (state.photos.isEmpty()) return
 
         if (state.isFreeTrialMode) {
-            startGeneration(state, style, isFreeGeneration = true)
+            startGeneration(state, choice, isFreeGeneration = true)
             return
         }
 
@@ -218,14 +238,33 @@ class HomeViewModel(
             return
         }
 
-        startGeneration(state, style, isFreeGeneration = false)
+        startGeneration(state, choice, isFreeGeneration = false)
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    private fun startGeneration(state: HomeUiState, style: Style, isFreeGeneration: Boolean) {
+    private fun startGeneration(state: HomeUiState, choice: BackgroundChoice, isFreeGeneration: Boolean) {
+        val (style, resolvedPrompt) = when (choice) {
+            is BackgroundChoice.Preset -> choice.style to buildKontextPromptUseCase(
+                choice.style, state.shadow, state.reflection
+            )
+            is BackgroundChoice.Custom -> {
+                val placeholderStyle = Style(
+                    id = CUSTOM_STYLE_ID,
+                    displayName = UiText.DynamicString(CUSTOM_BACKGROUND_LABEL),
+                    categories = emptySet(),
+                    thumbnail = null,
+                    kontextPrompt = ""
+                )
+                placeholderStyle to buildKontextPromptUseCase(
+                    choice.description.trim(), state.shadow, state.reflection
+                )
+            }
+        }
+
         val config = GenerationConfig(
             photos = state.photos,
             style = style,
+            resolvedPrompt = resolvedPrompt,
             shadow = state.shadow,
             reflection = state.reflection,
             exportFormat = state.exportFormat,
@@ -273,5 +312,15 @@ class HomeViewModel(
 
     companion object {
         private const val RECENT_GENERATIONS_MAX = 5
+        private const val CUSTOM_STYLE_ID = "custom"
+
+        // Fixed placeholder label for a custom-description generation — never the user's
+        // actual text (decided: History/Results always show this generic label, and the
+        // text itself is never persisted). Plain constant, not UiText.StringResource: this
+        // Style flows into GenerationMapper.toEntity() (a non-suspend function with no
+        // resource-loading context) for Room persistence, so the text must already be
+        // resolved. Mirrors the existing placeholder-Style pattern in
+        // GenerationMapper.toDomainModel()'s "style was deleted" fallback.
+        private const val CUSTOM_BACKGROUND_LABEL = "Custom background"
     }
 }

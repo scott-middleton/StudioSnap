@@ -7,6 +7,7 @@ package com.middleton.studiosnap.feature.home.domain.model
 data class GenerationConfig(
     val photos: List<ProductPhoto>,
     val style: Style,
+    val resolvedPrompt: String,
     val shadow: Boolean,
     val reflection: Boolean,
     val exportFormat: ExportFormat,
