@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.results.domain.usecase
 
+import com.middleton.studiosnap.core.domain.exception.InsufficientCreditsException
 import com.middleton.studiosnap.core.domain.service.CreditDeductor
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
@@ -31,9 +32,8 @@ class DownloadFullResUseCase(
             }
             .onFailure { throwable ->
                 creditDeductor.refundGenerationCredit(idempotencyKey)
+                    .onFailure { refundError -> errorReporter.recordException(refundError) }
                 errorReporter.recordException(throwable)
             }
     }
 }
-
-class InsufficientCreditsException : Exception("Not enough credits to download")

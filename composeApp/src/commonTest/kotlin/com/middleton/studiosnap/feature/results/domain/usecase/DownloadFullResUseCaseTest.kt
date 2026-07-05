@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.results.domain.usecase
 
+import com.middleton.studiosnap.core.domain.exception.InsufficientCreditsException
 import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.CreditDeductor
@@ -71,6 +72,25 @@ class DownloadFullResUseCaseTest {
         assertTrue(deductor.refundCalled)
     }
 
+    @Test
+    fun `refund failure after download failure is reported`() = runTest {
+        val deductor = FakeCreditDeductor(shouldSucceed = true, refundShouldFail = true)
+        val errorReporter = FakeErrorReporter()
+        val useCase = DownloadFullResUseCase(
+            generationRepository = FakeGenerationRepository(
+                downloadResult = Result.failure(Exception("Network error"))
+            ),
+            historyRepository = FakeHistoryRepository(),
+            creditDeductor = deductor,
+            errorReporter = errorReporter
+        )
+
+        useCase("gen_1")
+
+        assertTrue(deductor.refundCalled)
+        assertTrue(errorReporter.recordedExceptions.size == 2)
+    }
+
     // --- Fakes ---
 
     private class FakeGenerationRepository(
@@ -107,7 +127,10 @@ class DownloadFullResUseCaseTest {
         override suspend fun deleteSession(sessionId: String) {}
     }
 
-    private class FakeCreditDeductor(private val shouldSucceed: Boolean) : CreditDeductor {
+    private class FakeCreditDeductor(
+        private val shouldSucceed: Boolean,
+        private val refundShouldFail: Boolean = false
+    ) : CreditDeductor {
         var refundCalled = false
 
         override suspend fun deductGenerationCredit(idempotencyKey: String): Result<UserCredits> {
@@ -116,11 +139,15 @@ class DownloadFullResUseCaseTest {
 
         override suspend fun refundGenerationCredit(idempotencyKey: String): Result<UserCredits> {
             refundCalled = true
-            return Result.success(UserCredits(11))
+            return if (refundShouldFail) Result.failure(Exception("Refund failed"))
+            else Result.success(UserCredits(11))
         }
     }
 
     private class FakeErrorReporter : ErrorReporter {
-        override fun recordException(exception: Throwable) {}
+        val recordedExceptions = mutableListOf<Throwable>()
+        override fun recordException(exception: Throwable) {
+            recordedExceptions.add(exception)
+        }
     }
 }

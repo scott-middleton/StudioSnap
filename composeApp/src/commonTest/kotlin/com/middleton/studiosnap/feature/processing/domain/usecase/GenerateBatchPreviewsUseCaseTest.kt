@@ -62,6 +62,26 @@ class GenerateBatchPreviewsUseCaseTest {
     }
 
     @Test
+    fun `each failing photo in a multi-photo batch refunds its own distinct deduction key`() = runTest {
+        val creditDeductor = FakeCreditDeductor()
+        val repo = FakeGenerationRepository(failIndices = setOf(0, 1))
+        val useCase = GenerateBatchPreviewsUseCase(
+            GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
+            creditDeductor
+        )
+
+        useCase(config).collectAll()
+
+        assertEquals(2, creditDeductor.deductKeys.size)
+        assertEquals(2, creditDeductor.refundKeys.size)
+        assertEquals(creditDeductor.deductKeys.toSet(), creditDeductor.refundKeys.toSet())
+        assertEquals(2, creditDeductor.deductKeys.toSet().size, "deduction keys must be distinct per photo")
+        // Each refund is paired with the deduction made immediately before it — never a later photo's key.
+        assertEquals(creditDeductor.deductKeys[0], creditDeductor.refundKeys[0])
+        assertEquals(creditDeductor.deductKeys[1], creditDeductor.refundKeys[1])
+    }
+
+    @Test
     fun `refundedCredits not incremented when refund call fails`() = runTest {
         val creditDeductor = FakeCreditDeductor(refundShouldFail = true)
         val repo = FakeGenerationRepository(failOnIndex = 0)
@@ -122,7 +142,8 @@ class GenerateBatchPreviewsUseCaseTest {
     }
 
     private class FakeGenerationRepository(
-        private val failOnIndex: Int = -1
+        failOnIndex: Int = -1,
+        private val failIndices: Set<Int> = if (failOnIndex >= 0) setOf(failOnIndex) else emptySet()
     ) : GenerationRepository {
         var generateCallCount = 0
             private set
@@ -138,7 +159,7 @@ class GenerateBatchPreviewsUseCaseTest {
         ): Result<GenerationResult.Success> {
             val index = generateCallCount
             generateCallCount++
-            if (index == failOnIndex) {
+            if (index in failIndices) {
                 return Result.failure(RuntimeException("API failure"))
             }
             return Result.success(
