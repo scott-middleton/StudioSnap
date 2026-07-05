@@ -142,6 +142,36 @@ class GenerateBatchPreviewsUseCaseTest {
     }
 
     @Test
+    fun `resume with a fully-processed resumeState emits a terminal progress instead of nothing`() = runTest {
+        val creditDeductor = FakeCreditDeductor()
+        val repo = FakeGenerationRepository()
+        val useCase = GenerateBatchPreviewsUseCase(
+            GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
+            creditDeductor
+        )
+        val bothDone = listOf(
+            GenerationResult.Success(
+                generationId = "gen_1", inputPhoto = photo1, previewUri = "p1.jpg",
+                style = testStyle, createdAt = 0L
+            ),
+            GenerationResult.Success(
+                generationId = "gen_2", inputPhoto = photo2, previewUri = "p2.jpg",
+                style = testStyle, createdAt = 0L
+            )
+        )
+        val resumeState = BatchResumeState(results = bothDone)
+
+        val progress = useCase(config, resumeState = resumeState).collectAll()
+
+        // No further deductions/generations — everything was already done.
+        assertEquals(0, creditDeductor.deductKeys.size)
+        assertEquals(0, repo.generateCallCount)
+        assertEquals(1, progress.size, "must emit exactly one terminal progress, not zero")
+        assertTrue(progress.single().isComplete)
+        assertEquals(bothDone, progress.single().results)
+    }
+
+    @Test
     fun `deduction failure aborts the flow`() = runTest {
         val creditDeductor = FakeCreditDeductor(deductShouldFail = true)
         val repo = FakeGenerationRepository()

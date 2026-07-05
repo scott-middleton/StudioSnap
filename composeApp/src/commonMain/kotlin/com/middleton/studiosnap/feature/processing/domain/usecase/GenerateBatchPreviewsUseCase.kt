@@ -51,6 +51,23 @@ open class GenerateBatchPreviewsUseCase(
         val baseIndex = results.size
         var refundedCredits = resumeState.refundedCredits
 
+        if (baseIndex >= photoCount) {
+            // Already fully processed (e.g. a resumeState from a completed batch) —
+            // nothing left to run. Emit the terminal progress so a caller collecting
+            // this flow still reaches completion instead of waiting on a flow that
+            // silently emits nothing.
+            emit(
+                BatchProgress(
+                    currentIndex = photoCount - 1,
+                    totalCount = photoCount,
+                    results = results.toList(),
+                    currentResult = results.last(),
+                    refundedCredits = refundedCredits
+                )
+            )
+            return@flow
+        }
+
         config.photos.drop(baseIndex).forEachIndexed { offset, photo ->
             val index = baseIndex + offset
             val idempotencyKey = "${config.batchId}-${photo.id}-${Clock.System.now().toEpochMilliseconds()}"
