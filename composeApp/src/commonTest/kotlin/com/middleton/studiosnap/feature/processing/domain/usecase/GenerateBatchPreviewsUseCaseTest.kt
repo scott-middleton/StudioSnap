@@ -3,7 +3,7 @@ package com.middleton.studiosnap.feature.processing.domain.usecase
 import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.model.UserCredits
 import com.middleton.studiosnap.core.domain.service.CreditDeductor
-import com.middleton.studiosnap.core.domain.service.ErrorReporter
+import com.middleton.studiosnap.core.domain.service.FakeErrorReporter
 import com.middleton.studiosnap.feature.history.domain.model.HistorySession
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.domain.model.ExportFormat
@@ -52,7 +52,8 @@ class GenerateBatchPreviewsUseCaseTest {
         val repo = FakeGenerationRepository(failOnIndex = 0)
         val useCase = GenerateBatchPreviewsUseCase(
             GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
-            creditDeductor
+            creditDeductor,
+            FakeErrorReporter()
         )
 
         useCase(singlePhotoConfig).collectAll()
@@ -67,7 +68,8 @@ class GenerateBatchPreviewsUseCaseTest {
         val repo = FakeGenerationRepository(failIndices = setOf(0, 1))
         val useCase = GenerateBatchPreviewsUseCase(
             GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
-            creditDeductor
+            creditDeductor,
+            FakeErrorReporter()
         )
 
         useCase(config).collectAll()
@@ -82,17 +84,20 @@ class GenerateBatchPreviewsUseCaseTest {
     }
 
     @Test
-    fun `refundedCredits not incremented when refund call fails`() = runTest {
+    fun `refundedCredits not incremented and failure reported when refund call fails`() = runTest {
         val creditDeductor = FakeCreditDeductor(refundShouldFail = true)
         val repo = FakeGenerationRepository(failOnIndex = 0)
+        val errorReporter = FakeErrorReporter()
         val useCase = GenerateBatchPreviewsUseCase(
             GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
-            creditDeductor
+            creditDeductor,
+            errorReporter
         )
 
         val progress = useCase(config).collectAll()
 
         assertEquals(0, progress.last().refundedCredits)
+        assertEquals(1, errorReporter.recordedExceptions.size)
     }
 
     @Test
@@ -101,7 +106,8 @@ class GenerateBatchPreviewsUseCaseTest {
         val repo = FakeGenerationRepository()
         val useCase = GenerateBatchPreviewsUseCase(
             GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
-            creditDeductor
+            creditDeductor,
+            FakeErrorReporter()
         )
         val priorResult = GenerationResult.Success(
             generationId = "gen_prior",
@@ -128,7 +134,8 @@ class GenerateBatchPreviewsUseCaseTest {
         val repo = FakeGenerationRepository()
         val useCase = GenerateBatchPreviewsUseCase(
             GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
-            creditDeductor
+            creditDeductor,
+            FakeErrorReporter()
         )
         val priorFailure = GenerationResult.Failure(
             inputPhoto = photo1,
@@ -147,7 +154,8 @@ class GenerateBatchPreviewsUseCaseTest {
         val repo = FakeGenerationRepository()
         val useCase = GenerateBatchPreviewsUseCase(
             GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
-            creditDeductor
+            creditDeductor,
+            FakeErrorReporter()
         )
         val bothDone = listOf(
             GenerationResult.Success(
@@ -177,7 +185,8 @@ class GenerateBatchPreviewsUseCaseTest {
         val repo = FakeGenerationRepository()
         val useCase = GenerateBatchPreviewsUseCase(
             GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter()),
-            creditDeductor
+            creditDeductor,
+            FakeErrorReporter()
         )
 
         var threw = false
@@ -264,9 +273,5 @@ class GenerateBatchPreviewsUseCaseTest {
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
         override suspend fun updateSessionLabel(sessionId: String, label: String) {}
         override suspend fun deleteSession(sessionId: String) {}
-    }
-
-    private class FakeErrorReporter : ErrorReporter {
-        override fun recordException(exception: Throwable) {}
     }
 }

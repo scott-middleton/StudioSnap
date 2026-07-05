@@ -164,7 +164,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val errorReporter = FakeErrorReporter()
         val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
         val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeErrorReporter())
         ProcessingViewModel(
             generationConfigHolder = FakeGenerationConfigHolder(twoPhotoConfig),
             generationResultsHolder = FakeGenerationResultsHolder(),
@@ -183,7 +183,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
         val repo = FakeGenerationRepository(failOnIndex = 1)
         val generatePreview = GeneratePreviewUseCase(repo, FakeHistoryRepository(), errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeErrorReporter())
         val resultsHolder = FakeGenerationResultsHolder()
         ProcessingViewModel(
             generationConfigHolder = FakeGenerationConfigHolder(twoPhotoConfig),
@@ -202,7 +202,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val failingDeductor = FakeCreditDeductor(deductShouldFail = true)
         val errorReporter = FakeErrorReporter()
         val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor, FakeErrorReporter())
         val vm = createViewModelWithBatchUseCase(batchUseCase = batchUseCase)
 
         assertIs<ProcessingUiState.Error>(vm.uiState.value)
@@ -269,7 +269,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val failingDeductor = FakeCreditDeductor(insufficientCredits = true)
         val errorReporter = FakeErrorReporter()
         val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor, FakeErrorReporter())
         val vm = createViewModelWithBatchUseCase(batchUseCase = batchUseCase)
 
         assertIs<ProcessingUiState.Error.InsufficientCredits>(vm.uiState.value)
@@ -279,7 +279,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     fun `get credits click navigates to credit store`() {
         val failingDeductor = FakeCreditDeductor(insufficientCredits = true)
         val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter())
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, failingDeductor, FakeErrorReporter())
         val vm = createViewModelWithBatchUseCase(batchUseCase = batchUseCase)
 
         vm.handleAction(ProcessingUiAction.OnGetCreditsClicked)
@@ -327,7 +327,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val configHolder = FakeGenerationConfigHolder(config)
         val errorReporter = FakeErrorReporter()
         val generatePreview = GeneratePreviewUseCase(generationRepo, historyRepo, errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, FakeCreditDeductor())
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, FakeCreditDeductor(), FakeErrorReporter())
 
         return ProcessingViewModel(
             generationConfigHolder = configHolder,
@@ -343,7 +343,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         resultsHolder: GenerationResultsHolder = FakeGenerationResultsHolder(),
         batchUseCase: GenerateBatchPreviewsUseCase = GenerateBatchPreviewsUseCase(
             GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter()),
-            FakeCreditDeductor()
+            FakeCreditDeductor(),
+            FakeErrorReporter()
         ),
         analyticsService: AnalyticsService = FakeAnalyticsService()
     ): ProcessingViewModel {
@@ -366,7 +367,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     ): ProcessingViewModel {
         val errorReporter = FakeErrorReporter()
         val generatePreview = GeneratePreviewUseCase(generationRepo, historyRepo, errorReporter)
-        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor)
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeErrorReporter())
 
         return ProcessingViewModel(
             generationConfigHolder = FakeGenerationConfigHolder(config),
@@ -503,7 +504,8 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         GeneratePreviewUseCase(
             FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter()
         ),
-        FakeCreditDeductor()
+        FakeCreditDeductor(),
+        FakeErrorReporter()
     ) {
         override fun invoke(
             config: GenerationConfig,

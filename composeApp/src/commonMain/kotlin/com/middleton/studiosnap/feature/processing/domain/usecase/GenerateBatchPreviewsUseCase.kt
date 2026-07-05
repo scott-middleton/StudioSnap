@@ -1,6 +1,7 @@
 package com.middleton.studiosnap.feature.processing.domain.usecase
 
 import com.middleton.studiosnap.core.domain.service.CreditDeductor
+import com.middleton.studiosnap.core.domain.service.ErrorReporter
 import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +35,8 @@ data class BatchResumeState(
  */
 open class GenerateBatchPreviewsUseCase(
     private val generatePreviewUseCase: GeneratePreviewUseCase,
-    private val creditDeductor: CreditDeductor
+    private val creditDeductor: CreditDeductor,
+    private val errorReporter: ErrorReporter
 ) {
 
     /**
@@ -47,6 +49,8 @@ open class GenerateBatchPreviewsUseCase(
         onPhotoProgress: (suspend (photoIndex: Int, progress: Float) -> Unit)? = null
     ): Flow<BatchProgress> = flow {
         val photoCount = config.photos.size
+        require(photoCount > 0) { "GenerationConfig.photos must not be empty" }
+
         val results = resumeState.results.toMutableList()
         val baseIndex = results.size
         var refundedCredits = resumeState.refundedCredits
@@ -55,7 +59,8 @@ open class GenerateBatchPreviewsUseCase(
             // Already fully processed (e.g. a resumeState from a completed batch) —
             // nothing left to run. Emit the terminal progress so a caller collecting
             // this flow still reaches completion instead of waiting on a flow that
-            // silently emits nothing.
+            // silently emits nothing. results.last() is safe: baseIndex >= photoCount > 0
+            // means at least one prior result exists.
             emit(
                 BatchProgress(
                     currentIndex = photoCount - 1,
@@ -79,7 +84,9 @@ open class GenerateBatchPreviewsUseCase(
             }
 
             if (result is GenerationResult.Failure) {
-                creditDeductor.refundGenerationCredit(idempotencyKey).onSuccess { refundedCredits++ }
+                creditDeductor.refundGenerationCredit(idempotencyKey)
+                    .onSuccess { refundedCredits++ }
+                    .onFailure { errorReporter.recordException(it) }
             }
 
             results.add(result)

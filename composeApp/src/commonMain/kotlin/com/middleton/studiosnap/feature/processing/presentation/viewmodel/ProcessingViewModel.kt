@@ -45,7 +45,9 @@ class ProcessingViewModel(
     private var config: GenerationConfig? = null
 
     // Progress carried across retries so a mid-batch failure doesn't re-run or
-    // re-charge photos already processed. Reset only when starting a fresh batch.
+    // re-charge photos already processed. Never explicitly reset: a ProcessingViewModel
+    // instance only ever handles one batch (a fresh instance is created per navigation
+    // to Processing), so there is no "next batch" within this VM's lifetime to leak into.
     private var progressSoFar: BatchResumeState = BatchResumeState.EMPTY
 
     init {
