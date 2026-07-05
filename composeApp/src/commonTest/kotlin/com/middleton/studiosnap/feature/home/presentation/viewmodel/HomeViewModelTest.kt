@@ -25,6 +25,7 @@ import com.middleton.studiosnap.feature.home.domain.usecase.BuildKontextPromptUs
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
 import com.middleton.studiosnap.feature.home.presentation.ui_state.BackgroundChoice
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -312,6 +313,75 @@ class HomeViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun `sign in success with refresh failure falls back to live balance instead of routing to credit store`() {
+        // Regression test: balance previously defaulted to 0 on a failed post-claim
+        // refresh, which misrouted an already-funded user to the credit store.
+        val authService = MutableFakeAuthService()
+        // authService.setSignedIn(true) below triggers loadCredits() via
+        // ObserveCreditStateUseCase.onStart, populating the cached balance to 5
+        // before OnSignInResult's post-claim refresh (which we force to fail) runs.
+        val creditManager = FakeCreditManager(balance = 5)
+        val granter = FakeWelcomeCreditGranter(granted = false)
+        val viewModel = HomeViewModel(
+            styleRepository = FakeStyleRepository(testStyles),
+            observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
+            generationConfigHolder = GenerationConfigHolderImpl(),
+            analyticsService = FakeAnalyticsService(),
+            historyRepository = FakeHistoryRepository(),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager, FakeErrorReporter()),
+            buildKontextPromptUseCase = BuildKontextPromptUseCase()
+        )
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+
+        authService.setSignedIn(true)
+        creditManager.failNextRefresh()
+        viewModel.handleAction(HomeUiAction.OnSignInResult(true))
+
+        // The post-claim refresh failed, but the live cached balance (5) covers the
+        // 1-photo cost — must resume generation, not bounce to the credit store.
+        assertTrue(viewModel.navigationEvent.value is HomeNavigationAction.GoToProcessing)
+    }
+
+    @Test
+    fun `screen resumed during sign-in completion does not reset isGenerating`() {
+        val authService = MutableFakeAuthService()
+        val creditManager = FakeCreditManager(balance = 0)
+        val granter = SuspendingWelcomeCreditGranter()
+        val viewModel = HomeViewModel(
+            styleRepository = FakeStyleRepository(testStyles),
+            observeCreditStateUseCase = ObserveCreditStateUseCase(authService, creditManager),
+            generationConfigHolder = GenerationConfigHolderImpl(),
+            analyticsService = FakeAnalyticsService(),
+            historyRepository = FakeHistoryRepository(),
+            ensureWelcomeCreditsUseCase = EnsureWelcomeCreditsUseCase(granter, creditManager, FakeErrorReporter()),
+            buildKontextPromptUseCase = BuildKontextPromptUseCase()
+        )
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+
+        creditManager.setBalance(1)
+        authService.setSignedIn(true)
+        granter.pause()
+        viewModel.handleAction(HomeUiAction.OnSignInResult(true))
+
+        // Claim is paused mid-flight — isGenerating should already be true.
+        assertTrue(viewModel.uiState.value.isGenerating)
+
+        // Simulate the app coming back to the foreground (e.g. Android activity
+        // resume after the native sign-in sheet closes) while the claim is still
+        // in flight — this must NOT reset isGenerating and let the user tap
+        // Generate again mid-sequence.
+        viewModel.handleAction(HomeUiAction.OnScreenResumed)
+        assertTrue(viewModel.uiState.value.isGenerating)
+
+        granter.resume()
+        assertTrue(viewModel.navigationEvent.value is HomeNavigationAction.GoToProcessing)
+    }
+
+    @Test
     fun `sign in failure does not claim welcome credits or navigate`() {
         val granter = FakeWelcomeCreditGranter()
         val creditManager = FakeCreditManager(balance = 0)
@@ -570,7 +640,9 @@ class HomeViewModelTest : BaseViewModelTest() {
         private val shouldFail: Boolean = false
     ) : CreditManager {
         private var balance: Int = balance
+        private var failNextRefreshOnly = false
         fun setBalance(value: Int) { balance = value }
+        fun failNextRefresh() { failNextRefreshOnly = true }
         private val _credits = MutableStateFlow<UserCredits?>(null)
         override val credits: StateFlow<UserCredits?> = _credits
         private val _isLoading = MutableStateFlow(false)
@@ -581,8 +653,27 @@ class HomeViewModelTest : BaseViewModelTest() {
             _credits.value = userCredits
             return Result.success(userCredits)
         }
-        override suspend fun refreshCredits(): Result<UserCredits> = loadCredits()
+        override suspend fun refreshCredits(): Result<UserCredits> {
+            if (failNextRefreshOnly) {
+                failNextRefreshOnly = false
+                return Result.failure(Exception("Refresh failed"))
+            }
+            return loadCredits()
+        }
         override fun clearCredits() { _credits.value = null }
+    }
+
+    /** A WelcomeCreditGranter whose claim can be paused mid-flight to simulate an in-progress network call. */
+    private class SuspendingWelcomeCreditGranter : WelcomeCreditGranter {
+        private var gate: CompletableDeferred<Unit>? = null
+
+        fun pause() { gate = CompletableDeferred() }
+        fun resume() { gate?.complete(Unit) }
+
+        override suspend fun claimWelcomeCredits(): Boolean {
+            gate?.await()
+            return true
+        }
     }
 
     private class MutableFakeAuthService : AuthService {

@@ -51,6 +51,14 @@ class HomeViewModel(
     private val _navigationEvent = MutableStateFlow<HomeNavigationAction?>(null)
     val navigationEvent: StateFlow<HomeNavigationAction?> = _navigationEvent.asStateFlow()
 
+    // True for the whole post-sign-in claim -> affordability check -> generate
+    // sequence in onSignInResult, which spans two network calls. Returning from
+    // the native sign-in sheet can trigger an OnScreenResumed dispatch mid-sequence
+    // (e.g. Android activity resume) — without this guard, handleScreenResumed()
+    // would reset isGenerating to false and let the user tap Generate again while
+    // the first attempt is still in flight.
+    private var isCompletingSignInFlow = false
+
     init {
         observeCreditState()
         observeRecentGenerations()
@@ -95,7 +103,7 @@ class HomeViewModel(
                 showGalleryPicker = false,
                 showSignIn = false,
                 isSigningIn = false,
-                isGenerating = false
+                isGenerating = if (isCompletingSignInFlow) it.isGenerating else false
             )
         }
     }
@@ -283,23 +291,33 @@ class HomeViewModel(
         if (!success || !wasPendingGeneration) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isGenerating = true) }
-            val balance = ensureWelcomeCreditsUseCase().getOrNull()?.amount ?: 0
-            val state = _uiState.value
-            val choice = state.backgroundChoice
+            isCompletingSignInFlow = true
+            try {
+                _uiState.update { it.copy(isGenerating = true) }
+                val creditsResult = ensureWelcomeCreditsUseCase()
+                val state = _uiState.value
+                val choice = state.backgroundChoice
 
-            if (choice == null || !state.isBackgroundChoiceUsable || state.photos.isEmpty()) {
-                _uiState.update { it.copy(isGenerating = false) }
-                return@launch
+                if (choice == null || !state.isBackgroundChoiceUsable || state.photos.isEmpty()) {
+                    _uiState.update { it.copy(isGenerating = false) }
+                    return@launch
+                }
+
+                // On refresh failure, fall back to the live credit state rather than
+                // treating the balance as 0 — an already-funded user shouldn't be
+                // misrouted to the credit store just because this one refresh failed.
+                val balance = creditsResult.getOrNull()?.amount ?: state.creditBalance
+
+                if (balance < state.generationCost) {
+                    _uiState.update { it.copy(isGenerating = false) }
+                    navigateTo(HomeNavigationAction.GoToCreditStore)
+                    return@launch
+                }
+
+                startGeneration(state, choice)
+            } finally {
+                isCompletingSignInFlow = false
             }
-
-            if (balance < state.generationCost) {
-                _uiState.update { it.copy(isGenerating = false) }
-                navigateTo(HomeNavigationAction.GoToCreditStore)
-                return@launch
-            }
-
-            startGeneration(state, choice)
         }
     }
 
