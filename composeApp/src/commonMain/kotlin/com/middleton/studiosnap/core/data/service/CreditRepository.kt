@@ -35,8 +35,8 @@ class CreditRepository(
             }
     }
 
-    override suspend fun refundGenerationCredit(): Result<UserCredits> {
-        return remoteDataSource.refundGenerationCredit()
+    override suspend fun refundGenerationCredit(idempotencyKey: String): Result<UserCredits> {
+        return remoteDataSource.refundGenerationCredit(idempotencyKey)
             .map { newBalance -> newBalance.toUserCredits() }
             .onSuccess {
                 creditManager.refreshCredits()

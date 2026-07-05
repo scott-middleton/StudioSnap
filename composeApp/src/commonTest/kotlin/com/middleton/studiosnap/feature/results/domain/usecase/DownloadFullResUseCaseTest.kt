@@ -79,6 +79,7 @@ class DownloadFullResUseCaseTest {
         override suspend fun generateImage(
             photo: ProductPhoto, prompt: String, style: Style,
             exportFormat: ExportFormat, quality: GenerationQuality,
+            deductionKey: String?,
             onProgress: (suspend (Float) -> Unit)?
         ) = Result.success(
             GenerationResult.Success(
@@ -113,7 +114,7 @@ class DownloadFullResUseCaseTest {
             return if (shouldSucceed) Result.success(UserCredits(10)) else Result.failure(Exception("No credits"))
         }
 
-        override suspend fun refundGenerationCredit(): Result<UserCredits> {
+        override suspend fun refundGenerationCredit(idempotencyKey: String): Result<UserCredits> {
             refundCalled = true
             return Result.success(UserCredits(11))
         }

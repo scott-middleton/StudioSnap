@@ -213,10 +213,11 @@ class ProcessingViewModelTest : BaseViewModelTest() {
             override suspend fun generateImage(
                 photo: ProductPhoto, prompt: String, style: Style,
                 exportFormat: ExportFormat, quality: GenerationQuality,
+                deductionKey: String?,
                 onProgress: (suspend (Float) -> Unit)?
             ): Result<GenerationResult.Success> {
                 callCount++
-                return super.generateImage(photo, prompt, style, exportFormat, quality, onProgress)
+                return super.generateImage(photo, prompt, style, exportFormat, quality, deductionKey, onProgress)
             }
         }
 
@@ -319,7 +320,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
             else Result.success(UserCredits(100 - deductCalled))
         }
 
-        override suspend fun refundGenerationCredit(): Result<UserCredits> {
+        override suspend fun refundGenerationCredit(idempotencyKey: String): Result<UserCredits> {
             refundCalled++
             return Result.success(UserCredits(100))
         }
@@ -334,6 +335,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         override suspend fun generateImage(
             photo: ProductPhoto, prompt: String, style: Style,
             exportFormat: ExportFormat, quality: GenerationQuality,
+            deductionKey: String?,
             onProgress: (suspend (Float) -> Unit)?
         ): Result<GenerationResult.Success> {
             val index = counter++
@@ -364,13 +366,14 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         override suspend fun generateImage(
             photo: ProductPhoto, prompt: String, style: Style,
             exportFormat: ExportFormat, quality: GenerationQuality,
+            deductionKey: String?,
             onProgress: (suspend (Float) -> Unit)?
         ): Result<GenerationResult.Success> {
             progressToEmit.forEach { value ->
                 reportedProgress.add(value)
                 onProgress?.invoke(value)
             }
-            return super.generateImage(photo, prompt, style, exportFormat, quality, onProgress)
+            return super.generateImage(photo, prompt, style, exportFormat, quality, deductionKey, onProgress)
         }
     }
 

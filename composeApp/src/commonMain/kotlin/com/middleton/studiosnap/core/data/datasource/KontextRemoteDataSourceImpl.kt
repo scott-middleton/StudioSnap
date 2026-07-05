@@ -40,7 +40,7 @@ class KontextRemoteDataSourceImpl(
             put("num_inference_steps", request.input.numInferenceSteps)
         }
 
-        val responseMap = cloudFunctions.createVersionPrediction(request.version, input)
+        val responseMap = cloudFunctions.createVersionPrediction(request.version, input, request.deductionKey)
         mapToReplicateResponse(responseMap)
     }
 

@@ -35,6 +35,7 @@ class GenerationRepositoryImpl(
         style: Style,
         exportFormat: ExportFormat,
         quality: GenerationQuality,
+        deductionKey: String?,
         onProgress: (suspend (Float) -> Unit)?
     ): Result<GenerationResult.Success> = runCatching {
         // 1. Read and compress the input image
@@ -60,7 +61,8 @@ class GenerationRepositoryImpl(
                 outputFormat = "jpg",
                 aspectRatio = exportFormat.apiValue,
                 numInferenceSteps = quality.inferenceSteps
-            )
+            ),
+            deductionKey = deductionKey
         )
 
         val createResponse = kontextDataSource.createPrediction(request).getOrThrow()

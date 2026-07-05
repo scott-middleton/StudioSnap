@@ -21,6 +21,7 @@ interface GenerationRepository {
         style: Style,
         exportFormat: ExportFormat,
         quality: GenerationQuality,
+        deductionKey: String? = null,
         onProgress: (suspend (Float) -> Unit)? = null
     ): Result<GenerationResult.Success>
 

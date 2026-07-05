@@ -30,7 +30,7 @@ class DownloadFullResUseCase(
                 historyRepository.markAsPurchased(generationId, localUri)
             }
             .onFailure { throwable ->
-                creditDeductor.refundGenerationCredit()
+                creditDeductor.refundGenerationCredit(idempotencyKey)
                 errorReporter.recordException(throwable)
             }
     }

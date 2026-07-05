@@ -1,9 +1,9 @@
 package com.middleton.studiosnap.core.data.datasource
 
+import com.middleton.studiosnap.core.domain.exception.InsufficientCreditsException
 import com.middleton.studiosnap.core.domain.exception.NotAuthenticatedException
 import com.middleton.studiosnap.core.domain.service.AuthService
 import dev.gitlive.firebase.functions.FirebaseFunctionsException
-import kotlinx.datetime.Clock
 
 class VirtualCurrencyRemoteDataSourceImpl(
     private val authService: AuthService,
@@ -35,7 +35,7 @@ class VirtualCurrencyRemoteDataSourceImpl(
             Result.failure(e)
         } catch (e: FirebaseFunctionsException) {
             if (isInsufficientCredits(e)) {
-                Result.failure(Exception("Insufficient credits"))
+                Result.failure(InsufficientCreditsException())
             } else {
                 Result.failure(Exception("Error deducting credits: ${e.message}", e))
             }
@@ -44,10 +44,10 @@ class VirtualCurrencyRemoteDataSourceImpl(
         }
     }
 
-    override suspend fun refundGenerationCredit(): Result<Int> {
+    override suspend fun refundGenerationCredit(idempotencyKey: String): Result<Int> {
         return try {
             requireAuthenticated()
-            val newBalance = cloudFunctions.refundGenerationCredit()
+            val newBalance = cloudFunctions.refundGenerationCredit(idempotencyKey)
             Result.success(newBalance)
         } catch (e: NotAuthenticatedException) {
             Result.failure(e)

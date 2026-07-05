@@ -36,13 +36,12 @@ open class GenerateBatchPreviewsUseCase(
             creditDeductor.deductGenerationCredit(idempotencyKey)
                 .getOrElse { throw it }
 
-            val result = generatePreviewUseCase(photo, config) { progress ->
+            val result = generatePreviewUseCase(photo, config, deductionKey = idempotencyKey) { progress ->
                 onPhotoProgress?.invoke(index, progress)
             }
 
             if (result is GenerationResult.Failure) {
-                creditDeductor.refundGenerationCredit()
-                refundedCredits++
+                creditDeductor.refundGenerationCredit(idempotencyKey).onSuccess { refundedCredits++ }
             }
 
             results.add(result)

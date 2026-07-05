@@ -21,7 +21,8 @@ data class KontextInput(
 @Serializable
 data class KontextPredictionRequest(
     val version: String,
-    val input: KontextInput
+    val input: KontextInput,
+    val deductionKey: String? = null
 )
 
 @Serializable

@@ -12,7 +12,8 @@ interface CloudFunctionDataSource {
 
     suspend fun createVersionPrediction(
         version: String,
-        input: Map<String, Any?>
+        input: Map<String, Any?>,
+        deductionKey: String? = null
     ): Map<String, Any?>
 
     suspend fun getPrediction(predictionId: String): Map<String, Any?>
@@ -21,7 +22,7 @@ interface CloudFunctionDataSource {
 
     suspend fun deductGenerationCredit(idempotencyKey: String): Int
 
-    suspend fun refundGenerationCredit(): Int
+    suspend fun refundGenerationCredit(idempotencyKey: String): Int
 
     suspend fun claimWelcomeCredits(): Boolean
 }
@@ -48,15 +49,16 @@ class FirebaseCloudFunctionDataSource : CloudFunctionDataSource {
 
     override suspend fun createVersionPrediction(
         version: String,
-        input: Map<String, Any?>
+        input: Map<String, Any?>,
+        deductionKey: String?
     ): Map<String, Any?> {
         val callable = functions.httpsCallable("createVersionPrediction")
-        val result = callable.invoke(
-            mapOf(
-                "version" to version,
-                "input" to input
-            )
-        )
+        val payload = buildMap<String, Any?> {
+            put("version", version)
+            put("input", input)
+            if (deductionKey != null) put("deductionKey", deductionKey)
+        }
+        val result = callable.invoke(payload)
         return result.dataAsMap("createVersionPrediction")
     }
 
@@ -82,9 +84,9 @@ class FirebaseCloudFunctionDataSource : CloudFunctionDataSource {
         return (data["balance"] as? Number)?.toInt() ?: 0
     }
 
-    override suspend fun refundGenerationCredit(): Int {
+    override suspend fun refundGenerationCredit(idempotencyKey: String): Int {
         val callable = functions.httpsCallable("refundGenerationCredit")
-        val result = callable.invoke(emptyMap<String, Any>())
+        val result = callable.invoke(mapOf("idempotencyKey" to idempotencyKey))
         val data = result.dataAsMap("refundGenerationCredit")
         return (data["balance"] as? Number)?.toInt() ?: 0
     }

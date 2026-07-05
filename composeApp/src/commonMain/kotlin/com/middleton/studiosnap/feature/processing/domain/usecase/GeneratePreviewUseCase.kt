@@ -22,6 +22,7 @@ class GeneratePreviewUseCase(
     suspend operator fun invoke(
         photo: ProductPhoto,
         config: GenerationConfig,
+        deductionKey: String? = null,
         onProgress: (suspend (Float) -> Unit)? = null
     ): GenerationResult {
         val result = generationRepository.generateImage(
@@ -30,6 +31,7 @@ class GeneratePreviewUseCase(
             style = config.style,
             exportFormat = config.exportFormat,
             quality = config.quality,
+            deductionKey = deductionKey,
             onProgress = onProgress
         )
 
