@@ -173,6 +173,49 @@ async function attachPredictionToDeduction(
   }
 }
 
+/**
+ * Atomically validates that [deductionKey] references a confirmed,
+ * non-expired, not-already-claimed deduction for [uid], then immediately
+ * marks it "claimed" (predictionId: CLAIMED_PLACEHOLDER) in the same
+ * transaction — before any Replicate call is made. This closes two variants
+ * of the deduct -> generate -> refund exploit:
+ *  1. Omitting deductionKey entirely, so refund falls through to the lenient
+ *     "no prediction created" rule despite an image having been generated.
+ *  2. Reusing one deductionKey across multiple createVersionPrediction
+ *     calls to get N images for 1 credit (attach would otherwise silently
+ *     overwrite the same field with the latest prediction id).
+ * Throws HttpsError("failed-precondition") if the key is missing, still
+ * pending, expired, or already claimed by an earlier prediction.
+ */
+const CLAIMED_PLACEHOLDER = "pending";
+
+async function claimDeductionForPrediction(uid: string, deductionKey: string): Promise<void> {
+  const db = admin.firestore();
+  const ref = db.collection("pendingDeductions").doc(uid);
+  const now = Date.now();
+
+  await db.runTransaction(async (tx) => {
+    const doc = await tx.get(ref);
+    const data = doc.exists ? doc.data() ?? {} : {};
+    const entry = data[deductionKey];
+
+    const isClaimable =
+      isValidEntry(entry) &&
+      entry.status === "confirmed" &&
+      now - entry.ts <= PENDING_DEDUCTION_TTL_MS &&
+      entry.predictionId === undefined;
+
+    if (!isClaimable) {
+      throw new HttpsError(
+        "failed-precondition",
+        "deductionKey is missing, expired, or already used for a prediction"
+      );
+    }
+
+    tx.update(ref, new admin.firestore.FieldPath(deductionKey, "predictionId"), CLAIMED_PLACEHOLDER);
+  });
+}
+
 const GENERATION_CREDIT_COST = 1;
 
 /**
@@ -274,6 +317,14 @@ export const createVersionPrediction = onCall(async (request) => {
   if (!version || !input) {
     throw new HttpsError("invalid-argument", "Missing version or input");
   }
+  if (!deductionKey || typeof deductionKey !== "string") {
+    throw new HttpsError("invalid-argument", "Missing deductionKey");
+  }
+
+  // Validate + claim before spending the Replicate call: every legitimate
+  // generation already has a real deduction (welcome credits are real
+  // credits too), so there is no honest caller this rejects.
+  await claimDeductionForPrediction(uid, deductionKey);
 
   const response = await fetchWithRetry(
     `${REPLICATE_BASE_URL}/predictions`,
@@ -289,7 +340,7 @@ export const createVersionPrediction = onCall(async (request) => {
   );
 
   const prediction = (await response.json()) as {id?: string};
-  if (deductionKey && typeof deductionKey === "string" && prediction?.id) {
+  if (prediction?.id) {
     await attachPredictionToDeduction(uid, deductionKey, prediction.id);
   }
   return prediction;
@@ -548,7 +599,10 @@ export const refundGenerationCredit = onCall(async (request) => {
   // actually succeeded already delivered the image, so it is not refundable.
   // This closes the deduct -> generate -> refund exploit where a scripted
   // client calls refund unconditionally after a successful generation.
-  if (entry.predictionId) {
+  // entry.predictionId === CLAIMED_PLACEHOLDER means createVersionPrediction
+  // claimed the key but never got a real id back (Replicate call itself
+  // failed) — there's no prediction to check, so skip straight to refund.
+  if (entry.predictionId && entry.predictionId !== CLAIMED_PLACEHOLDER) {
     let status: string | null = null;
     try {
       status = await fetchPredictionStatus(entry.predictionId);
