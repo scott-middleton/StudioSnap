@@ -106,7 +106,7 @@
     <string name="processing_subtitle_generating">AI is creating your styled image</string>
     <string name="processing_subtitle_downloading">Saving your result…</string>
     <string name="processing_patience">This can take a moment</string>
-    <string name="processing_do_not_close">Please don\'t close the app</string>
+    <string name="processing_do_not_close">Please don't close the app</string>
     <string name="processing_your_photo">Your photo</string>
     <string name="processing_step_prepare">Prepare</string>
     <string name="processing_step_generate">Generate</string>
@@ -259,7 +259,7 @@
     <string name="style_natural_organic">Natural Organic</string>
     <string name="style_tech_sleek">Tech Sleek</string>
     <string name="style_unboxing_moment">Unboxing</string>
-    <string name="style_valentines_romance">Valentine\'s Romance</string>
+    <string name="style_valentines_romance">Valentine's Romance</string>
     <string name="style_autumn_harvest">Autumn Harvest</string>
     <string name="style_halloween_spooky">Halloween Spooky</string>
     <string name="style_pet_lifestyle">Pet Lifestyle</string>
@@ -276,7 +276,7 @@
     <string name="processing_error_unknown">Generation failed</string>
     <string name="processing_get_credits">Get Credits</string>
     <string name="processing_error_insufficient_credits_title">Out of credits</string>
-    <string name="processing_error_insufficient_credits_body">You don\'t have enough credits to continue. Buy more credits, then retry to pick up right where you left off.</string>
+    <string name="processing_error_insufficient_credits_body">You don't have enough credits to continue. Buy more credits, then retry to pick up right where you left off.</string>
 
     <!-- History (additional) -->
     <string name="history_product_photo">Product photo</string>
