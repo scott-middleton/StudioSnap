@@ -6,7 +6,7 @@ package com.middleton.studiosnap.feature.home.domain.model
  */
 enum class ExportFormat(val apiValue: String) {
     ORIGINAL("match_input_image"),
-    ETSY_SQUARE("1:1"),
+    ETSY_LANDSCAPE("4:3"),
     EBAY_SQUARE("1:1"),
     VINTED_PORTRAIT("4:5");
 

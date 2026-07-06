@@ -421,8 +421,8 @@ class HomeViewModelTest : BaseViewModelTest() {
     @Test
     fun `export format updates state`() {
         val viewModel = createViewModel()
-        viewModel.handleAction(HomeUiAction.OnExportFormatSelected(ExportFormat.ETSY_SQUARE))
-        assertEquals(ExportFormat.ETSY_SQUARE, viewModel.uiState.value.exportFormat)
+        viewModel.handleAction(HomeUiAction.OnExportFormatSelected(ExportFormat.ETSY_LANDSCAPE))
+        assertEquals(ExportFormat.ETSY_LANDSCAPE, viewModel.uiState.value.exportFormat)
     }
 
     @Test

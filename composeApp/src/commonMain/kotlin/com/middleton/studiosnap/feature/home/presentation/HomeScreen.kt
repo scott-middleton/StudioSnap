@@ -114,6 +114,7 @@ import studiosnap.composeapp.generated.resources.home_export_ebay
 import studiosnap.composeapp.generated.resources.home_export_etsy
 import studiosnap.composeapp.generated.resources.home_export_format
 import studiosnap.composeapp.generated.resources.home_export_original
+import studiosnap.composeapp.generated.resources.home_export_ratio_landscape
 import studiosnap.composeapp.generated.resources.home_export_ratio_original
 import studiosnap.composeapp.generated.resources.home_export_ratio_portrait
 import studiosnap.composeapp.generated.resources.home_export_ratio_square
@@ -994,7 +995,7 @@ private fun exportFormatDisplayName(format: ExportFormat): String {
     return stringResource(
         when (format) {
             ExportFormat.ORIGINAL -> Res.string.home_export_original
-            ExportFormat.ETSY_SQUARE -> Res.string.home_export_etsy
+            ExportFormat.ETSY_LANDSCAPE -> Res.string.home_export_etsy
             ExportFormat.EBAY_SQUARE -> Res.string.home_export_ebay
             ExportFormat.VINTED_PORTRAIT -> Res.string.home_export_vinted
         }
@@ -1006,7 +1007,8 @@ private fun exportFormatRatioDescription(format: ExportFormat): String {
     return stringResource(
         when (format) {
             ExportFormat.ORIGINAL -> Res.string.home_export_ratio_original
-            ExportFormat.ETSY_SQUARE, ExportFormat.EBAY_SQUARE -> Res.string.home_export_ratio_square
+            ExportFormat.ETSY_LANDSCAPE -> Res.string.home_export_ratio_landscape
+            ExportFormat.EBAY_SQUARE -> Res.string.home_export_ratio_square
             ExportFormat.VINTED_PORTRAIT -> Res.string.home_export_ratio_portrait
         }
     )

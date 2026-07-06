@@ -128,7 +128,7 @@ class HomeScreenSnapshotTest {
                 state = HomeUiState(
                     photos = fakePhotos(HomeUiState.MAX_PHOTOS),
                     backgroundChoice = BackgroundChoice.Preset(fakeStyle()),
-                    exportFormat = ExportFormat.ETSY_SQUARE,
+                    exportFormat = ExportFormat.ETSY_LANDSCAPE,
                     creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(50))
                 ),
                 onAction = {}
@@ -147,7 +147,7 @@ class HomeScreenSnapshotTest {
                 state = HomeUiState(
                     photos = fakePhotos(2),
                     backgroundChoice = BackgroundChoice.Preset(fakeStyle()),
-                    exportFormat = ExportFormat.ETSY_SQUARE,
+                    exportFormat = ExportFormat.ETSY_LANDSCAPE,
                     creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(10))
                 ),
                 onAction = {}

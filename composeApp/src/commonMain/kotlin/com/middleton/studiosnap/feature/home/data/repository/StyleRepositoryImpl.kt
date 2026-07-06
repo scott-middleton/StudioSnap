@@ -80,21 +80,21 @@ class StyleRepositoryImpl : StyleRepository {
             Style(
                 id = "clean_white",
                 displayName = UiText.StringResource(Res.string.style_clean_white),
-                categories = setOf(ALL),
+                categories = setOf(ALL, SPORTS_FITNESS),
                 thumbnail = Res.drawable.style_clean_white,
                 kontextPrompt = "Place the product on a pure white seamless background with soft even studio lighting and a subtle ground shadow. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "gradient_studio",
                 displayName = UiText.StringResource(Res.string.style_gradient_studio),
-                categories = setOf(ALL),
+                categories = setOf(ALL, SPORTS_FITNESS),
                 thumbnail = Res.drawable.style_gradient_studio,
                 kontextPrompt = "Place the product on a reflective surface with a smooth gradient background transitioning from light grey to medium grey, professional product photography studio lighting. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "minimalist_studio",
                 displayName = UiText.StringResource(Res.string.style_minimalist_studio),
-                categories = setOf(JEWELLERY, COSMETICS, ELECTRONICS),
+                categories = setOf(JEWELLERY, COSMETICS, ELECTRONICS, BOOKS_STATIONERY),
                 thumbnail = Res.drawable.style_minimalist_studio,
                 kontextPrompt = "Place the product on a perfectly clean light grey surface, bright soft even studio lighting with a single directional rim light, pure white seamless background, absolute negative space, ultra-modern minimal aesthetic. Keep the product exactly as-is, change only the background."
             ),
@@ -104,14 +104,14 @@ class StyleRepositoryImpl : StyleRepository {
             Style(
                 id = "warm_linen",
                 displayName = UiText.StringResource(Res.string.style_warm_linen),
-                categories = setOf(CLOTHING, JEWELLERY, HOMEWARE),
+                categories = setOf(CLOTHING, JEWELLERY, HOMEWARE, PETS),
                 thumbnail = Res.drawable.style_warm_linen,
                 kontextPrompt = "Place the product on a natural cream linen fabric surface with warm soft window light coming from the left. Shallow depth of field background. Keep the product exactly as-is, change only the background."
             ),
             Style(
                 id = "concrete_minimal",
                 displayName = UiText.StringResource(Res.string.style_concrete_minimal),
-                categories = setOf(CLOTHING, HOMEWARE, OTHER),
+                categories = setOf(CLOTHING, HOMEWARE, OTHER, SPORTS_FITNESS),
                 thumbnail = Res.drawable.style_concrete_minimal,
                 kontextPrompt = "Place the product on a raw concrete surface with minimalist industrial background, directional warm spotlight from above, deep shadows. Keep the product exactly as-is, change only the background."
             ),
@@ -125,7 +125,7 @@ class StyleRepositoryImpl : StyleRepository {
             Style(
                 id = "pastel_dream",
                 displayName = UiText.StringResource(Res.string.style_pastel_dream),
-                categories = setOf(CLOTHING, COSMETICS, JEWELLERY),
+                categories = setOf(CLOTHING, COSMETICS, JEWELLERY, TOYS_KIDS),
                 thumbnail = Res.drawable.style_pastel_dream,
                 kontextPrompt = "Place the product on a soft pastel pink surface with a gradient background blending light pink to lavender, diffused even lighting, gentle and feminine mood. Keep the product exactly as-is, change only the background."
             ),
@@ -139,7 +139,7 @@ class StyleRepositoryImpl : StyleRepository {
             Style(
                 id = "neon_pop",
                 displayName = UiText.StringResource(Res.string.style_neon_pop),
-                categories = setOf(CLOTHING, ELECTRONICS, OTHER),
+                categories = setOf(CLOTHING, ELECTRONICS, OTHER, SPORTS_FITNESS),
                 thumbnail = Res.drawable.style_neon_pop,
                 kontextPrompt = "Place the product against a dark background with vibrant neon light accents in pink and blue, urban night aesthetic, reflective surface with neon color reflections. Keep the product exactly as-is, change only the background."
             ),
@@ -177,7 +177,7 @@ class StyleRepositoryImpl : StyleRepository {
             Style(
                 id = "natural_organic",
                 displayName = UiText.StringResource(Res.string.style_natural_organic),
-                categories = setOf(COSMETICS, FOOD),
+                categories = setOf(COSMETICS, FOOD, PETS),
                 thumbnail = Res.drawable.style_natural_organic,
                 kontextPrompt = "Place the product on a natural woven surface surrounded by organic botanicals—dried flowers, fresh herbs, small glass jars of oils—soft diffused natural daylight, earthy warm tones, clean ethical aesthetic. Keep the product exactly as-is, change only the background."
             ),
@@ -201,7 +201,7 @@ class StyleRepositoryImpl : StyleRepository {
             Style(
                 id = "rustic_wood",
                 displayName = UiText.StringResource(Res.string.style_rustic_wood),
-                categories = setOf(FOOD, HOMEWARE, OTHER),
+                categories = setOf(FOOD, HOMEWARE, OTHER, PETS),
                 thumbnail = Res.drawable.style_rustic_wood,
                 kontextPrompt = "Place the product on a weathered dark reclaimed wood surface with warm ambient lighting, rustic farmhouse background slightly blurred. Keep the product exactly as-is, change only the background."
             ),
@@ -225,7 +225,7 @@ class StyleRepositoryImpl : StyleRepository {
             Style(
                 id = "cafe_morning",
                 displayName = UiText.StringResource(Res.string.style_cafe_morning),
-                categories = setOf(FOOD),
+                categories = setOf(FOOD, BOOKS_STATIONERY),
                 thumbnail = Res.drawable.style_cafe_morning,
                 kontextPrompt = "Place the product on a white ceramic surface beside a ceramic mug of black coffee, soft morning light filtering through a café window, neutral cream and grey tones, blurred newspaper and pastry in the background. Cozy coffee shop ambiance. Keep the product exactly as-is, change only the background."
             ),
@@ -271,7 +271,7 @@ class StyleRepositoryImpl : StyleRepository {
             Style(
                 id = "tech_sleek",
                 displayName = UiText.StringResource(Res.string.style_tech_sleek),
-                categories = setOf(ELECTRONICS),
+                categories = setOf(ELECTRONICS, SPORTS_FITNESS),
                 thumbnail = Res.drawable.style_tech_sleek,
                 kontextPrompt = "Place the product on a dark gunmetal metallic surface with clean hard-edged shadows from cool directional studio lighting, subtle glass or carbon fibre texture in background, futuristic minimal tech aesthetic. Keep the product exactly as-is, change only the background."
             ),
@@ -322,7 +322,7 @@ class StyleRepositoryImpl : StyleRepository {
             Style(
                 id = "paper_craft",
                 displayName = UiText.StringResource(Res.string.style_paper_craft),
-                categories = setOf(OTHER, HOMEWARE, BOOKS_STATIONERY),
+                categories = setOf(OTHER, HOMEWARE, BOOKS_STATIONERY, TOYS_KIDS),
                 thumbnail = Res.drawable.style_paper_craft,
                 kontextPrompt = "Place the product on a clean white surface surrounded by kraft paper, twine string, and small dried flowers, flat lay style from above, natural daylight. Keep the product exactly as-is, change only the background."
             ),

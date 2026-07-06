@@ -47,13 +47,14 @@
     <string name="home_shadow">Add Shadow</string>
     <string name="home_reflection">Add Reflection</string>
     <string name="home_export_format">Export Size</string>
-    <string name="home_export_etsy">Etsy Square</string>
-    <string name="home_export_ebay">eBay Square</string>
+    <string name="home_export_etsy">Etsy Landscape</string>
+    <string name="home_export_ebay">eBay / Depop</string>
     <string name="home_export_vinted">Vinted Portrait</string>
     <string name="home_export_original">Original</string>
     <string name="home_export_ratio_original">Matches your photo</string>
     <string name="home_export_ratio_square">Square · 1:1</string>
     <string name="home_export_ratio_portrait">Portrait · 4:5</string>
+    <string name="home_export_ratio_landscape">Landscape · 4:3</string>
     <string name="home_generate_preview">Generate (%1$d credits)</string>
     <string name="home_sign_in">Sign In</string>
     <string name="home_signing_in">Signing In…</string>
