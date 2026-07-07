@@ -42,6 +42,9 @@ import com.middleton.studiosnap.feature.onboarding.presentation.viewmodel.Onboar
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import studiosnap.composeapp.generated.resources.Res
+import studiosnap.composeapp.generated.resources.onboarding_jewelry_after
+import studiosnap.composeapp.generated.resources.onboarding_jewelry_before
 
 @Composable
 fun OnboardingCarouselScreen() {
@@ -115,12 +118,20 @@ fun OnboardingCarouselScreen() {
             when (page) {
                 0 -> OnboardingBeforeAfterPage(
                     isPageSettled = !pagerState.isScrollInProgress && pagerState.currentPage == page,
+                    beforeImage = Res.drawable.onboarding_jewelry_before,
+                    afterImage = Res.drawable.onboarding_jewelry_after,
+                    keyIndex = 0,
                     onNext = { viewModel.handleAction(OnboardingUiAction.NextPage) }
                 )
-                1 -> OnboardingStyleShowcasePage(
+                1 -> OnboardingBeforeAfterPage(
+                    isPageSettled = !pagerState.isScrollInProgress && pagerState.currentPage == page,
+                    keyIndex = 1,
                     onNext = { viewModel.handleAction(OnboardingUiAction.NextPage) }
                 )
-                2 -> OnboardingValuePage(
+                2 -> OnboardingStyleShowcasePage(
+                    onNext = { viewModel.handleAction(OnboardingUiAction.NextPage) }
+                )
+                3 -> OnboardingValuePage(
                     animationTrigger = uiState.valuePageAnimationTrigger,
                     onGetStarted = { viewModel.handleAction(OnboardingUiAction.GetStarted) }
                 )
