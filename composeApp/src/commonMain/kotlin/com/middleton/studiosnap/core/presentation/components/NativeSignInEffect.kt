@@ -3,6 +3,7 @@ package com.middleton.studiosnap.core.presentation.components
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.middleton.studiosnap.core.data.auth.NativeAuthProvider
+import com.middleton.studiosnap.core.domain.service.ErrorReporter
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import org.koin.compose.koinInject
@@ -20,6 +21,7 @@ fun NativeSignInEffect(
     onResult: (success: Boolean) -> Unit
 ) {
     val nativeAuthProvider: NativeAuthProvider = koinInject()
+    val errorReporter: ErrorReporter = koinInject()
 
     LaunchedEffect(showSignIn) {
         if (showSignIn) {
@@ -28,6 +30,7 @@ fun NativeSignInEffect(
                 Firebase.auth.signInWithCredential(credential)
                 onResult(true)
             } catch (e: Exception) {
+                errorReporter.recordException(e)
                 onResult(false)
             }
         }

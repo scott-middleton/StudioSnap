@@ -205,6 +205,11 @@ class HomeViewModel(
             return
         }
 
+        if (state.creditLoadingState == UserCreditLoadingState.Error) {
+            _uiState.update { it.copy(error = HomeError.CreditsUnavailable) }
+            return
+        }
+
         val style = state.selectedStyle ?: return
         if (state.photos.isEmpty()) return
 
@@ -258,12 +263,15 @@ class HomeViewModel(
                 showSignIn = false,
                 isSigningIn = false,
                 pendingFreeGeneration = false,
-                isGenerating = success && wasPendingFreeGeneration
+                isGenerating = success && wasPendingFreeGeneration,
+                error = if (success) it.error else HomeError.SignInFailed
             )
         }
 
         if (success && wasPendingFreeGeneration) {
             onGenerateClicked()
+        } else if (!success) {
+            analyticsService.logEvent(AnalyticsEvents.SIGN_IN_FAILED)
         }
     }
 

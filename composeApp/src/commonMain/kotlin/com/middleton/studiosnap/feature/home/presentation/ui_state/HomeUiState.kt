@@ -61,4 +61,6 @@ data class HomeUiState(
 sealed interface HomeError {
     data object TooManyPhotos : HomeError
     data object GenerationFailed : HomeError
+    data object SignInFailed : HomeError
+    data object CreditsUnavailable : HomeError
 }
