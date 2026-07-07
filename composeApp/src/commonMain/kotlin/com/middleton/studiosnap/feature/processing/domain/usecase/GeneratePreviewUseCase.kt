@@ -40,6 +40,8 @@ class GeneratePreviewUseCase(
                 success
             },
             onFailure = { throwable ->
+                println("StudioSnap GeneratePreviewUseCase failure: ${throwable::class.simpleName} - ${throwable.message}")
+                println(throwable.stackTraceToString())
                 errorReporter.recordException(throwable)
                 GenerationResult.Failure(
                     inputPhoto = photo,
