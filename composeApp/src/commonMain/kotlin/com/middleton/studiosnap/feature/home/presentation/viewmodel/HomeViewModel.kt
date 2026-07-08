@@ -223,6 +223,11 @@ class HomeViewModel(
             return
         }
 
+        if (state.creditLoadingState == UserCreditLoadingState.Error) {
+            _uiState.update { it.copy(error = HomeError.CreditsUnavailable) }
+            return
+        }
+
         val choice = state.backgroundChoice ?: return
         if (!state.isBackgroundChoiceUsable) return
         if (state.photos.isEmpty()) return
@@ -285,10 +290,20 @@ class HomeViewModel(
     private fun onSignInResult(success: Boolean) {
         val wasPendingGeneration = _uiState.value.pendingGeneration
         _uiState.update {
-            it.copy(showSignIn = false, isSigningIn = false, pendingGeneration = false)
+            it.copy(
+                showSignIn = false,
+                isSigningIn = false,
+                pendingGeneration = false,
+                error = if (success) it.error else HomeError.SignInFailed
+            )
         }
 
-        if (!success || !wasPendingGeneration) return
+        if (!success) {
+            analyticsService.logEvent(AnalyticsEvents.SIGN_IN_FAILED)
+            return
+        }
+
+        if (!wasPendingGeneration) return
 
         viewModelScope.launch {
             isCompletingSignInFlow = true

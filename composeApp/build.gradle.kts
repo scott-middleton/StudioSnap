@@ -195,13 +195,13 @@ buildkonfig {
         buildConfigField(
             STRING,
             "REVENUE_CAT_ANDROID_KEY",
-            localProperties.getProperty("REVENUE_CAT_ANDROID_KEY", "")
+            localProperties.getProperty("REVENUE_CAT_ANDROID_KEY", "goog_RnwMFPYejixvDeHkrupXmbiLrVl")
         )
 
         buildConfigField(
             STRING,
             "REVENUE_CAT_IOS_KEY",
-            localProperties.getProperty("REVENUE_CAT_IOS_KEY", "")
+            localProperties.getProperty("REVENUE_CAT_IOS_KEY", "appl_dvZIVbpIInQEQSlsOnruExsEj/sto")
         )
 
         buildConfigField(

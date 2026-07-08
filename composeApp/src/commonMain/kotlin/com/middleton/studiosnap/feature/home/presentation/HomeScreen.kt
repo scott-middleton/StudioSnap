@@ -106,9 +106,12 @@ import studiosnap.composeapp.generated.resources.content_settings
 import studiosnap.composeapp.generated.resources.credits_count
 import studiosnap.composeapp.generated.resources.home_add_more_photos
 import studiosnap.composeapp.generated.resources.home_add_photos
+import studiosnap.composeapp.generated.resources.home_add_photos_first
 import studiosnap.composeapp.generated.resources.home_background_style
 import studiosnap.composeapp.generated.resources.home_credits_error
+import studiosnap.composeapp.generated.resources.home_error_credits_unavailable
 import studiosnap.composeapp.generated.resources.home_error_generation_failed
+import studiosnap.composeapp.generated.resources.home_error_sign_in_failed
 import studiosnap.composeapp.generated.resources.home_error_too_many_photos
 import studiosnap.composeapp.generated.resources.home_export_ebay
 import studiosnap.composeapp.generated.resources.home_export_etsy
@@ -191,6 +194,8 @@ fun HomeScreenContent(
     val snackbarHostState = remember { SnackbarHostState() }
     val errorTooMany = stringResource(Res.string.home_error_too_many_photos, HomeUiState.MAX_PHOTOS)
     val errorGenFailed = stringResource(Res.string.home_error_generation_failed)
+    val errorSignInFailed = stringResource(Res.string.home_error_sign_in_failed)
+    val errorCreditsUnavailable = stringResource(Res.string.home_error_credits_unavailable)
 
     if (state.showGalleryPicker) {
         val remainingSlots = HomeUiState.MAX_PHOTOS - state.photos.size
@@ -341,6 +346,8 @@ fun HomeScreenContent(
                 when (it) {
                     HomeError.TooManyPhotos -> errorTooMany
                     HomeError.GenerationFailed -> errorGenFailed
+                    HomeError.SignInFailed -> errorSignInFailed
+                    HomeError.CreditsUnavailable -> errorCreditsUnavailable
                 }
             )
             onAction(HomeUiAction.OnErrorDismissed)
@@ -1119,16 +1126,18 @@ private fun GenerateBottomBar(
 ) {
     val buttonLabel = when {
         state.isSigningIn -> stringResource(Res.string.home_signing_in)
-        !state.isSignedIn -> stringResource(Res.string.home_generate_button)
         state.isLoadingCredits -> stringResource(Res.string.home_loading_credits)
+        !state.hasPhotos -> stringResource(Res.string.home_add_photos_first)
         !state.isBackgroundChoiceUsable -> stringResource(Res.string.home_select_style_first)
-        !state.canAffordGeneration && state.hasPhotos ->
-            stringResource(Res.string.home_get_credits, state.generationCost)
+        !state.isSignedIn -> stringResource(Res.string.home_generate_button)
+        !state.canAffordGeneration -> stringResource(Res.string.home_get_credits, state.generationCost)
         else -> stringResource(Res.string.home_generate_preview, state.generationCost)
     }
 
-    // Button is always tappable (signs in, buys credits, or generates) unless loading, signing in, generating, or no usable background choice
-    val isActionable = !state.isLoadingCredits && !state.isSigningIn && !state.isGenerating && state.isBackgroundChoiceUsable
+    // Button is tappable (signs in, buys credits, or generates) once photos + a usable
+    // background choice are present and nothing is already in flight.
+    val isActionable = !state.isLoadingCredits && !state.isSigningIn && !state.isGenerating &&
+        state.hasPhotos && state.isBackgroundChoiceUsable
 
     // Fade gradient overlay above button
     Box(

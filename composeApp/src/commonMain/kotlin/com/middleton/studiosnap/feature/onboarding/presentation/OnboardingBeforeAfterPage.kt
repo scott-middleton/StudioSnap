@@ -60,6 +60,7 @@ import com.middleton.studiosnap.core.presentation.components.SharedBeforeAfterSl
 import com.middleton.studiosnap.core.presentation.theme.AppColors
 import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.core.presentation.theme.studioSnapTextStyles
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.stringResource
 import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.next_button
@@ -77,6 +78,9 @@ private val ButtonShape = RoundedCornerShape(18.dp)
 @Composable
 fun OnboardingBeforeAfterPage(
     isPageSettled: Boolean = true,
+    beforeImage: DrawableResource = Res.drawable.onboarding_before,
+    afterImage: DrawableResource = Res.drawable.onboarding_after,
+    keyIndex: Int = 0,
     onNext: () -> Unit
 ) {
     // Auto-reveal slider animation
@@ -133,6 +137,9 @@ fun OnboardingBeforeAfterPage(
                     ) {
                         BeforeAfterCard(
                             sliderPosition = effectiveSliderPosition,
+                            beforeImage = beforeImage,
+                            afterImage = afterImage,
+                            keyIndex = keyIndex,
                             onClick = { isEnlarged = true },
                             sharedTransitionScope = this@SharedTransitionLayout,
                             animatedVisibilityScope = this
@@ -205,14 +212,14 @@ fun OnboardingBeforeAfterPage(
                                 afterLabel = UiText.StringResource(Res.string.onboarding_after_label),
                                 beforeColor = Color.Black.copy(alpha = 0.45f),
                                 afterColor = AppColors.PrimaryGreen.copy(alpha = 0.88f),
-                                beforeImage = Res.drawable.onboarding_before,
-                                afterImage = Res.drawable.onboarding_after,
+                                beforeImage = beforeImage,
+                                afterImage = afterImage,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .aspectRatio(3f / 4f)
                                     .sharedElement(
                                         sharedContentState = rememberSharedContentState(
-                                            key = DemoImageKey(0, "card")
+                                            key = DemoImageKey(keyIndex, "card")
                                         ),
                                         animatedVisibilityScope = this@AnimatedVisibility,
                                         boundsTransform = { _, _ ->
@@ -236,6 +243,9 @@ fun OnboardingBeforeAfterPage(
 @Composable
 private fun BeforeAfterCard(
     sliderPosition: Float,
+    beforeImage: DrawableResource,
+    afterImage: DrawableResource,
+    keyIndex: Int,
     onClick: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope
@@ -266,7 +276,7 @@ private fun BeforeAfterCard(
                     .fillMaxWidth()
                     .sharedElement(
                         sharedContentState = rememberSharedContentState(
-                            key = DemoImageKey(0, "card")
+                            key = DemoImageKey(keyIndex, "card")
                         ),
                         animatedVisibilityScope = animatedVisibilityScope,
                         boundsTransform = { _, _ ->
@@ -289,8 +299,8 @@ private fun BeforeAfterCard(
                         afterLabel = UiText.StringResource(Res.string.onboarding_after_label),
                         beforeColor = Color.Black.copy(alpha = 0.45f),
                         afterColor = AppColors.PrimaryGreen.copy(alpha = 0.88f),
-                        beforeImage = Res.drawable.onboarding_before,
-                        afterImage = Res.drawable.onboarding_after,
+                        beforeImage = beforeImage,
+                        afterImage = afterImage,
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(3f / 4f)

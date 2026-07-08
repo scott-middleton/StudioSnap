@@ -66,6 +66,7 @@
     <string name="home_before_label">Before</string>
     <string name="home_after_label">After</string>
     <string name="home_select_style_first">Choose a style or describe your own</string>
+    <string name="home_add_photos_first">Add photos first</string>
     <string name="home_custom_description_toggle">✨ Describe your own background</string>
     <string name="home_custom_description_placeholder">e.g. "Marble countertop with soft morning light" or "Rustic wooden table, warm tones"</string>
     <string name="home_custom_description_disclaimer">Custom descriptions may vary in quality — try to be specific.</string>
@@ -74,6 +75,8 @@
     <string name="home_remove_photo">Remove photo</string>
     <string name="home_error_too_many_photos">Maximum %1$d photos allowed</string>
     <string name="home_error_generation_failed">Generation failed. Please try again.</string>
+    <string name="home_error_sign_in_failed">Sign in failed. Check your connection and try again.</string>
+    <string name="home_error_credits_unavailable">Couldn't load your credits. Check your connection and try again.</string>
     <string name="home_photo_limit_hint">Up to 10 photos · JPG or PNG</string>
 
     <!-- Style Categories -->

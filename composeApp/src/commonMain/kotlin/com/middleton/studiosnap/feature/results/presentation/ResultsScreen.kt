@@ -408,7 +408,9 @@ private fun FailureCard(error: GenerationError) {
     ) {
         StudioSnapCard(modifier = Modifier.fillMaxWidth()) {
             Column(
-                modifier = Modifier.padding(32.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(

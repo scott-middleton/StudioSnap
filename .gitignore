@@ -27,3 +27,6 @@ apple_auth/*.p8
 # Firebase Cloud Functions build artifacts and dependencies
 functions/lib/
 functions/node_modules/
+
+# Script working output - regenerate via scripts/generate-onboarding-examples.js
+scripts/onboarding-examples-output/
