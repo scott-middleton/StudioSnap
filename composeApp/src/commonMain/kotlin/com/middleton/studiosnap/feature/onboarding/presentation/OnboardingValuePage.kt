@@ -266,13 +266,13 @@ private fun AnimatedBenefitItem(
                     text = title,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = extendedColorScheme().ink
+                    color = AppColors.Ink
                 )
                 Text(
                     text = subtitle,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
-                    color = extendedColorScheme().ink50
+                    color = AppColors.Ink50
                 )
             }
         }

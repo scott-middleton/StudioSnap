@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 import com.middleton.studiosnap.core.presentation.navigation.NavigationHandler
 import com.middleton.studiosnap.core.presentation.theme.AppColors
+import com.middleton.studiosnap.core.presentation.theme.extendedColorScheme
 import com.middleton.studiosnap.feature.onboarding.presentation.action.OnboardingUiAction
 import com.middleton.studiosnap.feature.onboarding.presentation.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -167,7 +168,7 @@ fun OnboardingCarouselScreen() {
                         .clip(RoundedCornerShape(3.dp))
                         .background(
                             if (isSelected) AppColors.PrimaryGreen
-                            else Color.Black.copy(alpha = 0.10f)
+                            else extendedColorScheme().ink10
                         )
                 )
             }

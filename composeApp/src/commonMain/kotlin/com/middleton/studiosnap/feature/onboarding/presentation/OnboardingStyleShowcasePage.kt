@@ -227,7 +227,7 @@ private fun AnimatedStyleCard(
                     text = label,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = extendedColorScheme().ink,
+                    color = AppColors.Ink,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
