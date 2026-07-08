@@ -52,6 +52,7 @@ import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapCard
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
+import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.core.presentation.util.formatRelativeTime
 import com.middleton.studiosnap.feature.history.domain.model.HistorySession
 import com.middleton.studiosnap.feature.history.presentation.action.HistoryUiAction
@@ -295,7 +296,7 @@ private fun SessionCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = session.displayLabel,
+                        text = session.displayLabel.asString(),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = (-0.02).sp,

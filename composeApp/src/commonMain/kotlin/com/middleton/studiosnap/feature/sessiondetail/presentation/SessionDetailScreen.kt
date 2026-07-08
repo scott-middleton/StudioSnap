@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
+import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.sessiondetail.presentation.action.SessionDetailUiAction
 import com.middleton.studiosnap.feature.sessiondetail.presentation.navigation.SessionDetailNavigationAction
@@ -118,7 +119,7 @@ private fun SessionDetailSuccessContent(
     Scaffold(
         topBar = {
             StudioSnapTopBar(
-                title = state.displayLabel,
+                title = state.displayLabel.asString(),
                 onBack = { onAction(SessionDetailUiAction.OnBackClicked) },
                 actions = {
                     IconButton(onClick = { onAction(SessionDetailUiAction.OnOpenInGalleryClicked) }) {

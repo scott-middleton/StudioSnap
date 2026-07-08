@@ -3,6 +3,7 @@ package com.middleton.studiosnap.feature.history.data.repository
 import com.middleton.studiosnap.core.data.database.GenerationDao
 import com.middleton.studiosnap.core.data.database.toDomainModel
 import com.middleton.studiosnap.core.data.database.toEntity
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.feature.history.domain.model.HistorySession
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
@@ -32,7 +33,11 @@ class HistoryRepositoryImpl(
                         ?: emptyList(),
                     imageCount = summary.imageCount,
                     sessionLabel = summary.sessionLabel,
-                    styleName = summary.styleName,
+                    // Resolve the style's localized display name from its id. The stored
+                    // styleName is a raw fallback (the style id for StringResource-based
+                    // styles), so only use it when the style is no longer in the repository.
+                    styleDisplayName = styleRepository.getStyleById(summary.styleId)?.displayName
+                        ?: UiText.DynamicString(summary.styleName),
                     createdAt = summary.latestCreatedAt
                 )
             }

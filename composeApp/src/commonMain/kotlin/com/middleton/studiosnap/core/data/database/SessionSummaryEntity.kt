@@ -13,6 +13,7 @@ data class SessionSummaryEntity(
     @ColumnInfo(name = "sessionId") val sessionId: String,
     @ColumnInfo(name = "imageCount") val imageCount: Int,
     @ColumnInfo(name = "sessionLabel") val sessionLabel: String?,
+    @ColumnInfo(name = "styleId") val styleId: String,
     @ColumnInfo(name = "styleName") val styleName: String,
     @ColumnInfo(name = "latestCreatedAt") val latestCreatedAt: Long,
     /**

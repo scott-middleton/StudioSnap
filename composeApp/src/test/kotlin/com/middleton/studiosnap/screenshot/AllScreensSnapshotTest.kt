@@ -267,7 +267,7 @@ class AllScreensSnapshotTest {
                             thumbnailUris = listOf("file:///fake/preview1.jpg"),
                             imageCount = 3,
                             sessionLabel = null,
-                            styleName = "Rustic Wood",
+                            styleDisplayName = UiText.DynamicString("Rustic Wood"),
                             createdAt = 1710000000000L
                         ),
                         HistorySession(
@@ -275,7 +275,7 @@ class AllScreensSnapshotTest {
                             thumbnailUris = listOf("file:///fake/preview2.jpg"),
                             imageCount = 1,
                             sessionLabel = "My custom label",
-                            styleName = "Marble Luxe",
+                            styleDisplayName = UiText.DynamicString("Marble Luxe"),
                             createdAt = 1709913600000L
                         )
                     ),

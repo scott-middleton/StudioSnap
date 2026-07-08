@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.history.presentation.viewmodel
 
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.core.domain.service.FakeAnalyticsService
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
 import com.middleton.studiosnap.feature.history.domain.model.HistorySession
@@ -24,7 +25,7 @@ class HistoryViewModelTest : BaseViewModelTest() {
         thumbnailUris = listOf("preview_$id.jpg"),
         imageCount = 1,
         sessionLabel = null,
-        styleName = "Clean White",
+        styleDisplayName = UiText.DynamicString("Clean White"),
         createdAt = createdAt
     )
 

@@ -42,6 +42,7 @@ interface GenerationDao {
         SELECT COALESCE(NULLIF(batchId,''), id) AS sessionId,
                COUNT(*) AS imageCount,
                sessionLabel,
+               styleId,
                styleName,
                MAX(createdAt) AS latestCreatedAt,
                (SELECT GROUP_CONCAT(p.previewUri, ',')

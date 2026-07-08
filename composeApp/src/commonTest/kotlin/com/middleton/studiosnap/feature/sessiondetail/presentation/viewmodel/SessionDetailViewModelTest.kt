@@ -49,7 +49,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
         thumbnailUris = listOf("preview_1.jpg"),
         imageCount = 1,
         sessionLabel = label,
-        styleName = styleName,
+        styleDisplayName = UiText.DynamicString(styleName),
         createdAt = 1000L
     )
 
@@ -85,7 +85,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
         val sut = SessionDetailViewModel(sessionId = "batch-A", historyRepository = repo)
 
         val state = assertIs<SessionDetailUiState.Success>(sut.uiState.value)
-        assertEquals("My Product Shoot", state.displayLabel)
+        assertEquals(UiText.DynamicString("My Product Shoot"), state.displayLabel)
     }
 
     @Test
@@ -97,7 +97,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
         val sut = SessionDetailViewModel(sessionId = "batch-A", historyRepository = repo)
 
         val state = assertIs<SessionDetailUiState.Success>(sut.uiState.value)
-        assertEquals("Clean White", state.displayLabel)
+        assertEquals(UiText.DynamicString("Clean White"), state.displayLabel)
     }
 
     // endregion

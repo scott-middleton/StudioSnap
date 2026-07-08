@@ -288,6 +288,7 @@ private class FakeGenerationDao : GenerationDao {
                         sessionId = sessionId,
                         imageCount = rows.size,
                         sessionLabel = rows.first().sessionLabel,
+                        styleId = rows.first().styleId,
                         styleName = rows.first().styleName,
                         latestCreatedAt = rows.maxOf { it.createdAt },
                         thumbnailUris = thumbnails.joinToString(",").ifEmpty { null }
