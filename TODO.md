@@ -11,12 +11,12 @@
   - [ ] Default to showing the restored image first
   - [ ] Add fullscreen enlargement with pinch-to-zoom
   - [ ] Support rotation like the onboarding image comparisons
-- [ ] History detail — tapping a generated photo doesn't enlarge it full-screen like elsewhere in the app; reuse the existing enlarge component
 - [ ] History detail — gallery toolbar button doesn't open the gallery, or opens to a broken/placeholder image; suspect generated images aren't actually being saved to the device gallery — needs investigation
 - [ ] Generation error UX (NEEDS DECISION): a failed single-image generation still navigates to the Results screen, which shows a centered failure message but no action buttons and no clear next step. Decide: (a) keep Results screen but add a proper error state with contextual message + retry/exit buttons, or (b) don't navigate to Results screen on failure at all and surface the error earlier while keeping the user on the previous screen
 - [ ] Feature: allow one product image → multiple styles, not just multiple images → one style. Needs UX design so both usage patterns (many-images/one-style vs. one-image/many-styles) coexist without confusing the picker/generation flow
 
 ## Done
+- [x] History detail — tapping a generated photo now opens the existing FullScreenImageOverlay (pinch-to-zoom, landscape lock, back-press dismiss), same wiring idiom as ResultsScreen
 - [x] History showed raw style id instead of friendly name — root cause: styleName column stores style.id for localized (StringResource) styles since there's no string context at save time. Fix: resolve the localized displayName from styleId via StyleRepository at display time (history list + session detail title); falls back to stored raw name only if the style was removed. Retroactively fixes existing rows.
 - [x] Onboarding text unreadable in dark mode — audited all onboarding text vs. backgrounds; text on hardcoded-white cards now uses static AppColors.Ink*, text on theme-aware backgrounds uses extendedColorScheme().ink*
 - [x] Processing screen literal quote marks around apostrophe — unescaped `\'` to raw `'` in strings.xml (workaround for Compose Multiplatform 1.8.x escaping bug)
