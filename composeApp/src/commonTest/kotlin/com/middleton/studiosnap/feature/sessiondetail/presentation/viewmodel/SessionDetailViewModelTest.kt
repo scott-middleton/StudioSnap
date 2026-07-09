@@ -1,6 +1,8 @@
 package com.middleton.studiosnap.feature.sessiondetail.presentation.viewmodel
 
 import com.middleton.studiosnap.core.domain.model.UiText
+import com.middleton.studiosnap.core.domain.repository.GalleryRepository
+import com.middleton.studiosnap.core.domain.service.FakeErrorReporter
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
 import com.middleton.studiosnap.feature.history.domain.model.HistorySession
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
@@ -8,6 +10,7 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
+import com.middleton.studiosnap.feature.results.domain.usecase.SaveToGalleryUseCase
 import com.middleton.studiosnap.feature.sessiondetail.presentation.action.SessionDetailUiAction
 import com.middleton.studiosnap.feature.sessiondetail.presentation.navigation.SessionDetailNavigationAction
 import com.middleton.studiosnap.feature.sessiondetail.presentation.ui_state.SessionDetailUiState
@@ -61,7 +64,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
             sessions = listOf(makeSession()),
             resultsForSession = listOf(makeResult("gen-1"), makeResult("gen-2"))
         )
-        val sut = SessionDetailViewModel(sessionId = "batch-A", historyRepository = repo)
+        val sut = makeViewModel(repo)
 
         val state = sut.uiState.value
         assertIs<SessionDetailUiState.Success>(state)
@@ -71,7 +74,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
     @Test
     fun `init shows error when session not found`() {
         val repo = FakeHistoryRepository(sessions = emptyList(), resultsForSession = emptyList())
-        val sut = SessionDetailViewModel(sessionId = "unknown", historyRepository = repo)
+        val sut = makeViewModel(repo, sessionId = "unknown")
 
         assertIs<SessionDetailUiState.Error>(sut.uiState.value)
     }
@@ -82,7 +85,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
             sessions = listOf(makeSession(label = "My Product Shoot")),
             resultsForSession = listOf(makeResult("gen-1"))
         )
-        val sut = SessionDetailViewModel(sessionId = "batch-A", historyRepository = repo)
+        val sut = makeViewModel(repo)
 
         val state = assertIs<SessionDetailUiState.Success>(sut.uiState.value)
         assertEquals(UiText.DynamicString("My Product Shoot"), state.displayLabel)
@@ -94,7 +97,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
             sessions = listOf(makeSession(label = null, styleName = "Clean White")),
             resultsForSession = listOf(makeResult("gen-1"))
         )
-        val sut = SessionDetailViewModel(sessionId = "batch-A", historyRepository = repo)
+        val sut = makeViewModel(repo)
 
         val state = assertIs<SessionDetailUiState.Success>(sut.uiState.value)
         assertEquals(UiText.DynamicString("Clean White"), state.displayLabel)
@@ -148,7 +151,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
             sessions = listOf(makeSession()),
             resultsForSession = listOf(makeResult("gen-1"))
         )
-        val sut = SessionDetailViewModel(sessionId = "batch-A", historyRepository = repo)
+        val sut = makeViewModel(repo)
 
         sut.handleAction(SessionDetailUiAction.OnDeleteSessionClicked)
         sut.handleAction(SessionDetailUiAction.OnDeleteConfirmed)
@@ -168,7 +171,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
             sessions = listOf(makeSession()),
             resultsFlow = resultsFlow
         )
-        val sut = SessionDetailViewModel(sessionId = "batch-A", historyRepository = repo)
+        val sut = makeViewModel(repo)
 
         assertEquals(1, assertIs<SessionDetailUiState.Success>(sut.uiState.value).results.size)
 
@@ -185,12 +188,28 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
             sessions = listOf(makeSession()),
             resultsForSession = listOf(makeResult("gen-1"))
         )
-        return SessionDetailViewModel(sessionId = "batch-A", historyRepository = repo)
+        return makeViewModel(repo)
     }
 
     // endregion
 
+    private fun makeViewModel(
+        repo: HistoryRepository,
+        sessionId: String = "batch-A"
+    ) = SessionDetailViewModel(
+        sessionId = sessionId,
+        historyRepository = repo,
+        saveToGalleryUseCase = SaveToGalleryUseCase(FakeGalleryRepository(), repo, FakeErrorReporter())
+    )
+
     // region fakes
+
+    private class FakeGalleryRepository : GalleryRepository {
+        override suspend fun saveImage(filePath: String, displayName: String): Result<String> =
+            Result.success("content://gallery/$displayName")
+        override suspend fun deleteImage(galleryUri: String) = Result.success(Unit)
+        override suspend fun imageExists(galleryUri: String) = true
+    }
 
     private class FakeHistoryRepository(
         private val sessions: List<HistorySession> = emptyList(),
@@ -208,6 +227,7 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
         override suspend fun getById(id: String) = null
         override suspend fun delete(id: String) {}
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
+        override suspend fun setGalleryUri(id: String, galleryUri: String) {}
         override suspend fun updateSessionLabel(sessionId: String, label: String) {}
         override suspend fun deleteSession(sessionId: String) { deletedSessionIds.add(sessionId) }
     }

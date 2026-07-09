@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.middleton.studiosnap.core.presentation.util.openInGallery
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
+import com.middleton.studiosnap.feature.results.domain.usecase.SaveToGalleryUseCase
 import com.middleton.studiosnap.feature.sessiondetail.presentation.action.SessionDetailUiAction
 import com.middleton.studiosnap.feature.sessiondetail.presentation.navigation.SessionDetailNavigationAction
 import com.middleton.studiosnap.feature.sessiondetail.presentation.ui_state.SessionDetailUiState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +19,8 @@ import kotlinx.coroutines.launch
 
 class SessionDetailViewModel(
     private val sessionId: String,
-    private val historyRepository: HistoryRepository
+    private val historyRepository: HistoryRepository,
+    private val saveToGalleryUseCase: SaveToGalleryUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SessionDetailUiState>(SessionDetailUiState.Loading)
@@ -28,6 +31,9 @@ class SessionDetailViewModel(
 
     /** Separate flow so combine() picks up confirm-dialog toggles without a race. */
     private val _showDeleteConfirm = MutableStateFlow(false)
+
+    /** Guards against concurrent self-heal saves from rapid taps (duplicate gallery entries). */
+    private var openInGalleryJob: Job? = null
 
     init {
         observeSession()
@@ -72,12 +78,20 @@ class SessionDetailViewModel(
     }
 
     private fun openInGallery() {
+        if (openInGalleryJob?.isActive == true) return
         val results = (_uiState.value as? SessionDetailUiState.Success)?.results
             ?: return
-        val firstUri = results.filterIsInstance<GenerationResult.Success>()
-            .firstOrNull()?.previewUri ?: return
-        viewModelScope.launch {
-            openInGallery(firstUri)
+        val first = results.filterIsInstance<GenerationResult.Success>()
+            .firstOrNull() ?: return
+        openInGalleryJob = viewModelScope.launch {
+            // Open the device-gallery URI, never the app-private previewUri (other apps
+            // can't read it). Rows without one (legacy, or the auto-save failed) are
+            // self-healed by saving to the gallery first.
+            val galleryUri = first.galleryUri ?: saveToGalleryUseCase(
+                generationId = first.generationId,
+                localFilePath = first.previewUri
+            ).getOrNull() ?: return@launch
+            openInGallery(galleryUri)
         }
     }
 

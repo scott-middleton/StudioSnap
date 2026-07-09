@@ -13,6 +13,7 @@ val resultsModule = module {
     factory {
         SaveToGalleryUseCase(
             galleryRepository = get(),
+            historyRepository = get(),
             errorReporter = get()
         )
     }

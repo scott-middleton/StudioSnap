@@ -116,6 +116,7 @@ class HistoryViewModelTest : BaseViewModelTest() {
         override suspend fun getById(id: String) = null
         override suspend fun delete(id: String) {}
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
+        override suspend fun setGalleryUri(id: String, galleryUri: String) {}
         override suspend fun updateSessionLabel(sessionId: String, label: String) {}
         override suspend fun deleteSession(sessionId: String) { deletedSessionIds.add(sessionId) }
     }

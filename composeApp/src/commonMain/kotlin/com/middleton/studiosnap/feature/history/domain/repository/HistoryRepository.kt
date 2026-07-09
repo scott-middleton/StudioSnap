@@ -28,6 +28,9 @@ interface HistoryRepository {
 
     suspend fun markAsPurchased(id: String, fullResLocalUri: String)
 
+    /** Records the device gallery URI after a successful save to the gallery. */
+    suspend fun setGalleryUri(id: String, galleryUri: String)
+
     /** Sets the user-defined label for a session. */
     suspend fun updateSessionLabel(sessionId: String, label: String)
 

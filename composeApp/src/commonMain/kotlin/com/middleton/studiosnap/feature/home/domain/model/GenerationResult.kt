@@ -17,7 +17,9 @@ sealed interface GenerationResult {
         val createdAt: Long,
         val imageWidth: Int = 0,
         val imageHeight: Int = 0,
-        val batchId: String = ""
+        val batchId: String = "",
+        /** Device gallery URI from GalleryRepository.saveImage. Null if not (yet) saved to gallery. */
+        val galleryUri: String? = null
     ) : GenerationResult {
         /** Style display name for UI. Resolves via UiText.asString() in composable context. */
         val styleDisplayName: com.middleton.studiosnap.core.domain.model.UiText get() = style.displayName

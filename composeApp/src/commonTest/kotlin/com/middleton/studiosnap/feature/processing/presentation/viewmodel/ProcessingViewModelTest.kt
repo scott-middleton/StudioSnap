@@ -395,6 +395,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
             savedResults.removeAll { it.generationId == id }
         }
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
+        override suspend fun setGalleryUri(id: String, galleryUri: String) {}
         override suspend fun updateSessionLabel(sessionId: String, label: String) {}
         override suspend fun deleteSession(sessionId: String) {}
     }

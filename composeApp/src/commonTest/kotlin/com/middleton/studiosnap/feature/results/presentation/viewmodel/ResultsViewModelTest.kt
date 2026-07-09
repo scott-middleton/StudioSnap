@@ -7,6 +7,8 @@ import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
 import com.middleton.studiosnap.core.domain.service.FakeAnalyticsService
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
+import com.middleton.studiosnap.feature.history.domain.model.HistorySession
+import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
@@ -169,7 +171,7 @@ class ResultsViewModelTest : BaseViewModelTest() {
         analyticsService: AnalyticsService = FakeAnalyticsService()
     ): ResultsViewModel {
         val resultsHolder = FakeGenerationResultsHolder(results)
-        val saveToGalleryUseCase = SaveToGalleryUseCase(galleryRepo, FakeErrorReporter())
+        val saveToGalleryUseCase = SaveToGalleryUseCase(galleryRepo, FakeHistoryRepository(), FakeErrorReporter())
         return ResultsViewModel(
             generationResultsHolder = resultsHolder,
             saveToGalleryUseCase = saveToGalleryUseCase,
@@ -198,5 +200,20 @@ class ResultsViewModelTest : BaseViewModelTest() {
 
     private class FakeErrorReporter : ErrorReporter {
         override fun recordException(exception: Throwable) {}
+    }
+
+    private class FakeHistoryRepository : HistoryRepository {
+        override fun getAll() = kotlinx.coroutines.flow.flowOf(emptyList<GenerationResult.Success>())
+        override fun getSessions() = kotlinx.coroutines.flow.flowOf(emptyList<HistorySession>())
+        override fun getBySessionId(sessionId: String) =
+            kotlinx.coroutines.flow.flowOf(emptyList<GenerationResult.Success>())
+        override suspend fun save(result: GenerationResult.Success) {}
+        override suspend fun saveAll(results: List<GenerationResult.Success>) {}
+        override suspend fun getById(id: String): GenerationResult.Success? = null
+        override suspend fun delete(id: String) {}
+        override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
+        override suspend fun setGalleryUri(id: String, galleryUri: String) {}
+        override suspend fun updateSessionLabel(sessionId: String, label: String) {}
+        override suspend fun deleteSession(sessionId: String) {}
     }
 }

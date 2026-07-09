@@ -70,6 +70,10 @@ class HistoryRepositoryImpl(
         generationDao.markAsPurchased(id, fullResLocalUri)
     }
 
+    override suspend fun setGalleryUri(id: String, galleryUri: String) {
+        generationDao.setGalleryUri(id, galleryUri)
+    }
+
     override suspend fun updateSessionLabel(sessionId: String, label: String) {
         generationDao.updateSessionLabel(sessionId, label)
     }

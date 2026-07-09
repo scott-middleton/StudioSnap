@@ -102,6 +102,7 @@ class DownloadFullResUseCaseTest {
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {
             purchasedIds.add(id)
         }
+        override suspend fun setGalleryUri(id: String, galleryUri: String) {}
         override suspend fun updateSessionLabel(sessionId: String, label: String) {}
         override suspend fun deleteSession(sessionId: String) {}
     }

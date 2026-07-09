@@ -24,6 +24,9 @@ interface GenerationDao {
     @Query("UPDATE generations SET isPurchased = 1, fullResLocalUri = :fullResLocalUri WHERE id = :id")
     suspend fun markAsPurchased(id: String, fullResLocalUri: String)
 
+    @Query("UPDATE generations SET galleryUri = :galleryUri WHERE id = :id")
+    suspend fun setGalleryUri(id: String, galleryUri: String)
+
     @Query("DELETE FROM generations WHERE id = :id")
     suspend fun delete(id: String)
 

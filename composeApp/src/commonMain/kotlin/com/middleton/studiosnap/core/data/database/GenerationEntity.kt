@@ -24,5 +24,9 @@ data class GenerationEntity(
     // Legacy rows (pre-v3) have batchId = "" and are each treated as their own session.
     @ColumnInfo(defaultValue = "") val batchId: String = "",
     // User-defined label for the session. Null means show styleName as the label.
-    val sessionLabel: String? = null
+    val sessionLabel: String? = null,
+    // Device gallery URI returned by GalleryRepository.saveImage (content:// on Android,
+    // PHAsset localIdentifier on iOS). Null when the image was never saved to the gallery
+    // (legacy rows, or the save failed).
+    val galleryUri: String? = null
 )

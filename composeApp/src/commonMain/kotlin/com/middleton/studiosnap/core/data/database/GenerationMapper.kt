@@ -32,7 +32,8 @@ fun GenerationEntity.toDomainModel(styleRepository: StyleRepository): Generation
         createdAt = createdAt,
         imageWidth = imageWidth,
         imageHeight = imageHeight,
-        batchId = batchId
+        batchId = batchId,
+        galleryUri = galleryUri
     )
 }
 
@@ -69,6 +70,7 @@ fun GenerationResult.Success.toEntity(): GenerationEntity {
         createdAt = createdAt,
         imageWidth = imageWidth,
         imageHeight = imageHeight,
-        batchId = batchId
+        batchId = batchId,
+        galleryUri = galleryUri
     )
 }

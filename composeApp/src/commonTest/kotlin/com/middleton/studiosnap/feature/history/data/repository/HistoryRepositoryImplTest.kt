@@ -272,6 +272,12 @@ private class FakeGenerationDao : GenerationDao {
         }
     }
 
+    override suspend fun setGalleryUri(id: String, galleryUri: String) {
+        entities.value = entities.value.map {
+            if (it.id == id) it.copy(galleryUri = galleryUri) else it
+        }
+    }
+
     override suspend fun delete(id: String) {
         entities.value = entities.value.filter { it.id != id }
     }
