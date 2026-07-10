@@ -10,6 +10,8 @@ import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import studiosnap.composeapp.generated.resources.Res
+import studiosnap.composeapp.generated.resources.history_styles_count
 
 class HistoryRepositoryImpl(
     private val generationDao: GenerationDao,
@@ -36,8 +38,14 @@ class HistoryRepositoryImpl(
                     // Resolve the style's localized display name from its id. The stored
                     // styleName is a raw fallback (the style id for StringResource-based
                     // styles), so only use it when the style is no longer in the repository.
-                    styleDisplayName = styleRepository.getStyleById(summary.styleId)?.displayName
-                        ?: UiText.DynamicString(summary.styleName),
+                    // For multi-style sessions the GROUP BY row's styleId/styleName are
+                    // arbitrary — show an "N styles" label instead.
+                    styleDisplayName = if (summary.styleCount > 1) {
+                        UiText.StringResource(Res.string.history_styles_count, arrayOf(summary.styleCount))
+                    } else {
+                        styleRepository.getStyleById(summary.styleId)?.displayName
+                            ?: UiText.DynamicString(summary.styleName)
+                    },
                     createdAt = summary.latestCreatedAt
                 )
             }

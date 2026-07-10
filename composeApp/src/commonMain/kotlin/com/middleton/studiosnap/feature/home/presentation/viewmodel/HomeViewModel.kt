@@ -62,12 +62,15 @@ class HomeViewModel(
                 addPhotos(action.uris)
             }
             is HomeUiAction.OnPhotoRemoved -> removePhoto(action.photoId)
-            is HomeUiAction.OnStyleSelected -> selectStyle(action.styleId)
+            is HomeUiAction.OnStylesSelected -> selectStyles(action.styleIds)
             is HomeUiAction.OnShadowToggled -> toggleShadow(action.enabled)
             is HomeUiAction.OnReflectionToggled -> toggleReflection(action.enabled)
             is HomeUiAction.OnExportFormatSelected -> selectExportFormat(action.format)
             is HomeUiAction.OnStylePickerClicked -> navigateTo(
-                HomeNavigationAction.GoToStylePicker(_uiState.value.selectedStyle?.id)
+                HomeNavigationAction.GoToStylePicker(
+                    currentStyleIds = _uiState.value.selectedStyles.map { it.id },
+                    maxSelectable = _uiState.value.styleMaxSelectable
+                )
             )
             is HomeUiAction.OnGenerateClicked -> onGenerateClicked()
             is HomeUiAction.OnSignInResult -> onSignInResult(action.success)
@@ -158,7 +161,17 @@ class HomeViewModel(
             )
         }
 
-        _uiState.update { it.copy(photos = currentPhotos + newPhotos) }
+        val updatedPhotos = currentPhotos + newPhotos
+        _uiState.update { state ->
+            // Adding a 2nd+ photo while multiple styles are selected collapses the
+            // selection to the first selected style (multi-style requires exactly 1 photo).
+            val collapsedStyles = if (updatedPhotos.size > 1 && state.selectedStyles.size > 1) {
+                state.selectedStyles.take(1)
+            } else {
+                state.selectedStyles
+            }
+            state.copy(photos = updatedPhotos, selectedStyles = collapsedStyles)
+        }
         analyticsService.logEvent(AnalyticsEvents.PHOTO_ADDED, mapOf("count" to newPhotos.size.toString()))
     }
 
@@ -168,13 +181,13 @@ class HomeViewModel(
         }
     }
 
-    private fun selectStyle(styleId: String) {
-        val style = styleRepository.getStyleById(styleId)
-        _uiState.update { it.copy(selectedStyle = style) }
-        if (style != null) {
+    private fun selectStyles(styleIds: List<String>) {
+        val styles = styleIds.mapNotNull { styleRepository.getStyleById(it) }.take(HomeUiState.MAX_STYLES)
+        _uiState.update { it.copy(selectedStyles = styles) }
+        styles.firstOrNull()?.let { style ->
             analyticsService.logEvent(
                 AnalyticsEvents.STYLE_SELECTED,
-                mapOf("style_id" to styleId, "category" to style.categories.first().name)
+                mapOf("style_id" to style.id, "category" to style.categories.first().name)
             )
         }
     }
@@ -210,11 +223,11 @@ class HomeViewModel(
             return
         }
 
-        val style = state.selectedStyle ?: return
+        if (state.selectedStyles.isEmpty()) return
         if (state.photos.isEmpty()) return
 
         if (state.isFreeTrialMode) {
-            startGeneration(state, style, isFreeGeneration = true)
+            startGeneration(state, state.selectedStyles, isFreeGeneration = true)
             return
         }
 
@@ -223,14 +236,15 @@ class HomeViewModel(
             return
         }
 
-        startGeneration(state, style, isFreeGeneration = false)
+        startGeneration(state, state.selectedStyles, isFreeGeneration = false)
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    private fun startGeneration(state: HomeUiState, style: Style, isFreeGeneration: Boolean) {
+    private fun startGeneration(state: HomeUiState, styles: List<Style>, isFreeGeneration: Boolean) {
+        val effectiveStyles = if (isFreeGeneration) styles.take(1) else styles
         val config = GenerationConfig(
             photos = state.photos,
-            style = style,
+            styles = effectiveStyles,
             shadow = state.shadow,
             reflection = state.reflection,
             exportFormat = state.exportFormat,
@@ -243,7 +257,8 @@ class HomeViewModel(
         analyticsService.logEvent(
             AnalyticsEvents.PREVIEW_GENERATION_STARTED,
             mapOf(
-                "style_id" to style.id,
+                "style_id" to (effectiveStyles.firstOrNull()?.id ?: ""),
+                "style_count" to effectiveStyles.size.toString(),
                 "photo_count" to state.photos.size.toString(),
                 "export_format" to state.exportFormat.name,
                 "shadow" to state.shadow.toString(),

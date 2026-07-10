@@ -161,6 +161,7 @@ private fun SessionDetailSuccessContent(
                 items(state.results, key = { it.generationId }) { result ->
                     SessionDetailImageItem(
                         result = result,
+                        showStyleLabel = state.showStyleLabels,
                         onClick = {
                             val aspectRatio = if (result.imageWidth > 0 && result.imageHeight > 0) {
                                 result.imageWidth.toFloat() / result.imageHeight.toFloat()
@@ -203,16 +204,27 @@ private fun SessionDetailSuccessContent(
 @Composable
 private fun SessionDetailImageItem(
     result: GenerationResult.Success,
+    showStyleLabel: Boolean,
     onClick: () -> Unit
 ) {
-    RestorationImage(
-        imagePath = result.previewUri,
-        contentDescription = stringResource(Res.string.session_detail_product_photo),
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick),
-        contentScale = ContentScale.Crop
-    )
+    Column {
+        RestorationImage(
+            imagePath = result.previewUri,
+            contentDescription = stringResource(Res.string.session_detail_product_photo),
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onClick),
+            contentScale = ContentScale.Crop
+        )
+        if (showStyleLabel) {
+            Text(
+                text = result.style.displayName.asString(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, start = 2.dp)
+            )
+        }
+    }
 }

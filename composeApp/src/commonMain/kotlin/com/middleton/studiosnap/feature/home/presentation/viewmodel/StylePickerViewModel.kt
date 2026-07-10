@@ -29,9 +29,26 @@ class StylePickerViewModel(
         when (action) {
             is StylePickerUiAction.OnCategorySelected -> selectCategory(action.category)
             is StylePickerUiAction.OnInitialise -> _uiState.update {
-                it.copy(confirmedStyleId = action.confirmedStyleId, previewedStyleId = null)
+                it.copy(
+                    selectedStyleIds = action.currentStyleIds,
+                    maxSelectable = action.maxSelectable,
+                    previewedStyleId = null
+                )
             }
             is StylePickerUiAction.OnStylePreviewed -> _uiState.update { it.copy(previewedStyleId = action.styleId) }
+            is StylePickerUiAction.OnStyleToggled -> toggleStyle(action.styleId)
+        }
+    }
+
+    private fun toggleStyle(styleId: String) {
+        _uiState.update { state ->
+            val current = state.selectedStyleIds
+            when {
+                styleId in current -> state.copy(selectedStyleIds = current - styleId)
+                // At cap — reject the tap and pulse the subtitle instead of silently ignoring.
+                current.size >= state.maxSelectable -> state.copy(capPulse = state.capPulse + 1)
+                else -> state.copy(selectedStyleIds = current + styleId)
+            }
         }
     }
 

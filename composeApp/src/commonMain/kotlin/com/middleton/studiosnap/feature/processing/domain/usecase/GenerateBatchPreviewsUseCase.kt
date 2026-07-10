@@ -12,10 +12,10 @@ import kotlinx.datetime.Clock
 class FreeTrialAlreadyUsedException : Exception("Free trial has already been used")
 
 /**
- * Sequentially generates styled images for all photos in a batch.
- * Deducts 1 credit per photo with server-side pending deduction tracking.
+ * Sequentially generates styled images for every (photo, style) unit in a batch.
+ * Deducts 1 credit per unit with server-side pending deduction tracking.
  * If generation fails, requests a refund of the most recent pending deduction.
- * Emits progress after each image completes. Does NOT run in parallel —
+ * Emits progress after each unit completes. Does NOT run in parallel —
  * Replicate has rate limits and sequential is simpler for error handling.
  */
 open class GenerateBatchPreviewsUseCase(
@@ -26,14 +26,14 @@ open class GenerateBatchPreviewsUseCase(
 ) {
 
     /**
-     * Returns a Flow that emits [BatchProgress] after each photo is processed.
-     * Consumer can cancel the flow to abort remaining images.
+     * Returns a Flow that emits [BatchProgress] after each unit is processed.
+     * Consumer can cancel the flow to abort remaining units.
      */
     open operator fun invoke(
         config: GenerationConfig,
-        onPhotoProgress: (suspend (photoIndex: Int, progress: Float) -> Unit)? = null
+        onPhotoProgress: (suspend (unitIndex: Int, progress: Float) -> Unit)? = null
     ): Flow<BatchProgress> = flow {
-        val photoCount = config.photos.size
+        val totalCount = config.unitCount
         val results = mutableListOf<GenerationResult>()
         var refundedCredits = 0
 
@@ -44,14 +44,15 @@ open class GenerateBatchPreviewsUseCase(
             }
         }
 
-        config.photos.forEachIndexed { index, photo ->
+        config.units.forEachIndexed { index, unit ->
             if (!config.isFreeGeneration) {
-                val idempotencyKey = "${config.batchId}-${photo.id}-${Clock.System.now().toEpochMilliseconds()}"
+                val idempotencyKey =
+                    "${config.batchId}-${unit.photo.id}-${unit.style.id}-${Clock.System.now().toEpochMilliseconds()}"
                 creditDeductor.deductGenerationCredit(idempotencyKey)
                     .getOrElse { throw it }
             }
 
-            val result = generatePreviewUseCase(photo, config) { progress ->
+            val result = generatePreviewUseCase(unit.photo, unit.style, config) { progress ->
                 onPhotoProgress?.invoke(index, progress)
             }
 
@@ -65,7 +66,7 @@ open class GenerateBatchPreviewsUseCase(
             emit(
                 BatchProgress(
                     currentIndex = index,
-                    totalCount = photoCount,
+                    totalCount = totalCount,
                     results = results.toList(),
                     currentResult = result,
                     refundedCredits = refundedCredits

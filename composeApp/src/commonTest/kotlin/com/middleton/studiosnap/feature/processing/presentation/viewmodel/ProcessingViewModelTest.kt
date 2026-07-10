@@ -49,12 +49,20 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         kontextPrompt = "Place the product on a pure white background"
     )
 
+    private val testStyle2 = Style(
+        id = "warm_linen",
+        displayName = UiText.DynamicString("Warm Linen"),
+        categories = setOf(StyleCategory.ALL),
+        thumbnail = null,
+        kontextPrompt = "Warm linen background"
+    )
+
     private val testPhoto = ProductPhoto(id = "photo_1", localUri = "content://photo1", width = 1024, height = 768)
     private val testPhoto2 = ProductPhoto(id = "photo_2", localUri = "content://photo2", width = 800, height = 600)
 
     private val testConfig = GenerationConfig(
         photos = listOf(testPhoto),
-        style = testStyle,
+        styles = listOf(testStyle),
         shadow = false,
         reflection = false,
         exportFormat = ExportFormat.DEFAULT,
@@ -257,6 +265,70 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         assertEquals(1, historyRepo.savedResults.size)
     }
 
+    @Test
+    fun `saved history results are stamped with the config batchId`() {
+        val historyRepo = FakeHistoryRepository()
+        createViewModel(historyRepo = historyRepo)
+
+        assertEquals(1, historyRepo.savedResults.size)
+        assertEquals("test-batch-id", historyRepo.savedResults.first().batchId)
+    }
+
+    @Test
+    fun `one photo with two styles generates two units and deducts two credits`() {
+        val creditDeductor = FakeCreditDeductor()
+        val multiStyleConfig = testConfig.copy(styles = listOf(testStyle, testStyle2))
+        val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter())
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeFreeGenerationGate(), FakeUserPreferencesRepository())
+        val resultsHolder = FakeGenerationResultsHolder()
+        val vm = ProcessingViewModel(
+            generationConfigHolder = FakeGenerationConfigHolder(multiStyleConfig),
+            generationResultsHolder = resultsHolder,
+            generateBatchPreviewsUseCase = batchUseCase,
+            analyticsService = FakeAnalyticsService(),
+            completionDelayMs = 0L
+        )
+
+        assertIs<ProcessingUiState.Complete>(vm.uiState.value)
+        assertEquals(2, resultsHolder.currentResults?.size)
+        assertEquals(2, creditDeductor.deductCalled)
+        assertTrue(creditDeductor.deductKeys[0].contains("clean_white"))
+        assertTrue(creditDeductor.deductKeys[1].contains("warm_linen"))
+        assertTrue(creditDeductor.deductKeys.all { it.startsWith("test-batch-id-photo_1-") })
+    }
+
+    @Test
+    fun `multi-style results carry each style`() {
+        val multiStyleConfig = testConfig.copy(styles = listOf(testStyle, testStyle2))
+        val resultsHolder = FakeGenerationResultsHolder()
+        createViewModel(config = multiStyleConfig, resultsHolder = resultsHolder)
+
+        val styles = resultsHolder.currentResults
+            ?.filterIsInstance<GenerationResult.Success>()
+            ?.map { it.style.id }
+        assertEquals(listOf("clean_white", "warm_linen"), styles)
+    }
+
+    @Test
+    fun `mid-batch failure in multi-style run refunds one credit`() {
+        val creditDeductor = FakeCreditDeductor()
+        val multiStyleConfig = testConfig.copy(styles = listOf(testStyle, testStyle2))
+        val repo = FakeGenerationRepository(failOnIndex = 1)
+        val generatePreview = GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter())
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeFreeGenerationGate(), FakeUserPreferencesRepository())
+        val resultsHolder = FakeGenerationResultsHolder()
+        ProcessingViewModel(
+            generationConfigHolder = FakeGenerationConfigHolder(multiStyleConfig),
+            generationResultsHolder = resultsHolder,
+            generateBatchPreviewsUseCase = batchUseCase,
+            analyticsService = FakeAnalyticsService(),
+            completionDelayMs = 0L
+        )
+
+        assertEquals(1, creditDeductor.refundCalled)
+        assertEquals(1, resultsHolder.refundedCredits)
+    }
+
     // --- Factory ---
 
     private fun createViewModel(
@@ -316,9 +388,11 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     ) : CreditDeductor {
         var deductCalled = 0
         var refundCalled = 0
+        val deductKeys = mutableListOf<String>()
 
         override suspend fun deductGenerationCredit(idempotencyKey: String): Result<UserCredits> {
             deductCalled++
+            deductKeys.add(idempotencyKey)
             return if (deductShouldFail) Result.failure(RuntimeException("Insufficient credits"))
             else Result.success(UserCredits(100 - deductCalled))
         }

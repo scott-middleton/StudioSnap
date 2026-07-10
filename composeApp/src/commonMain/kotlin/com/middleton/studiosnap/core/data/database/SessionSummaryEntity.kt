@@ -15,6 +15,12 @@ data class SessionSummaryEntity(
     @ColumnInfo(name = "sessionLabel") val sessionLabel: String?,
     @ColumnInfo(name = "styleId") val styleId: String,
     @ColumnInfo(name = "styleName") val styleName: String,
+    /**
+     * Number of distinct styles in the session. When > 1, the raw styleId/styleName above are
+     * SQLite-arbitrary picks from the group and must NOT be displayed — the repository shows
+     * an "N styles" label instead.
+     */
+    @ColumnInfo(name = "styleCount") val styleCount: Int,
     @ColumnInfo(name = "latestCreatedAt") val latestCreatedAt: Long,
     /**
      * Comma-separated preview URIs (up to 4, oldest first). Null if none.

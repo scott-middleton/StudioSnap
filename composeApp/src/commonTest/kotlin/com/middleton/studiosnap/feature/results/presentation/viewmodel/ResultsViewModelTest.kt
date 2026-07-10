@@ -123,6 +123,21 @@ class ResultsViewModelTest : BaseViewModelTest() {
         assertFalse(sut.uiState.value.results.first().showingOriginal)
     }
 
+    @Test
+    fun `hasMultipleStyles is true when results span styles`() {
+        val secondStyle = testStyle.copy(id = "warm_linen", displayName = UiText.DynamicString("Warm Linen"))
+        val result2 = successResult.copy(generationId = "gen_2", style = secondStyle)
+        val sut = createSut(results = listOf(successResult, result2))
+        assertTrue(sut.uiState.value.hasMultipleStyles)
+    }
+
+    @Test
+    fun `hasMultipleStyles is false for single style batch`() {
+        val result2 = successResult.copy(generationId = "gen_2")
+        val sut = createSut(results = listOf(successResult, result2))
+        assertFalse(sut.uiState.value.hasMultipleStyles)
+    }
+
     // Share analytics are logged only on success of the platform shareImage() call.
     // That call requires a real Android context / iOS view controller and cannot be
     // meaningfully unit-tested here — covered by manual/integration testing.

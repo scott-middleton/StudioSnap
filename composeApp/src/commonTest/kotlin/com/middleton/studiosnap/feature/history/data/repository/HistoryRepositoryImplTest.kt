@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
+import studiosnap.composeapp.generated.resources.Res
+import studiosnap.composeapp.generated.resources.history_styles_count
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -170,6 +172,27 @@ class HistoryRepositoryImplTest {
     }
 
     @Test
+    fun `getSessions labels multi-style session with styles count`() = runTest {
+        sut.save(testResult("gen-1", batchId = "batch-A", styleId = "clean_white"))
+        sut.save(testResult("gen-2", batchId = "batch-A", styleId = "warm_linen"))
+
+        val session = sut.getSessions().first().first()
+        assertEquals(
+            UiText.StringResource(Res.string.history_styles_count, arrayOf(2)),
+            session.styleDisplayName
+        )
+    }
+
+    @Test
+    fun `getSessions keeps style name for single-style session`() = runTest {
+        sut.save(testResult("gen-1", batchId = "batch-A", styleId = "clean_white"))
+        sut.save(testResult("gen-2", batchId = "batch-A", styleId = "clean_white"))
+
+        val session = sut.getSessions().first().first()
+        assertEquals(UiText.DynamicString("Clean White"), session.styleDisplayName)
+    }
+
+    @Test
     fun `getBySessionId returns only results for that batch`() = runTest {
         sut.save(testResult("gen-1", batchId = "batch-A"))
         sut.save(testResult("gen-2", batchId = "batch-A"))
@@ -296,6 +319,7 @@ private class FakeGenerationDao : GenerationDao {
                         sessionLabel = rows.first().sessionLabel,
                         styleId = rows.first().styleId,
                         styleName = rows.first().styleName,
+                        styleCount = rows.map { it.styleId }.distinct().size,
                         latestCreatedAt = rows.maxOf { it.createdAt },
                         thumbnailUris = thumbnails.joinToString(",").ifEmpty { null }
                     )

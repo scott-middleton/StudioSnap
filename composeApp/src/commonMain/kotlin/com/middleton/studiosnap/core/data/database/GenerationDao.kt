@@ -47,6 +47,7 @@ interface GenerationDao {
                sessionLabel,
                styleId,
                styleName,
+               COUNT(DISTINCT styleId) AS styleCount,
                MAX(createdAt) AS latestCreatedAt,
                (SELECT GROUP_CONCAT(p.previewUri, ',')
                 FROM (SELECT previewUri FROM generations g2

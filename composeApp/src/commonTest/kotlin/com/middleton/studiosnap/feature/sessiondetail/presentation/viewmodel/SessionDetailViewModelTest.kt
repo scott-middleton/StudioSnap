@@ -32,13 +32,20 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
         thumbnail = null,
         kontextPrompt = "white bg"
     )
+    private val secondStyle = Style(
+        id = "warm_linen",
+        displayName = UiText.DynamicString("Warm Linen"),
+        categories = setOf(StyleCategory.ALL),
+        thumbnail = null,
+        kontextPrompt = "linen bg"
+    )
     private val testPhoto = ProductPhoto(id = "p1", localUri = "content://photo1")
 
-    private fun makeResult(id: String, batchId: String = "batch-A") = GenerationResult.Success(
+    private fun makeResult(id: String, batchId: String = "batch-A", style: Style = testStyle) = GenerationResult.Success(
         generationId = id,
         inputPhoto = testPhoto,
         previewUri = "preview_$id.jpg",
-        style = testStyle,
+        style = style,
         createdAt = 1000L,
         batchId = batchId
     )
@@ -101,6 +108,30 @@ class SessionDetailViewModelTest : BaseViewModelTest() {
 
         val state = assertIs<SessionDetailUiState.Success>(sut.uiState.value)
         assertEquals(UiText.DynamicString("Clean White"), state.displayLabel)
+    }
+
+    @Test
+    fun `showStyleLabels is true when results span multiple styles`() {
+        val repo = FakeHistoryRepository(
+            sessions = listOf(makeSession()),
+            resultsForSession = listOf(makeResult("gen-1"), makeResult("gen-2", style = secondStyle))
+        )
+        val sut = makeViewModel(repo)
+
+        val state = assertIs<SessionDetailUiState.Success>(sut.uiState.value)
+        assertTrue(state.showStyleLabels)
+    }
+
+    @Test
+    fun `showStyleLabels is false for single-style session`() {
+        val repo = FakeHistoryRepository(
+            sessions = listOf(makeSession()),
+            resultsForSession = listOf(makeResult("gen-1"), makeResult("gen-2"))
+        )
+        val sut = makeViewModel(repo)
+
+        val state = assertIs<SessionDetailUiState.Success>(sut.uiState.value)
+        assertTrue(!state.showStyleLabels)
     }
 
     // endregion

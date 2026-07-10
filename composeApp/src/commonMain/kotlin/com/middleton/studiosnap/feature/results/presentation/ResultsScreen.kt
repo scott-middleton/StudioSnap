@@ -225,6 +225,21 @@ private fun ResultsContent(
             Spacer(modifier = Modifier.height(4.dp))
         }
 
+        // Per-item style label — only when the batch spans more than one style
+        if (state.hasMultipleStyles && currentResult != null) {
+            Text(
+                text = currentResult.style.displayName.asString(),
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = AppColors.PrimaryGreen,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+
         // Save indicator — driven by current page, outside pager so it doesn't swipe
         GallerySaveIndicator(
             isSavedToGallery = currentItem?.isSavedToGallery ?: false,

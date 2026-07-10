@@ -144,8 +144,8 @@ class AllScreensSnapshotTest {
         snapshot {
             ProcessingScreenContent(
                 state = ProcessingUiState.Processing(
-                    currentPhotoIndex = 1,
-                    totalPhotos = 3,
+                    currentUnitIndex = 1,
+                    totalUnits = 3,
                     styleName = UiText.DynamicString("Rustic Wood"),
                     status = ProcessingStatus.Generating
                 ),
@@ -311,8 +311,8 @@ class AllScreensSnapshotTest {
                 isHeroUnconfirmedPreview = false,
                 selectedCategory = StyleCategory.ALL,
                 onCategorySelected = {},
-                onStylePreviewed = {},
-                onStyleSelected = {},
+                onStyleTapped = {},
+                onConfirm = {},
                 onClose = {}
             )
         }
@@ -330,8 +330,32 @@ class AllScreensSnapshotTest {
                 isHeroUnconfirmedPreview = false,
                 selectedCategory = StyleCategory.ALL,
                 onCategorySelected = {},
-                onStylePreviewed = {},
-                onStyleSelected = {},
+                onStyleTapped = {},
+                onConfirm = {},
+                onClose = {}
+            )
+        }
+    }
+
+    @Test
+    fun stylePicker_multiSelect() {
+        snapshot {
+            val styles = fakeStyles()
+            val selectedIds = listOf("warm_linen", "rustic_wood", "dark_moody")
+            StylePickerScreenContent(
+                styles = styles,
+                heroStyleId = null,
+                heroStyle = null,
+                isHeroUnconfirmedPreview = false,
+                selectedCategory = StyleCategory.ALL,
+                isMultiSelect = true,
+                selectedStyleIds = selectedIds,
+                selectedStyles = selectedIds.mapNotNull { id -> styles.find { it.id == id } },
+                isAtCap = false,
+                maxSelectable = 4,
+                onCategorySelected = {},
+                onStyleTapped = {},
+                onConfirm = {},
                 onClose = {}
             )
         }

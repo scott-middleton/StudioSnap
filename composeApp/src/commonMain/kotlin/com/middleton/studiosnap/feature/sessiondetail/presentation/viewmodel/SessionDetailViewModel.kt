@@ -69,7 +69,8 @@ class SessionDetailViewModel(
                     sessionId = sessionId,
                     displayLabel = session.displayLabel,
                     results = results,
-                    showDeleteConfirm = showDelete
+                    showDeleteConfirm = showDelete,
+                    showStyleLabels = results.map { it.style.id }.distinct().size > 1
                 )
             }.collect { state ->
                 _uiState.update { state }

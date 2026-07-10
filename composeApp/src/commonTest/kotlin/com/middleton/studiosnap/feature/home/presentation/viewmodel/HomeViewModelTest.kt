@@ -22,6 +22,7 @@ import com.middleton.studiosnap.feature.home.domain.repository.GenerationConfigH
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import com.middleton.studiosnap.feature.home.presentation.action.HomeUiAction
 import com.middleton.studiosnap.feature.home.presentation.navigation.HomeNavigationAction
+import com.middleton.studiosnap.feature.home.presentation.ui_state.HomeUiState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,6 +57,20 @@ class HomeViewModelTest : BaseViewModelTest() {
             categories = setOf(StyleCategory.FOOD, StyleCategory.HOMEWARE),
             thumbnail = null,
             kontextPrompt = "Kitchen bg"
+        ),
+        Style(
+            id = "marble_luxe",
+            displayName = UiText.DynamicString("Marble Luxe"),
+            categories = setOf(StyleCategory.ALL),
+            thumbnail = null,
+            kontextPrompt = "Marble bg"
+        ),
+        Style(
+            id = "dark_moody",
+            displayName = UiText.DynamicString("Dark Moody"),
+            categories = setOf(StyleCategory.ALL),
+            thumbnail = null,
+            kontextPrompt = "Moody bg"
         )
     )
 
@@ -64,7 +79,8 @@ class HomeViewModelTest : BaseViewModelTest() {
         creditBalance: Int = 10,
         isSignedIn: Boolean = false,
         historyItems: List<GenerationResult.Success> = emptyList(),
-        configHolder: GenerationConfigHolder = GenerationConfigHolderImpl()
+        configHolder: GenerationConfigHolder = GenerationConfigHolderImpl(),
+        hasUsedFreeGen: Boolean = true
     ): HomeViewModel {
         val authService = FakeAuthService(isSignedIn)
         val creditManager = FakeCreditManager(creditBalance)
@@ -74,7 +90,7 @@ class HomeViewModelTest : BaseViewModelTest() {
             generationConfigHolder = configHolder,
             analyticsService = FakeAnalyticsService(),
             historyRepository = FakeHistoryRepository(historyItems),
-            userPreferencesRepository = FakeUserPreferencesRepository()
+            userPreferencesRepository = FakeUserPreferencesRepository(hasUsedFreeGen)
         )
     }
 
@@ -107,15 +123,16 @@ class HomeViewModelTest : BaseViewModelTest() {
     @Test
     fun `selecting style updates state`() {
         val viewModel = createViewModel()
-        viewModel.handleAction(HomeUiAction.OnStyleSelected("warm_linen"))
-        assertNotNull(viewModel.uiState.value.selectedStyle)
-        assertEquals("warm_linen", viewModel.uiState.value.selectedStyle!!.id)
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("warm_linen")))
+        assertNotNull(viewModel.uiState.value.primaryStyle)
+        assertEquals("warm_linen", viewModel.uiState.value.primaryStyle!!.id)
+        assertEquals(listOf("warm_linen"), viewModel.uiState.value.selectedStyles.map { it.id })
     }
 
     @Test
     fun `canGenerate is false without photos`() {
         val viewModel = createViewModel()
-        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("clean_white")))
         assertFalse(viewModel.uiState.value.canGenerate)
     }
 
@@ -130,7 +147,7 @@ class HomeViewModelTest : BaseViewModelTest() {
     fun `canGenerate is true with photos and style when signed in with credits`() {
         val viewModel = createViewModel(isSignedIn = true, creditBalance = 5)
         viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
-        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("clean_white")))
         assertTrue(viewModel.uiState.value.canGenerate)
     }
 
@@ -138,7 +155,7 @@ class HomeViewModelTest : BaseViewModelTest() {
     fun `generate navigates to processing when valid`() {
         val viewModel = createViewModel(isSignedIn = true, creditBalance = 5)
         viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
-        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("clean_white")))
         viewModel.handleAction(HomeUiAction.OnGenerateClicked)
         val nav = viewModel.navigationEvent.value
         assertTrue(nav is HomeNavigationAction.GoToProcessing)
@@ -149,7 +166,7 @@ class HomeViewModelTest : BaseViewModelTest() {
         val holder = GenerationConfigHolderImpl()
         val viewModel = createViewModel(isSignedIn = true, creditBalance = 5, configHolder = holder)
         viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
-        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("clean_white")))
         viewModel.handleAction(HomeUiAction.OnGenerateClicked)
         val config = holder.currentConfig
         assertNotNull(config)
@@ -160,7 +177,7 @@ class HomeViewModelTest : BaseViewModelTest() {
     fun `generate shows sign in sheet when not signed in`() {
         val viewModel = createViewModel(isSignedIn = false)
         viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
-        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("clean_white")))
         viewModel.handleAction(HomeUiAction.OnGenerateClicked)
         assertTrue(viewModel.uiState.value.showSignIn)
         assertNull(viewModel.navigationEvent.value)
@@ -170,7 +187,7 @@ class HomeViewModelTest : BaseViewModelTest() {
     fun `generate navigates to credit store when not enough credits`() {
         val viewModel = createViewModel(isSignedIn = true, creditBalance = 0)
         viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
-        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("clean_white")))
         viewModel.handleAction(HomeUiAction.OnGenerateClicked)
         assertTrue(viewModel.navigationEvent.value is HomeNavigationAction.GoToCreditStore)
     }
@@ -178,7 +195,7 @@ class HomeViewModelTest : BaseViewModelTest() {
     @Test
     fun `generate does nothing without photos when signed in`() {
         val viewModel = createViewModel(isSignedIn = true, creditBalance = 5)
-        viewModel.handleAction(HomeUiAction.OnStyleSelected("clean_white"))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("clean_white")))
         viewModel.handleAction(HomeUiAction.OnGenerateClicked)
         assertNull(viewModel.navigationEvent.value)
     }
@@ -255,23 +272,139 @@ class HomeViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `style picker click navigates with null style id when none selected`() {
+    fun `style picker click navigates with empty ids when none selected`() {
         val viewModel = createViewModel()
         viewModel.handleAction(HomeUiAction.OnStylePickerClicked)
         val nav = viewModel.navigationEvent.value
         assertTrue(nav is HomeNavigationAction.GoToStylePicker)
-        assertNull((nav as HomeNavigationAction.GoToStylePicker).currentStyleId)
+        assertTrue((nav as HomeNavigationAction.GoToStylePicker).currentStyleIds.isEmpty())
     }
 
     @Test
-    fun `style picker click navigates with current style id when style selected`() {
+    fun `style picker click navigates with current style ids when style selected`() {
         val viewModel = createViewModel()
-        viewModel.handleAction(HomeUiAction.OnStyleSelected("warm_linen"))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("warm_linen")))
         viewModel.handleAction(HomeUiAction.OnNavigationHandled)
         viewModel.handleAction(HomeUiAction.OnStylePickerClicked)
         val nav = viewModel.navigationEvent.value
         assertTrue(nav is HomeNavigationAction.GoToStylePicker)
-        assertEquals("warm_linen", (nav as HomeNavigationAction.GoToStylePicker).currentStyleId)
+        assertEquals(listOf("warm_linen"), (nav as HomeNavigationAction.GoToStylePicker).currentStyleIds)
+    }
+
+    @Test
+    fun `selecting multiple styles updates state in order`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("warm_linen", "clean_white")))
+        assertEquals(listOf("warm_linen", "clean_white"), viewModel.uiState.value.selectedStyles.map { it.id })
+        assertEquals("warm_linen", viewModel.uiState.value.primaryStyle?.id)
+    }
+
+    @Test
+    fun `generation cost is photos times styles`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 10)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(
+            HomeUiAction.OnStylesSelected(listOf("clean_white", "warm_linen", "morning_kitchen"))
+        )
+        assertEquals(3, viewModel.uiState.value.generationCost)
+    }
+
+    @Test
+    fun `style selection is capped at MAX_STYLES`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(
+            HomeUiAction.OnStylesSelected(
+                listOf("clean_white", "warm_linen", "morning_kitchen", "marble_luxe", "dark_moody")
+            )
+        )
+        assertEquals(HomeUiState.MAX_STYLES, viewModel.uiState.value.selectedStyles.size)
+    }
+
+    @Test
+    fun `unknown style ids are dropped from selection`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("clean_white", "nope")))
+        assertEquals(listOf("clean_white"), viewModel.uiState.value.selectedStyles.map { it.id })
+    }
+
+    @Test
+    fun `adding a second photo collapses multi-style selection to first style`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 10)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("warm_linen", "clean_white")))
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri2")))
+        assertEquals(listOf("warm_linen"), viewModel.uiState.value.selectedStyles.map { it.id })
+    }
+
+    @Test
+    fun `adding photos keeps single-style selection intact`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 10)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("warm_linen")))
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri2")))
+        assertEquals(listOf("warm_linen"), viewModel.uiState.value.selectedStyles.map { it.id })
+    }
+
+    @Test
+    fun `styleMaxSelectable is 1 with multiple photos`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 10)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1", "uri2")))
+        assertEquals(1, viewModel.uiState.value.styleMaxSelectable)
+    }
+
+    @Test
+    fun `styleMaxSelectable is MAX_STYLES with one photo and credits`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 10)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        assertEquals(HomeUiState.MAX_STYLES, viewModel.uiState.value.styleMaxSelectable)
+    }
+
+    @Test
+    fun `styleMaxSelectable is 1 in free trial mode`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 0, hasUsedFreeGen = false)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        assertEquals(1, viewModel.uiState.value.styleMaxSelectable)
+    }
+
+    @Test
+    fun `free generation truncates config to one style`() {
+        val holder = GenerationConfigHolderImpl()
+        val viewModel = createViewModel(
+            isSignedIn = true, creditBalance = 0, hasUsedFreeGen = false, configHolder = holder
+        )
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("warm_linen", "clean_white")))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+        val config = holder.currentConfig
+        assertNotNull(config)
+        assertTrue(config!!.isFreeGeneration)
+        assertEquals(listOf("warm_linen"), config.styles.map { it.id })
+    }
+
+    @Test
+    fun `generate stores all selected styles on config`() {
+        val holder = GenerationConfigHolderImpl()
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 10, configHolder = holder)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("warm_linen", "clean_white")))
+        viewModel.handleAction(HomeUiAction.OnGenerateClicked)
+        assertEquals(listOf("warm_linen", "clean_white"), holder.currentConfig!!.styles.map { it.id })
+    }
+
+    @Test
+    fun `style picker nav action carries selected ids and max selectable`() {
+        val viewModel = createViewModel(isSignedIn = true, creditBalance = 10)
+        viewModel.handleAction(HomeUiAction.OnPhotosSelected(listOf("uri1")))
+        viewModel.handleAction(HomeUiAction.OnStylesSelected(listOf("warm_linen", "clean_white")))
+        viewModel.handleAction(HomeUiAction.OnNavigationHandled)
+        viewModel.handleAction(HomeUiAction.OnStylePickerClicked)
+        val nav = viewModel.navigationEvent.value
+        assertTrue(nav is HomeNavigationAction.GoToStylePicker)
+        assertEquals(
+            listOf("warm_linen", "clean_white"),
+            (nav as HomeNavigationAction.GoToStylePicker).currentStyleIds
+        )
+        assertEquals(HomeUiState.MAX_STYLES, nav.maxSelectable)
     }
 
     @Test

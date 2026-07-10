@@ -106,6 +106,7 @@ import studiosnap.composeapp.generated.resources.home_add_more_photos
 import studiosnap.composeapp.generated.resources.home_add_photos
 import studiosnap.composeapp.generated.resources.home_add_photos_first
 import studiosnap.composeapp.generated.resources.home_background_style
+import studiosnap.composeapp.generated.resources.home_cost_breakdown_multi_style
 import studiosnap.composeapp.generated.resources.home_credits_error
 import studiosnap.composeapp.generated.resources.home_error_credits_unavailable
 import studiosnap.composeapp.generated.resources.home_error_generation_failed
@@ -120,6 +121,7 @@ import studiosnap.composeapp.generated.resources.home_generate_button
 import studiosnap.composeapp.generated.resources.home_generate_preview
 import studiosnap.composeapp.generated.resources.home_get_credits
 import studiosnap.composeapp.generated.resources.home_loading_credits
+import studiosnap.composeapp.generated.resources.home_multi_style_hint
 import studiosnap.composeapp.generated.resources.home_photo_limit_hint
 import studiosnap.composeapp.generated.resources.home_photos_header
 import studiosnap.composeapp.generated.resources.home_recent_title
@@ -131,6 +133,7 @@ import studiosnap.composeapp.generated.resources.home_signing_in
 import studiosnap.composeapp.generated.resources.home_style_choose
 import studiosnap.composeapp.generated.resources.home_style_choose_hint
 import studiosnap.composeapp.generated.resources.home_style_tap_to_change
+import studiosnap.composeapp.generated.resources.home_styles_selected
 import studiosnap.composeapp.generated.resources.home_title
 import studiosnap.composeapp.generated.resources.ic_bolt
 import studiosnap.composeapp.generated.resources.ic_chevron_right
@@ -302,7 +305,8 @@ fun HomeScreenContent(
             }
 
             BackgroundStyleSection(
-                selectedStyle = state.selectedStyle,
+                selectedStyles = state.selectedStyles,
+                photoCount = state.photos.size,
                 onChangeStyle = { onAction(HomeUiAction.OnStylePickerClicked) },
                 modifier = Modifier.padding(horizontal = CONTENT_HORIZONTAL_PADDING.dp)
             )
@@ -677,11 +681,13 @@ private fun AddPhotoCell(onClick: () -> Unit) {
 
 @Composable
 private fun BackgroundStyleSection(
-    selectedStyle: Style?,
+    selectedStyles: List<Style>,
+    photoCount: Int,
     onChangeStyle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val hasSelection = selectedStyle != null
+    val primaryStyle = selectedStyles.firstOrNull()
+    val hasSelection = primaryStyle != null
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionLabel(text = stringResource(Res.string.home_background_style))
@@ -706,19 +712,23 @@ private fun BackgroundStyleSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // Show selected style thumbnail or 2x2 swatch grid
-                if (selectedStyle != null) {
-                    SelectedStyleThumbnail(style = selectedStyle)
+                // Show selected style thumbnail (+N badge for multi) or 2x2 swatch grid
+                if (primaryStyle != null) {
+                    SelectedStyleThumbnail(
+                        style = primaryStyle,
+                        extraCount = selectedStyles.size - 1
+                    )
                 } else {
                     StyleSwatchGrid()
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (selectedStyle != null) {
-                            selectedStyle.displayName.asString()
-                        } else {
-                            stringResource(Res.string.home_style_choose)
+                        text = when {
+                            selectedStyles.size > 1 ->
+                                stringResource(Res.string.home_styles_selected, selectedStyles.size)
+                            primaryStyle != null -> primaryStyle.displayName.asString()
+                            else -> stringResource(Res.string.home_style_choose)
                         },
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -727,7 +737,7 @@ private fun BackgroundStyleSection(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = if (selectedStyle != null) {
+                        text = if (hasSelection) {
                             stringResource(Res.string.home_style_tap_to_change)
                         } else {
                             stringResource(Res.string.home_style_choose_hint)
@@ -755,6 +765,15 @@ private fun BackgroundStyleSection(
                     )
                 }
             }
+        }
+
+        // Multi-style is only available with a single photo — hint at the rule
+        if (photoCount > 1) {
+            Text(
+                text = stringResource(Res.string.home_multi_style_hint),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -803,31 +822,49 @@ private fun StyleSwatchGrid() {
 }
 
 @Composable
-private fun SelectedStyleThumbnail(style: Style) {
-    val thumbnailRes = style.thumbnail
-    if (thumbnailRes != null) {
-        Image(
-            painter = painterResource(thumbnailRes),
-            contentDescription = style.displayName.asString(),
-            modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
-        )
-    } else {
-        // Fallback — green box with palette icon
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .background(extendedColorScheme().greenTint, RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_palette),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = AppColors.PrimaryGreen
+private fun SelectedStyleThumbnail(style: Style, extraCount: Int = 0) {
+    Box {
+        val thumbnailRes = style.thumbnail
+        if (thumbnailRes != null) {
+            Image(
+                painter = painterResource(thumbnailRes),
+                contentDescription = style.displayName.asString(),
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
             )
+        } else {
+            // Fallback — green box with palette icon
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(extendedColorScheme().greenTint, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_palette),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = AppColors.PrimaryGreen
+                )
+            }
+        }
+
+        if (extraCount > 0) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .background(AppColors.PrimaryGreen, RoundedCornerShape(8.dp))
+                    .padding(horizontal = 5.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = "+$extraCount",
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
+            }
         }
     }
 }
@@ -1007,7 +1044,7 @@ private fun GenerateBottomBar(
         state.isSigningIn -> stringResource(Res.string.home_signing_in)
         state.isLoadingCredits -> stringResource(Res.string.home_loading_credits)
         !state.hasPhotos -> stringResource(Res.string.home_add_photos_first)
-        state.selectedStyle == null -> stringResource(Res.string.home_select_style_first)
+        state.selectedStyles.isEmpty() -> stringResource(Res.string.home_select_style_first)
         !state.isSignedIn -> stringResource(Res.string.home_generate_button)
         !state.canAffordGeneration -> stringResource(Res.string.home_get_credits, state.generationCost)
         else -> stringResource(Res.string.home_generate_preview, state.generationCost)
@@ -1016,7 +1053,7 @@ private fun GenerateBottomBar(
     // Button is tappable (signs in, buys credits, or generates) once photos + style are present
     // and nothing is already in flight (loading, signing in, generating).
     val isActionable = !state.isLoadingCredits && !state.isSigningIn && !state.isGenerating &&
-        state.hasPhotos && state.selectedStyle != null
+        state.hasPhotos && state.selectedStyles.isNotEmpty()
 
     // Fade gradient overlay above button
     Box(
@@ -1038,13 +1075,29 @@ private fun GenerateBottomBar(
                 )
         )
 
-        // Button area
-        Box(
+        // Button area (with multi-style cost breakdown caption above the button)
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .align(Alignment.BottomCenter)
         ) {
+            if (state.isMultiStyle) {
+                Text(
+                    text = stringResource(
+                        Res.string.home_cost_breakdown_multi_style,
+                        state.selectedStyles.size,
+                        state.generationCost
+                    ),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                )
+            }
             val gradientBrush = remember {
                 Brush.linearGradient(
                     colors = listOf(AppColors.PrimaryGreen, AppColors.PrimaryGreenDark),

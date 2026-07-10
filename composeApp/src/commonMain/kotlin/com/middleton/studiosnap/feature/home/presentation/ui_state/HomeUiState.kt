@@ -8,7 +8,7 @@ import com.middleton.studiosnap.feature.home.domain.model.Style
 
 data class HomeUiState(
     val photos: List<ProductPhoto> = emptyList(),
-    val selectedStyle: Style? = null,
+    val selectedStyles: List<Style> = emptyList(),
     val showGalleryPicker: Boolean = false,
     val shadow: Boolean = false,
     val reflection: Boolean = false,
@@ -22,6 +22,8 @@ data class HomeUiState(
     val recentGenerations: List<HistoryItem> = emptyList(),
     val error: HomeError? = null
 ) {
+    val primaryStyle: Style? get() = selectedStyles.firstOrNull()
+
     val isSignedIn: Boolean
         get() = creditLoadingState != UserCreditLoadingState.LoggedOut
 
@@ -31,7 +33,13 @@ data class HomeUiState(
     val creditBalance: Int
         get() = (creditLoadingState as? UserCreditLoadingState.Loaded)?.credits?.amount ?: 0
 
-    val generationCost: Int get() = photos.size
+    /**
+     * Cost in credits = photos × styles. The style dimension is floored at 1 so the cost
+     * (and the affordability/free-trial checks derived from it) reflects "at least one
+     * style" before the user has picked any — matching the pre-multi-style behavior where
+     * cost was simply the photo count.
+     */
+    val generationCost: Int get() = photos.size * maxOf(selectedStyles.size, 1)
 
     val canAffordGeneration: Boolean
         get() = creditLoadingState is UserCreditLoadingState.Loaded &&
@@ -45,7 +53,8 @@ data class HomeUiState(
         }
 
     val canGenerate: Boolean
-        get() = photos.isNotEmpty() && selectedStyle != null && (isFreeTrialMode || (isSignedIn && canAffordGeneration))
+        get() = photos.isNotEmpty() && selectedStyles.isNotEmpty() &&
+                (isFreeTrialMode || (isSignedIn && canAffordGeneration))
 
     val hasPhotos: Boolean
         get() = photos.isNotEmpty()
@@ -53,8 +62,19 @@ data class HomeUiState(
     val photoCount: Int
         get() = photos.size
 
+    /**
+     * Style multi-select is only available when exactly 1 photo is selected (and the user
+     * isn't in the free trial, which caps the style dimension at 1 regardless of photo count).
+     * 2+ photos or free-trial mode force single-select.
+     */
+    val styleMaxSelectable: Int
+        get() = if (photos.size <= 1 && !isFreeTrialMode) MAX_STYLES else 1
+
+    val isMultiStyle: Boolean get() = selectedStyles.size > 1
+
     companion object {
         const val MAX_PHOTOS = 10
+        const val MAX_STYLES = 4
     }
 }
 

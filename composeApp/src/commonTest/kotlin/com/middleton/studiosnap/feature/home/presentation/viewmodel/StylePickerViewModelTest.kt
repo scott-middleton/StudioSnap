@@ -130,7 +130,7 @@ class StylePickerViewModelTest : BaseViewModelTest() {
     @Test
     fun `heroStyleId returns previewedStyleId when a preview is active`() {
         val viewModel = createViewModel()
-        viewModel.handleAction(StylePickerUiAction.OnInitialise("clean_white"))
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("clean_white"), 1))
         viewModel.handleAction(StylePickerUiAction.OnStylePreviewed("warm_linen"))
         assertEquals("warm_linen", viewModel.uiState.value.heroStyleId)
     }
@@ -138,14 +138,14 @@ class StylePickerViewModelTest : BaseViewModelTest() {
     @Test
     fun `heroStyleId falls back to confirmedStyleId when no preview exists`() {
         val viewModel = createViewModel()
-        viewModel.handleAction(StylePickerUiAction.OnInitialise("clean_white"))
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("clean_white"), 1))
         assertEquals("clean_white", viewModel.uiState.value.heroStyleId)
     }
 
     @Test
     fun `isHeroUnconfirmedPreview is false when previewing the already-confirmed style`() {
         val viewModel = createViewModel()
-        viewModel.handleAction(StylePickerUiAction.OnInitialise("warm_linen"))
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("warm_linen"), 1))
         viewModel.handleAction(StylePickerUiAction.OnStylePreviewed("warm_linen"))
         assertEquals(false, viewModel.uiState.value.isHeroUnconfirmedPreview)
     }
@@ -154,16 +154,97 @@ class StylePickerViewModelTest : BaseViewModelTest() {
     fun `onInitialise clears any stale previewedStyleId`() {
         val viewModel = createViewModel()
         viewModel.handleAction(StylePickerUiAction.OnStylePreviewed("warm_linen"))
-        viewModel.handleAction(StylePickerUiAction.OnInitialise("clean_white"))
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("clean_white"), 1))
         assertEquals(null, viewModel.uiState.value.previewedStyleId)
         assertEquals("clean_white", viewModel.uiState.value.heroStyleId)
     }
 
     @Test
-    fun `onInitialise seeds confirmedStyleId`() {
+    fun `onInitialise seeds selectedStyleIds`() {
         val viewModel = createViewModel()
-        viewModel.handleAction(StylePickerUiAction.OnInitialise("morning_kitchen"))
-        assertEquals("morning_kitchen", viewModel.uiState.value.confirmedStyleId)
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("morning_kitchen"), 1))
+        assertEquals(listOf("morning_kitchen"), viewModel.uiState.value.selectedStyleIds)
+    }
+
+    @Test
+    fun `toggling a style adds it to the selection`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(emptyList(), 4))
+        viewModel.handleAction(StylePickerUiAction.OnStyleToggled("clean_white"))
+        assertEquals(listOf("clean_white"), viewModel.uiState.value.selectedStyleIds)
+    }
+
+    @Test
+    fun `toggling a selected style removes it`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("clean_white", "warm_linen"), 4))
+        viewModel.handleAction(StylePickerUiAction.OnStyleToggled("clean_white"))
+        assertEquals(listOf("warm_linen"), viewModel.uiState.value.selectedStyleIds)
+    }
+
+    @Test
+    fun `toggle preserves selection order`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(emptyList(), 4))
+        viewModel.handleAction(StylePickerUiAction.OnStyleToggled("warm_linen"))
+        viewModel.handleAction(StylePickerUiAction.OnStyleToggled("clean_white"))
+        viewModel.handleAction(StylePickerUiAction.OnStyleToggled("morning_kitchen"))
+        assertEquals(
+            listOf("warm_linen", "clean_white", "morning_kitchen"),
+            viewModel.uiState.value.selectedStyleIds
+        )
+    }
+
+    @Test
+    fun `toggle at cap leaves selection unchanged and increments capPulse`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("clean_white", "warm_linen"), 2))
+        viewModel.handleAction(StylePickerUiAction.OnStyleToggled("morning_kitchen"))
+        assertEquals(listOf("clean_white", "warm_linen"), viewModel.uiState.value.selectedStyleIds)
+        assertEquals(true, viewModel.uiState.value.isAtCap)
+        assertEquals(1, viewModel.uiState.value.capPulse)
+        assertEquals(null, viewModel.uiState.value.previewedStyleId)
+    }
+
+    @Test
+    fun `toggling a selected style at cap still removes it`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("clean_white", "warm_linen"), 2))
+        viewModel.handleAction(StylePickerUiAction.OnStyleToggled("clean_white"))
+        assertEquals(listOf("warm_linen"), viewModel.uiState.value.selectedStyleIds)
+        assertEquals(0, viewModel.uiState.value.capPulse)
+    }
+
+    @Test
+    fun `repeated rejected taps accumulate capPulse`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("clean_white", "warm_linen"), 2))
+        viewModel.handleAction(StylePickerUiAction.OnStyleToggled("morning_kitchen"))
+        viewModel.handleAction(StylePickerUiAction.OnStyleToggled("morning_kitchen"))
+        assertEquals(2, viewModel.uiState.value.capPulse)
+    }
+
+    @Test
+    fun `toggle does not set previewedStyleId in multi mode`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(emptyList(), 4))
+        viewModel.handleAction(StylePickerUiAction.OnStyleToggled("warm_linen"))
+        assertEquals(null, viewModel.uiState.value.previewedStyleId)
+    }
+
+    @Test
+    fun `heroStyleId falls back to last selected style`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("clean_white", "warm_linen"), 4))
+        assertEquals("warm_linen", viewModel.uiState.value.heroStyleId)
+    }
+
+    @Test
+    fun `single mode keeps maxSelectable of one`() {
+        val viewModel = createViewModel()
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(listOf("clean_white"), 1))
+        assertEquals(false, viewModel.uiState.value.isMultiSelect)
+        assertEquals(listOf("clean_white"), viewModel.uiState.value.selectedStyleIds)
     }
 
     @Test
