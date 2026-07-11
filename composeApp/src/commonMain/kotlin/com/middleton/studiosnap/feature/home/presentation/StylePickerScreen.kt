@@ -1,8 +1,13 @@
 package com.middleton.studiosnap.feature.home.presentation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -82,7 +87,6 @@ import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.content_close
 import studiosnap.composeapp.generated.resources.ic_palette
 import studiosnap.composeapp.generated.resources.style_picker_empty_category
-import studiosnap.composeapp.generated.resources.style_picker_multi_empty_hint
 import studiosnap.composeapp.generated.resources.style_picker_multi_subtitle
 import studiosnap.composeapp.generated.resources.style_picker_selected
 import studiosnap.composeapp.generated.resources.style_picker_title
@@ -245,39 +249,49 @@ internal fun StylePickerScreenContent(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    if (isMultiSelect || heroStyle != null) {
-                        if (isMultiSelect) {
-                            SelectedStylesHero(
-                                selectedStyles = selectedStyles,
-                                onRemove = onStyleTapped,
-                                onSegmentTap = { fullScreenStyle = it },
-                                modifier = Modifier.padding(horizontal = 20.dp)
-                            )
-                        } else if (heroStyle != null) {
-                            SelectedStyleHero(
-                                style = heroStyle,
-                                showSelectedBadge = !isHeroUnconfirmedPreview,
-                                onClick = { fullScreenStyle = heroStyle },
-                                modifier = Modifier.padding(horizontal = 20.dp)
-                            )
+                    // Hero + confirm button appear only once at least one style is selected
+                    // (multi mode) or previewed (single mode), animating in on first selection.
+                    val showHeroSection =
+                        if (isMultiSelect) selectedStyleIds.isNotEmpty() else heroStyle != null
+                    AnimatedVisibility(
+                        visible = showHeroSection,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        Column {
+                            if (isMultiSelect) {
+                                SelectedStylesHero(
+                                    selectedStyles = selectedStyles,
+                                    onRemove = onStyleTapped,
+                                    onSegmentTap = { fullScreenStyle = it },
+                                    modifier = Modifier.padding(horizontal = 20.dp)
+                                )
+                            } else if (heroStyle != null) {
+                                SelectedStyleHero(
+                                    style = heroStyle,
+                                    showSelectedBadge = !isHeroUnconfirmedPreview,
+                                    onClick = { fullScreenStyle = heroStyle },
+                                    modifier = Modifier.padding(horizontal = 20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Button(
+                                onClick = onConfirm,
+                                enabled = !isMultiSelect || selectedStyleIds.isNotEmpty(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp)
+                            ) {
+                                Text(
+                                    text = if (isMultiSelect && selectedStyleIds.size > 1) {
+                                        stringResource(Res.string.style_picker_use_n_styles, selectedStyleIds.size)
+                                    } else {
+                                        stringResource(Res.string.style_picker_use_this_style)
+                                    }
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
                         }
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Button(
-                            onClick = onConfirm,
-                            enabled = !isMultiSelect || selectedStyleIds.isNotEmpty(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp)
-                        ) {
-                            Text(
-                                text = if (isMultiSelect && selectedStyleIds.size > 1) {
-                                    stringResource(Res.string.style_picker_use_n_styles, selectedStyleIds.size)
-                                } else {
-                                    stringResource(Res.string.style_picker_use_this_style)
-                                }
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(10.dp))
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -443,43 +457,30 @@ private fun SelectedStylesHero(
             .clip(RoundedCornerShape(18.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        if (selectedStyles.isEmpty()) {
-            Text(
-                text = stringResource(Res.string.style_picker_multi_empty_hint),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(horizontal = 32.dp)
-            )
-        } else {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                selectedStyles.forEachIndexed { index, style ->
-                    key(style.id) {
-                        // New segments compose with animateIn = false, then grow from ~0 to
-                        // full weight so the strip visibly divides as selections are added.
-                        var animateIn by remember { mutableStateOf(false) }
-                        LaunchedEffect(Unit) { animateIn = true }
-                        val animatedWeight by animateFloatAsState(
-                            targetValue = if (animateIn) 1f else 0.001f,
-                            animationSpec = tween(300),
-                            label = "heroSegmentWeight"
-                        )
-                        HeroSegment(
-                            style = style,
-                            index = index + 1,
-                            onRemove = { onRemove(style.id) },
-                            onTap = { onSegmentTap(style) },
-                            modifier = Modifier
-                                .weight(animatedWeight)
-                                .fillMaxHeight()
-                        )
-                    }
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            selectedStyles.forEachIndexed { index, style ->
+                key(style.id) {
+                    // New segments compose with animateIn = false, then grow from ~0 to
+                    // full weight so the strip visibly divides as selections are added.
+                    var animateIn by remember { mutableStateOf(false) }
+                    LaunchedEffect(Unit) { animateIn = true }
+                    val animatedWeight by animateFloatAsState(
+                        targetValue = if (animateIn) 1f else 0.001f,
+                        animationSpec = tween(300),
+                        label = "heroSegmentWeight"
+                    )
+                    HeroSegment(
+                        style = style,
+                        index = index + 1,
+                        onRemove = { onRemove(style.id) },
+                        onTap = { onSegmentTap(style) },
+                        modifier = Modifier
+                            .weight(animatedWeight)
+                            .fillMaxHeight()
+                    )
                 }
             }
         }

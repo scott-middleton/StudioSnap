@@ -294,7 +294,6 @@
     <string name="style_picker_view_fullscreen">View fullscreen</string>
     <string name="style_picker_use_n_styles">Use %1$d styles</string>
     <string name="style_picker_multi_subtitle">Select up to %1$d styles</string>
-    <string name="style_picker_multi_empty_hint">Pick your first style</string>
 
     <!-- Home - Style Section -->
     <string name="home_background_style">Background Style</string>
