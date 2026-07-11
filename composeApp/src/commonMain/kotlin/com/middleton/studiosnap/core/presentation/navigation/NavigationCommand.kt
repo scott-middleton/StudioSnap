@@ -41,6 +41,11 @@ sealed interface Route {
     @Serializable
     data class SessionDetail(val sessionId: String) : Route
 
+    /**
+     * [currentStyleIds] is a comma-joined list of style ids (style ids are snake_case, so
+     * commas are safe). A plain String is used instead of List<String> to avoid relying on
+     * collection route-arg serialization support across platforms.
+     */
     @Serializable
-    data class StylePicker(val currentStyleId: String? = null) : Route
+    data class StylePicker(val currentStyleIds: String = "", val maxSelectable: Int = 1) : Route
 }

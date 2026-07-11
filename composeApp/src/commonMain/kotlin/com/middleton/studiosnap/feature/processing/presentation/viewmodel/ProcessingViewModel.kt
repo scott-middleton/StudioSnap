@@ -14,6 +14,7 @@ import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationProg
 import com.middleton.studiosnap.feature.processing.domain.usecase.GenerationResultsHolder
 import com.middleton.studiosnap.feature.processing.presentation.action.ProcessingUiAction
 import com.middleton.studiosnap.feature.processing.presentation.navigation.ProcessingNavigationAction
+import com.middleton.studiosnap.feature.processing.presentation.ui_state.CounterMode
 import com.middleton.studiosnap.feature.processing.presentation.ui_state.ProcessingStatus
 import com.middleton.studiosnap.feature.processing.presentation.ui_state.ProcessingUiState
 import kotlinx.coroutines.Job
@@ -88,30 +89,39 @@ class ProcessingViewModel(
         val resumeState = progressSoFar
         processingJob?.cancel()
         processingJob = viewModelScope.launch {
+            val units = currentConfig.units
             val startIndex = resumeState.results.size
-            val firstPhotoUri = currentConfig.photos.getOrNull(startIndex)?.localUri
+            val counterMode = if (currentConfig.photos.size == 1 && currentConfig.styles.size > 1) {
+                CounterMode.STYLES
+            } else {
+                CounterMode.PHOTOS
+            }
 
             _uiState.value = ProcessingUiState.Processing(
-                currentPhotoIndex = startIndex,
-                totalPhotos = currentConfig.photos.size,
-                styleName = currentConfig.style.displayName,
+                currentUnitIndex = startIndex,
+                totalUnits = units.size,
+                styleName = units.getOrNull(startIndex)?.style?.displayName
+                    ?: units.first().style.displayName,
                 status = ProcessingStatus.Preparing,
-                currentPhotoUri = firstPhotoUri
+                currentPhotoUri = units.getOrNull(startIndex)?.photo?.localUri,
+                counterMode = counterMode
             )
 
             try {
-                generateBatchPreviewsUseCase(currentConfig, resumeState) { photoIndex, photoProgress ->
+                generateBatchPreviewsUseCase(currentConfig, resumeState) { unitIndex, unitProgress ->
                     val status = when {
-                        photoProgress < GenerationProgressStages.GENERATING_START -> ProcessingStatus.Preparing
-                        photoProgress < GenerationProgressStages.DOWNLOADING_START -> ProcessingStatus.Generating
+                        unitProgress < GenerationProgressStages.GENERATING_START -> ProcessingStatus.Preparing
+                        unitProgress < GenerationProgressStages.DOWNLOADING_START -> ProcessingStatus.Generating
                         else -> ProcessingStatus.Downloading
                     }
+                    val unit = units.getOrNull(unitIndex)
                     updateProcessing {
                         copy(
-                            currentPhotoIndex = photoIndex,
+                            currentUnitIndex = unitIndex,
                             status = status,
-                            progress = photoProgress,
-                            currentPhotoUri = currentConfig.photos.getOrNull(photoIndex)?.localUri
+                            progress = unitProgress,
+                            currentPhotoUri = unit?.photo?.localUri,
+                            styleName = unit?.style?.displayName ?: styleName
                         )
                     }
                 }.collect { batchProgress ->
@@ -139,15 +149,16 @@ class ProcessingViewModel(
                         _uiState.value = ProcessingUiState.Complete
                         _navigationEvent.value = ProcessingNavigationAction.GoToResults
                     } else {
-                        // Photo complete — reset progress for next photo
+                        // Unit complete — reset progress for next unit
                         val nextIndex = batchProgress.currentIndex + 1
-                        val nextPhotoUri = currentConfig.photos.getOrNull(nextIndex)?.localUri
+                        val nextUnit = units.getOrNull(nextIndex)
                         updateProcessing {
                             copy(
-                                currentPhotoIndex = nextIndex,
+                                currentUnitIndex = nextIndex,
                                 status = ProcessingStatus.Preparing,
                                 progress = null,
-                                currentPhotoUri = nextPhotoUri
+                                currentPhotoUri = nextUnit?.photo?.localUri,
+                                styleName = nextUnit?.style?.displayName ?: styleName
                             )
                         }
                     }

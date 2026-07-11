@@ -1,5 +1,6 @@
 package com.middleton.studiosnap.feature.sessiondetail.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,14 +28,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.middleton.studiosnap.core.presentation.components.FullScreenImageOverlay
 import com.middleton.studiosnap.core.presentation.components.RestorationImage
 import com.middleton.studiosnap.core.presentation.components.StudioSnapTopBar
 import com.middleton.studiosnap.core.presentation.navigation.NavigationStrategy
+import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.sessiondetail.presentation.action.SessionDetailUiAction
 import com.middleton.studiosnap.feature.sessiondetail.presentation.navigation.SessionDetailNavigationAction
@@ -115,42 +121,64 @@ private fun SessionDetailSuccessContent(
     state: SessionDetailUiState.Success,
     onAction: (SessionDetailUiAction) -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            StudioSnapTopBar(
-                title = state.displayLabel,
-                onBack = { onAction(SessionDetailUiAction.OnBackClicked) },
-                actions = {
-                    IconButton(onClick = { onAction(SessionDetailUiAction.OnOpenInGalleryClicked) }) {
-                        Icon(
-                            imageVector = Icons.Default.PhotoLibrary,
-                            contentDescription = stringResource(Res.string.session_detail_open_gallery),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+    // Pair of (imagePath, aspectRatio) — aspect ratio used for landscape lock in overlay
+    var fullScreenImage by remember { mutableStateOf<Pair<String, Float?>?>(null) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                StudioSnapTopBar(
+                    title = state.displayLabel.asString(),
+                    onBack = { onAction(SessionDetailUiAction.OnBackClicked) },
+                    actions = {
+                        IconButton(onClick = { onAction(SessionDetailUiAction.OnOpenInGalleryClicked) }) {
+                            Icon(
+                                imageVector = Icons.Default.PhotoLibrary,
+                                contentDescription = stringResource(Res.string.session_detail_open_gallery),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        IconButton(onClick = { onAction(SessionDetailUiAction.OnDeleteSessionClicked) }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(Res.string.session_detail_delete_title),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
-                    IconButton(onClick = { onAction(SessionDetailUiAction.OnDeleteSessionClicked) }) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = stringResource(Res.string.session_detail_delete_title),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(state.results, key = { it.generationId }) { result ->
-                SessionDetailImageItem(result = result)
+                )
             }
+        ) { padding ->
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(state.results, key = { it.generationId }) { result ->
+                    SessionDetailImageItem(
+                        result = result,
+                        showStyleLabel = state.showStyleLabels,
+                        onClick = {
+                            val aspectRatio = if (result.imageWidth > 0 && result.imageHeight > 0) {
+                                result.imageWidth.toFloat() / result.imageHeight.toFloat()
+                            } else null
+                            fullScreenImage = result.previewUri to aspectRatio
+                        }
+                    )
+                }
+            }
+        }
+
+        fullScreenImage?.let { (path, aspectRatio) ->
+            FullScreenImageOverlay(
+                imagePath = path,
+                imageAspectRatio = aspectRatio,
+                onDismiss = { fullScreenImage = null }
+            )
         }
     }
 
@@ -174,14 +202,29 @@ private fun SessionDetailSuccessContent(
 }
 
 @Composable
-private fun SessionDetailImageItem(result: GenerationResult.Success) {
-    RestorationImage(
-        imagePath = result.previewUri,
-        contentDescription = stringResource(Res.string.session_detail_product_photo),
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .clip(RoundedCornerShape(12.dp)),
-        contentScale = ContentScale.Crop
-    )
+private fun SessionDetailImageItem(
+    result: GenerationResult.Success,
+    showStyleLabel: Boolean,
+    onClick: () -> Unit
+) {
+    Column {
+        RestorationImage(
+            imagePath = result.previewUri,
+            contentDescription = stringResource(Res.string.session_detail_product_photo),
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onClick),
+            contentScale = ContentScale.Crop
+        )
+        if (showStyleLabel) {
+            Text(
+                text = result.style.displayName.asString(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, start = 2.dp)
+            )
+        }
+    }
 }

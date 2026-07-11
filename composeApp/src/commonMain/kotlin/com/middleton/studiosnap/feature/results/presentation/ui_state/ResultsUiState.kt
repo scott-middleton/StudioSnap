@@ -8,7 +8,13 @@ data class ResultsUiState(
     val isAutoSaving: Boolean = false,
     val snackbarMessage: UiText? = null,
     val creditsRefunded: Int = 0
-)
+) {
+    /** True when this batch spans more than one style — per-item style labels are shown. */
+    val hasMultipleStyles: Boolean
+        get() = results
+            .mapNotNull { (it.result as? GenerationResult.Success)?.style?.id }
+            .distinct().size > 1
+}
 
 data class ResultItem(
     val result: GenerationResult,

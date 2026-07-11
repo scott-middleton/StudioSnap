@@ -76,6 +76,7 @@ import com.middleton.studiosnap.core.presentation.util.asString
 import com.middleton.studiosnap.feature.onboarding.presentation.PlatformBackHandler
 import com.middleton.studiosnap.feature.processing.presentation.action.ProcessingUiAction
 import com.middleton.studiosnap.feature.processing.presentation.navigation.ProcessingNavigationAction
+import com.middleton.studiosnap.feature.processing.presentation.ui_state.CounterMode
 import com.middleton.studiosnap.feature.processing.presentation.ui_state.ProcessingStatus
 import com.middleton.studiosnap.feature.processing.presentation.ui_state.ProcessingUiState
 import com.middleton.studiosnap.feature.processing.presentation.viewmodel.ProcessingViewModel
@@ -97,6 +98,7 @@ import studiosnap.composeapp.generated.resources.processing_patience
 import studiosnap.composeapp.generated.resources.processing_photo_progress
 import studiosnap.composeapp.generated.resources.processing_preparing
 import studiosnap.composeapp.generated.resources.processing_retry
+import studiosnap.composeapp.generated.resources.processing_style_progress
 import studiosnap.composeapp.generated.resources.processing_subtitle_downloading
 import studiosnap.composeapp.generated.resources.processing_subtitle_generating
 import studiosnap.composeapp.generated.resources.processing_subtitle_preparing
@@ -285,20 +287,33 @@ private fun ProcessingContent(
                 }
             }
 
-            // Photo counter (only for batches)
-            if (state.totalPhotos > 1) {
+            // Unit counter (only for batches)
+            if (state.totalUnits > 1) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = stringResource(
-                        Res.string.processing_photo_progress,
-                        state.currentPhotoIndex + 1,
-                        state.totalPhotos
+                        when (state.counterMode) {
+                            CounterMode.PHOTOS -> Res.string.processing_photo_progress
+                            CounterMode.STYLES -> Res.string.processing_style_progress
+                        },
+                        state.currentUnitIndex + 1,
+                        state.totalUnits
                     ),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
                     color = AppColors.PrimaryGreen
                 )
+                if (state.counterMode == CounterMode.STYLES) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = state.styleName.asString(),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             // Bold progress number

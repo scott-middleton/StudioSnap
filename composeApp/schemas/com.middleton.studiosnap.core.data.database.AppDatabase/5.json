@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "06992ceac65afc0b6cde18b994a6aad9",
+    "identityHash": "a1a9825c9e8094eb4c540898d6c51df3",
     "entities": [
       {
         "tableName": "generations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `inputPhotoUri` TEXT NOT NULL, `styleId` TEXT NOT NULL, `styleName` TEXT NOT NULL, `previewUri` TEXT NOT NULL, `fullResUrl` TEXT, `fullResLocalUri` TEXT, `isPurchased` INTEGER NOT NULL, `shadow` INTEGER NOT NULL, `reflection` INTEGER NOT NULL, `exportFormat` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `imageWidth` INTEGER NOT NULL, `imageHeight` INTEGER NOT NULL, `batchId` TEXT NOT NULL DEFAULT '', `sessionLabel` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `inputPhotoUri` TEXT NOT NULL, `styleId` TEXT NOT NULL, `styleName` TEXT NOT NULL, `previewUri` TEXT NOT NULL, `fullResUrl` TEXT, `fullResLocalUri` TEXT, `isPurchased` INTEGER NOT NULL, `shadow` INTEGER NOT NULL, `reflection` INTEGER NOT NULL, `exportFormat` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `imageWidth` INTEGER NOT NULL, `imageHeight` INTEGER NOT NULL, `batchId` TEXT NOT NULL DEFAULT '', `sessionLabel` TEXT, `galleryUri` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -101,6 +101,11 @@
             "fieldPath": "sessionLabel",
             "columnName": "sessionLabel",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "galleryUri",
+            "columnName": "galleryUri",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -167,7 +172,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '06992ceac65afc0b6cde18b994a6aad9')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a1a9825c9e8094eb4c540898d6c51df3')"
     ]
   }
 }

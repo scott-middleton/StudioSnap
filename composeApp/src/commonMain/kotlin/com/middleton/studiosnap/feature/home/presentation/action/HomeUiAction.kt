@@ -7,7 +7,7 @@ sealed interface HomeUiAction {
     data object OnPhotoPickerCancelled : HomeUiAction
     data class OnPhotosSelected(val uris: List<String>) : HomeUiAction
     data class OnPhotoRemoved(val photoId: String) : HomeUiAction
-    data class OnStyleSelected(val styleId: String) : HomeUiAction
+    data class OnStylesSelected(val styleIds: List<String>) : HomeUiAction
     data class OnCustomDescriptionChanged(val text: String) : HomeUiAction
     data object OnCustomDescriptionExpandedToggled : HomeUiAction
     data class OnShadowToggled(val enabled: Boolean) : HomeUiAction

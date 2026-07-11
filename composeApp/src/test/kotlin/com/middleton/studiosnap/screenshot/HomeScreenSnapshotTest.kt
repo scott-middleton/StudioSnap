@@ -109,7 +109,7 @@ class HomeScreenSnapshotTest {
             HomeScreenContent(
                 state = HomeUiState(
                     photos = fakePhotos(3),
-                    backgroundChoice = BackgroundChoice.Preset(fakeStyle()),
+                    backgroundChoice = BackgroundChoice.MultiPreset(listOf(fakeStyle())),
                     creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(10))
                 ),
                 onAction = {}
@@ -127,7 +127,7 @@ class HomeScreenSnapshotTest {
             HomeScreenContent(
                 state = HomeUiState(
                     photos = fakePhotos(HomeUiState.MAX_PHOTOS),
-                    backgroundChoice = BackgroundChoice.Preset(fakeStyle()),
+                    backgroundChoice = BackgroundChoice.MultiPreset(listOf(fakeStyle())),
                     exportFormat = ExportFormat.ETSY_LANDSCAPE,
                     creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(50))
                 ),
@@ -146,7 +146,7 @@ class HomeScreenSnapshotTest {
             HomeScreenContent(
                 state = HomeUiState(
                     photos = fakePhotos(2),
-                    backgroundChoice = BackgroundChoice.Preset(fakeStyle()),
+                    backgroundChoice = BackgroundChoice.MultiPreset(listOf(fakeStyle())),
                     exportFormat = ExportFormat.ETSY_LANDSCAPE,
                     creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(10))
                 ),
@@ -185,7 +185,7 @@ class HomeScreenSnapshotTest {
             HomeScreenContent(
                 state = HomeUiState(
                     photos = fakePhotos(2),
-                    backgroundChoice = BackgroundChoice.Preset(fakeStyle()),
+                    backgroundChoice = BackgroundChoice.MultiPreset(listOf(fakeStyle())),
                     creditLoadingState = UserCreditLoadingState.Loading
                 ),
                 onAction = {}
@@ -199,7 +199,7 @@ class HomeScreenSnapshotTest {
             HomeScreenContent(
                 state = HomeUiState(
                     photos = fakePhotos(2),
-                    backgroundChoice = BackgroundChoice.Preset(fakeStyle()),
+                    backgroundChoice = BackgroundChoice.MultiPreset(listOf(fakeStyle())),
                     creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(10)),
                     isGenerating = true
                 ),
@@ -214,7 +214,7 @@ class HomeScreenSnapshotTest {
             HomeScreenContent(
                 state = HomeUiState(
                     photos = fakePhotos(1),
-                    backgroundChoice = BackgroundChoice.Preset(fakeStyle()),
+                    backgroundChoice = BackgroundChoice.MultiPreset(listOf(fakeStyle())),
                     isSigningIn = true
                 ),
                 onAction = {}
@@ -242,7 +242,7 @@ class HomeScreenSnapshotTest {
             HomeScreenContent(
                 state = HomeUiState(
                     photos = fakePhotos(3),
-                    backgroundChoice = BackgroundChoice.Preset(fakeStyle()),
+                    backgroundChoice = BackgroundChoice.MultiPreset(listOf(fakeStyle())),
                     creditLoadingState = UserCreditLoadingState.Loaded(UserCredits(25))
                 ),
                 onAction = {}

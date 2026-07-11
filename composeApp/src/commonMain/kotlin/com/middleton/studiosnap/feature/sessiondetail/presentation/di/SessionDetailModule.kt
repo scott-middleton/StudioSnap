@@ -16,7 +16,8 @@ val sessionDetailModule = module {
     viewModel { params ->
         SessionDetailViewModel(
             sessionId = params.get(),
-            historyRepository = get()
+            historyRepository = get(),
+            saveToGalleryUseCase = get()
         )
     }
 }

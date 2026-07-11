@@ -48,13 +48,30 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         kontextPrompt = "Place the product on a pure white background"
     )
 
+    private val testStyle2 = Style(
+        id = "warm_linen",
+        displayName = UiText.DynamicString("Warm Linen"),
+        categories = setOf(StyleCategory.ALL),
+        thumbnail = null,
+        kontextPrompt = "Warm linen background"
+    )
+
     private val testPhoto = ProductPhoto(id = "photo_1", localUri = "content://photo1", width = 1024, height = 768)
     private val testPhoto2 = ProductPhoto(id = "photo_2", localUri = "content://photo2", width = 800, height = 600)
 
+    /** Builds the cartesian product of units (photo-major) with each style's prompt resolved. */
+    private fun unitsFor(
+        photos: List<ProductPhoto>,
+        styles: List<Style>
+    ): List<GenerationConfig.GenerationUnit> = photos.flatMap { photo ->
+        styles.map { style ->
+            GenerationConfig.GenerationUnit(photo, style, style.kontextPrompt)
+        }
+    }
+
     private val testConfig = GenerationConfig(
         photos = listOf(testPhoto),
-        style = testStyle,
-        resolvedPrompt = testStyle.kontextPrompt,
+        units = unitsFor(listOf(testPhoto), listOf(testStyle)),
         shadow = false,
         reflection = false,
         exportFormat = ExportFormat.DEFAULT,
@@ -80,7 +97,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
 
     @Test
     fun `multi-photo batch stores all results`() {
-        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
+        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2), units = unitsFor(listOf(testPhoto, testPhoto2), listOf(testStyle)))
         val resultsHolder = FakeGenerationResultsHolder()
         val vm = createViewModel(
             config = twoPhotoConfig,
@@ -142,7 +159,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
 
     @Test
     fun `mixed results batch reports correct success and failure counts`() {
-        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
+        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2), units = unitsFor(listOf(testPhoto, testPhoto2), listOf(testStyle)))
         val analytics = FakeAnalyticsService()
         val repo = FakeGenerationRepository(failOnIndex = 1) // second photo fails
         createViewModel(
@@ -162,7 +179,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     fun `credits deducted upfront equal photo count`() {
         val creditDeductor = FakeCreditDeductor()
         val errorReporter = FakeErrorReporter()
-        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
+        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2), units = unitsFor(listOf(testPhoto, testPhoto2), listOf(testStyle)))
         val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), errorReporter)
         val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeErrorReporter())
         ProcessingViewModel(
@@ -180,7 +197,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     fun `failed photos trigger credit refund`() {
         val creditDeductor = FakeCreditDeductor()
         val errorReporter = FakeErrorReporter()
-        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
+        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2), units = unitsFor(listOf(testPhoto, testPhoto2), listOf(testStyle)))
         val repo = FakeGenerationRepository(failOnIndex = 1)
         val generatePreview = GeneratePreviewUseCase(repo, FakeHistoryRepository(), errorReporter)
         val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeErrorReporter())
@@ -216,7 +233,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         // photo1 must not be re-deducted or re-generated.
         val creditDeductor = FakeCreditDeductor(failDeductAtCall = 2)
         val repo = FakeGenerationRepository()
-        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
+        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2), units = unitsFor(listOf(testPhoto, testPhoto2), listOf(testStyle)))
         val vm = createViewModelWithDeductor(
             config = twoPhotoConfig,
             generationRepo = repo,
@@ -244,7 +261,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         val creditDeductor = FakeCreditDeductor(failDeductAtCall = 2)
         val repo = FakeGenerationRepository(shouldFail = true)
         val resultsHolder = FakeGenerationResultsHolder()
-        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2))
+        val twoPhotoConfig = testConfig.copy(photos = listOf(testPhoto, testPhoto2), units = unitsFor(listOf(testPhoto, testPhoto2), listOf(testStyle)))
         val vm = createViewModelWithDeductor(
             config = twoPhotoConfig,
             generationRepo = repo,
@@ -313,6 +330,70 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         createViewModel(historyRepo = historyRepo)
 
         assertEquals(1, historyRepo.savedResults.size)
+    }
+
+    @Test
+    fun `saved history results are stamped with the config batchId`() {
+        val historyRepo = FakeHistoryRepository()
+        createViewModel(historyRepo = historyRepo)
+
+        assertEquals(1, historyRepo.savedResults.size)
+        assertEquals("test-batch-id", historyRepo.savedResults.first().batchId)
+    }
+
+    @Test
+    fun `one photo with two styles generates two units and deducts two credits`() {
+        val creditDeductor = FakeCreditDeductor()
+        val multiStyleConfig = testConfig.copy(units = unitsFor(listOf(testPhoto), listOf(testStyle, testStyle2)))
+        val generatePreview = GeneratePreviewUseCase(FakeGenerationRepository(), FakeHistoryRepository(), FakeErrorReporter())
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeErrorReporter())
+        val resultsHolder = FakeGenerationResultsHolder()
+        val vm = ProcessingViewModel(
+            generationConfigHolder = FakeGenerationConfigHolder(multiStyleConfig),
+            generationResultsHolder = resultsHolder,
+            generateBatchPreviewsUseCase = batchUseCase,
+            analyticsService = FakeAnalyticsService(),
+            completionDelayMs = 0L
+        )
+
+        assertIs<ProcessingUiState.Complete>(vm.uiState.value)
+        assertEquals(2, resultsHolder.currentResults?.size)
+        assertEquals(2, creditDeductor.deductCalled)
+        assertTrue(creditDeductor.deductKeys[0].contains("clean_white"))
+        assertTrue(creditDeductor.deductKeys[1].contains("warm_linen"))
+        assertTrue(creditDeductor.deductKeys.all { it.startsWith("test-batch-id-photo_1-") })
+    }
+
+    @Test
+    fun `multi-style results carry each style`() {
+        val multiStyleConfig = testConfig.copy(units = unitsFor(listOf(testPhoto), listOf(testStyle, testStyle2)))
+        val resultsHolder = FakeGenerationResultsHolder()
+        createViewModel(config = multiStyleConfig, resultsHolder = resultsHolder)
+
+        val styles = resultsHolder.currentResults
+            ?.filterIsInstance<GenerationResult.Success>()
+            ?.map { it.style.id }
+        assertEquals(listOf("clean_white", "warm_linen"), styles)
+    }
+
+    @Test
+    fun `mid-batch failure in multi-style run refunds one credit`() {
+        val creditDeductor = FakeCreditDeductor()
+        val multiStyleConfig = testConfig.copy(units = unitsFor(listOf(testPhoto), listOf(testStyle, testStyle2)))
+        val repo = FakeGenerationRepository(failOnIndex = 1)
+        val generatePreview = GeneratePreviewUseCase(repo, FakeHistoryRepository(), FakeErrorReporter())
+        val batchUseCase = GenerateBatchPreviewsUseCase(generatePreview, creditDeductor, FakeErrorReporter())
+        val resultsHolder = FakeGenerationResultsHolder()
+        ProcessingViewModel(
+            generationConfigHolder = FakeGenerationConfigHolder(multiStyleConfig),
+            generationResultsHolder = resultsHolder,
+            generateBatchPreviewsUseCase = batchUseCase,
+            analyticsService = FakeAnalyticsService(),
+            completionDelayMs = 0L
+        )
+
+        assertEquals(1, creditDeductor.refundCalled)
+        assertEquals(1, resultsHolder.refundedCredits)
     }
 
     // --- Factory ---
@@ -396,12 +477,14 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     ) : CreditDeductor {
         var deductCalled = 0
         var refundCalled = 0
+        val deductKeys = mutableListOf<String>()
         private var stopFailing = false
 
         fun stopFailingDeductions() { stopFailing = true }
 
         override suspend fun deductGenerationCredit(idempotencyKey: String): Result<UserCredits> {
             deductCalled++
+            deductKeys.add(idempotencyKey)
             return when {
                 insufficientCredits -> Result.failure(InsufficientCreditsException())
                 deductShouldFail -> Result.failure(RuntimeException("Insufficient credits"))
@@ -486,6 +569,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
             savedResults.removeAll { it.generationId == id }
         }
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
+        override suspend fun setGalleryUri(id: String, galleryUri: String) {}
         override suspend fun updateSessionLabel(sessionId: String, label: String) {}
         override suspend fun deleteSession(sessionId: String) {}
     }
@@ -510,7 +594,7 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         override fun invoke(
             config: GenerationConfig,
             resumeState: BatchResumeState,
-            onPhotoProgress: (suspend (photoIndex: Int, progress: Float) -> Unit)?
+            onUnitProgress: (suspend (unitIndex: Int, progress: Float) -> Unit)?
         ): Flow<BatchProgress> = flow {
             throw exception
         }

@@ -3,12 +3,15 @@ package com.middleton.studiosnap.feature.history.data.repository
 import com.middleton.studiosnap.core.data.database.GenerationDao
 import com.middleton.studiosnap.core.data.database.toDomainModel
 import com.middleton.studiosnap.core.data.database.toEntity
+import com.middleton.studiosnap.core.domain.model.UiText
 import com.middleton.studiosnap.feature.history.domain.model.HistorySession
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.home.domain.repository.StyleRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import studiosnap.composeapp.generated.resources.Res
+import studiosnap.composeapp.generated.resources.history_styles_count
 
 class HistoryRepositoryImpl(
     private val generationDao: GenerationDao,
@@ -32,7 +35,17 @@ class HistoryRepositoryImpl(
                         ?: emptyList(),
                     imageCount = summary.imageCount,
                     sessionLabel = summary.sessionLabel,
-                    styleName = summary.styleName,
+                    // Resolve the style's localized display name from its id. The stored
+                    // styleName is a raw fallback (the style id for StringResource-based
+                    // styles), so only use it when the style is no longer in the repository.
+                    // For multi-style sessions the GROUP BY row's styleId/styleName are
+                    // arbitrary — show an "N styles" label instead.
+                    styleDisplayName = if (summary.styleCount > 1) {
+                        UiText.StringResource(Res.string.history_styles_count, arrayOf(summary.styleCount))
+                    } else {
+                        styleRepository.getStyleById(summary.styleId)?.displayName
+                            ?: UiText.DynamicString(summary.styleName)
+                    },
                     createdAt = summary.latestCreatedAt
                 )
             }
@@ -63,6 +76,10 @@ class HistoryRepositoryImpl(
 
     override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {
         generationDao.markAsPurchased(id, fullResLocalUri)
+    }
+
+    override suspend fun setGalleryUri(id: String, galleryUri: String) {
+        generationDao.setGalleryUri(id, galleryUri)
     }
 
     override suspend fun updateSessionLabel(sessionId: String, label: String) {

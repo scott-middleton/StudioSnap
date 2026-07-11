@@ -75,7 +75,10 @@ class ResultsViewModel(
         viewModelScope.launch {
             results.forEach { item ->
                 val success = item.result as? GenerationResult.Success ?: return@forEach
-                saveToGalleryUseCase(success.previewUri, "$SAVE_NAME_PREFIX${success.generationId}")
+                saveToGalleryUseCase(
+                    generationId = success.generationId,
+                    localFilePath = success.previewUri
+                )
                     .onSuccess {
                         updateResultItem(success.generationId) { it.copy(isSavedToGallery = true) }
                         analyticsService.logEvent(AnalyticsEvents.DOWNLOAD_COMPLETED)
@@ -135,9 +138,5 @@ class ResultsViewModel(
                 }
             )
         }
-    }
-
-    companion object {
-        private const val SAVE_NAME_PREFIX = "studiosnap_"
     }
 }

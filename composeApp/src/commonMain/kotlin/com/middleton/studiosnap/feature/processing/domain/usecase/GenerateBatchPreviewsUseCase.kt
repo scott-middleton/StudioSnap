@@ -9,9 +9,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.datetime.Clock
 
 /**
- * Progress carried across a retry so already-processed photos are never re-run.
- * [results] holds one entry per photo already attempted (successes and refunded
- * failures alike); [refundedCredits] is the running refund count so far.
+ * Progress carried across a retry so already-processed units are never re-run.
+ * [results] holds one entry per (photo, style) unit already attempted (successes and
+ * refunded failures alike); [refundedCredits] is the running refund count so far.
  */
 data class BatchResumeState(
     val results: List<GenerationResult> = emptyList(),
@@ -23,13 +23,13 @@ data class BatchResumeState(
 }
 
 /**
- * Sequentially generates styled images for all photos in a batch.
- * Deducts 1 credit per photo with server-side pending deduction tracking.
+ * Sequentially generates styled images for every (photo, style) unit in a batch.
+ * Deducts 1 credit per unit with server-side pending deduction tracking.
  * If generation fails, requests a refund of the most recent pending deduction.
- * Emits progress after each image completes. Does NOT run in parallel —
+ * Emits progress after each unit completes. Does NOT run in parallel —
  * Replicate has rate limits and sequential is simpler for error handling.
  *
- * A [resumeState] resumes a batch after a mid-batch failure + retry: photos
+ * A [resumeState] resumes a batch after a mid-batch failure + retry: units
  * already present in [BatchResumeState.results] (successes and refunded
  * failures alike) are skipped entirely — never re-deducted, never re-run.
  */
@@ -40,31 +40,32 @@ open class GenerateBatchPreviewsUseCase(
 ) {
 
     /**
-     * Returns a Flow that emits [BatchProgress] after each photo is processed.
-     * Consumer can cancel the flow to abort remaining images.
+     * Returns a Flow that emits [BatchProgress] after each unit is processed.
+     * Consumer can cancel the flow to abort remaining units.
      */
     open operator fun invoke(
         config: GenerationConfig,
         resumeState: BatchResumeState = BatchResumeState.EMPTY,
-        onPhotoProgress: (suspend (photoIndex: Int, progress: Float) -> Unit)? = null
+        onUnitProgress: (suspend (unitIndex: Int, progress: Float) -> Unit)? = null
     ): Flow<BatchProgress> = flow {
-        val photoCount = config.photos.size
-        require(photoCount > 0) { "GenerationConfig.photos must not be empty" }
+        val units = config.units
+        val totalCount = units.size
+        require(totalCount > 0) { "GenerationConfig.units must not be empty" }
 
         val results = resumeState.results.toMutableList()
         val baseIndex = results.size
         var refundedCredits = resumeState.refundedCredits
 
-        if (baseIndex >= photoCount) {
+        if (baseIndex >= totalCount) {
             // Already fully processed (e.g. a resumeState from a completed batch) —
             // nothing left to run. Emit the terminal progress so a caller collecting
             // this flow still reaches completion instead of waiting on a flow that
-            // silently emits nothing. results.last() is safe: baseIndex >= photoCount > 0
+            // silently emits nothing. results.last() is safe: baseIndex >= totalCount > 0
             // means at least one prior result exists.
             emit(
                 BatchProgress(
-                    currentIndex = photoCount - 1,
-                    totalCount = photoCount,
+                    currentIndex = totalCount - 1,
+                    totalCount = totalCount,
                     results = results.toList(),
                     currentResult = results.last(),
                     refundedCredits = refundedCredits
@@ -73,14 +74,15 @@ open class GenerateBatchPreviewsUseCase(
             return@flow
         }
 
-        config.photos.drop(baseIndex).forEachIndexed { offset, photo ->
+        units.drop(baseIndex).forEachIndexed { offset, unit ->
             val index = baseIndex + offset
-            val idempotencyKey = "${config.batchId}-${photo.id}-${Clock.System.now().toEpochMilliseconds()}"
+            val idempotencyKey =
+                "${config.batchId}-${unit.photo.id}-${unit.style.id}-${Clock.System.now().toEpochMilliseconds()}"
             creditDeductor.deductGenerationCredit(idempotencyKey)
                 .getOrElse { throw it }
 
-            val result = generatePreviewUseCase(photo, config, deductionKey = idempotencyKey) { progress ->
-                onPhotoProgress?.invoke(index, progress)
+            val result = generatePreviewUseCase(unit, config, deductionKey = idempotencyKey) { progress ->
+                onUnitProgress?.invoke(index, progress)
             }
 
             if (result is GenerationResult.Failure) {
@@ -94,7 +96,7 @@ open class GenerateBatchPreviewsUseCase(
             emit(
                 BatchProgress(
                     currentIndex = index,
-                    totalCount = photoCount,
+                    totalCount = totalCount,
                     results = results.toList(),
                     currentResult = result,
                     refundedCredits = refundedCredits

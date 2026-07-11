@@ -5,13 +5,13 @@ import com.middleton.studiosnap.core.domain.service.ErrorReporter
 import com.middleton.studiosnap.feature.home.domain.model.GenerationConfig
 import com.middleton.studiosnap.feature.home.domain.model.GenerationError
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
-import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.repository.GenerationRepository
 import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 
 /**
- * Generates a styled image for a single photo.
- * Results are saved to history.
+ * Generates a styled image for a single (photo, style) unit.
+ * Results are saved to history, stamped with the batch's id so all units from one
+ * generation run group into a single history session.
  */
 class GeneratePreviewUseCase(
     private val generationRepository: GenerationRepository,
@@ -20,15 +20,16 @@ class GeneratePreviewUseCase(
 ) {
 
     suspend operator fun invoke(
-        photo: ProductPhoto,
+        unit: GenerationConfig.GenerationUnit,
         config: GenerationConfig,
         deductionKey: String? = null,
         onProgress: (suspend (Float) -> Unit)? = null
     ): GenerationResult {
+        val photo = unit.photo
         val result = generationRepository.generateImage(
             photo = photo,
-            prompt = config.resolvedPrompt,
-            style = config.style,
+            prompt = unit.resolvedPrompt,
+            style = unit.style,
             exportFormat = config.exportFormat,
             quality = config.quality,
             deductionKey = deductionKey,
@@ -37,8 +38,13 @@ class GeneratePreviewUseCase(
 
         return result.fold(
             onSuccess = { success ->
-                historyRepository.save(success)
-                success
+                // GenerationRepositoryImpl returns batchId = "" — stamp the real batch id here
+                // so GenerationDao.getSessions()'s COALESCE(NULLIF(batchId,''), id) groups all
+                // units from this run into one session. Legacy rows (saved before this fix)
+                // keep batchId = "" and still render as individual sessions.
+                val stamped = success.copy(batchId = config.batchId)
+                historyRepository.save(stamped)
+                stamped
             },
             onFailure = { throwable ->
                 println("StudioSnap GeneratePreviewUseCase failure: ${throwable::class.simpleName} - ${throwable.message}")

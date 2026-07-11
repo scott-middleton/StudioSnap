@@ -87,14 +87,16 @@ private fun NavGraphBuilder.addHomeScreen() {
     composable<Route.Home> { backStackEntry ->
         val viewModel: HomeViewModel = koinViewModel()
 
-        // Observe style picker result reactively
-        val selectedStyleId by backStackEntry.savedStateHandle
+        // Observe style picker result reactively (comma-joined style ids)
+        val selectedStyleIdsCsv by backStackEntry.savedStateHandle
             .getStateFlow<String?>(HomeNavigationAction.STYLE_PICKER_RESULT_KEY, null)
             .collectAsState()
 
-        LaunchedEffect(selectedStyleId) {
-            selectedStyleId?.let { styleId ->
-                viewModel.handleAction(HomeUiAction.OnStyleSelected(styleId))
+        LaunchedEffect(selectedStyleIdsCsv) {
+            selectedStyleIdsCsv?.let { csv ->
+                viewModel.handleAction(
+                    HomeUiAction.OnStylesSelected(csv.split(",").filter { it.isNotEmpty() })
+                )
                 backStackEntry.savedStateHandle
                     .remove<String>(HomeNavigationAction.STYLE_PICKER_RESULT_KEY)
             }
@@ -109,11 +111,12 @@ private fun NavGraphBuilder.addStylePickerScreen(navController: androidx.navigat
         val route = backStackEntry.toRoute<Route.StylePicker>()
 
         StylePickerScreen(
-            currentSelectedStyleId = route.currentStyleId,
-            onStyleSelected = { styleId ->
+            currentStyleIds = route.currentStyleIds.split(",").filter { it.isNotEmpty() },
+            maxSelectable = route.maxSelectable,
+            onStylesSelected = { styleIds ->
                 navController.previousBackStackEntry
                     ?.savedStateHandle
-                    ?.set(HomeNavigationAction.STYLE_PICKER_RESULT_KEY, styleId)
+                    ?.set(HomeNavigationAction.STYLE_PICKER_RESULT_KEY, styleIds.joinToString(","))
                 navController.popBackStack()
             },
             onClose = {

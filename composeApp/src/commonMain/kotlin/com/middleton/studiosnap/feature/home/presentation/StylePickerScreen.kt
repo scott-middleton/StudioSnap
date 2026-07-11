@@ -1,5 +1,8 @@
 package com.middleton.studiosnap.feature.home.presentation
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,7 +57,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -66,6 +73,7 @@ import com.middleton.studiosnap.feature.home.domain.model.Style
 import com.middleton.studiosnap.feature.home.domain.model.StyleCategory
 import com.middleton.studiosnap.feature.home.presentation.action.StylePickerUiAction
 import com.middleton.studiosnap.feature.home.presentation.viewmodel.StylePickerViewModel
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -74,25 +82,30 @@ import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.content_close
 import studiosnap.composeapp.generated.resources.ic_palette
 import studiosnap.composeapp.generated.resources.style_picker_empty_category
+import studiosnap.composeapp.generated.resources.style_picker_multi_empty_hint
+import studiosnap.composeapp.generated.resources.style_picker_multi_subtitle
 import studiosnap.composeapp.generated.resources.style_picker_selected
 import studiosnap.composeapp.generated.resources.style_picker_title
+import studiosnap.composeapp.generated.resources.style_picker_use_n_styles
 import studiosnap.composeapp.generated.resources.style_picker_use_this_style
 import studiosnap.composeapp.generated.resources.style_picker_view_fullscreen
 
 @Composable
 fun StylePickerScreen(
-    currentSelectedStyleId: String?,
+    currentStyleIds: List<String>,
+    maxSelectable: Int,
     viewModel: StylePickerViewModel = koinViewModel(),
-    onStyleSelected: (String) -> Unit,
+    onStylesSelected: (List<String>) -> Unit,
     onClose: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(currentSelectedStyleId) {
-        viewModel.handleAction(StylePickerUiAction.OnInitialise(currentSelectedStyleId))
+    LaunchedEffect(currentStyleIds, maxSelectable) {
+        viewModel.handleAction(StylePickerUiAction.OnInitialise(currentStyleIds, maxSelectable))
     }
 
     val heroStyle = uiState.allStyles.find { it.id == uiState.heroStyleId }
+    val selectedStyles = uiState.selectedStyleIds.mapNotNull { id -> uiState.allStyles.find { it.id == id } }
 
     StylePickerScreenContent(
         styles = uiState.styles,
@@ -100,9 +113,27 @@ fun StylePickerScreen(
         heroStyle = heroStyle,
         isHeroUnconfirmedPreview = uiState.isHeroUnconfirmedPreview,
         selectedCategory = uiState.selectedCategory,
+        isMultiSelect = uiState.isMultiSelect,
+        selectedStyleIds = uiState.selectedStyleIds,
+        selectedStyles = selectedStyles,
+        isAtCap = uiState.isAtCap,
+        maxSelectable = uiState.maxSelectable,
+        capPulse = uiState.capPulse,
         onCategorySelected = { viewModel.handleAction(StylePickerUiAction.OnCategorySelected(it)) },
-        onStylePreviewed = { viewModel.handleAction(StylePickerUiAction.OnStylePreviewed(it)) },
-        onStyleSelected = onStyleSelected,
+        onStyleTapped = { styleId ->
+            if (uiState.isMultiSelect) {
+                viewModel.handleAction(StylePickerUiAction.OnStyleToggled(styleId))
+            } else {
+                viewModel.handleAction(StylePickerUiAction.OnStylePreviewed(styleId))
+            }
+        },
+        onConfirm = {
+            if (uiState.isMultiSelect) {
+                if (uiState.selectedStyleIds.isNotEmpty()) onStylesSelected(uiState.selectedStyleIds)
+            } else {
+                uiState.heroStyleId?.let { onStylesSelected(listOf(it)) }
+            }
+        },
         onClose = onClose
     )
 }
@@ -116,11 +147,31 @@ internal fun StylePickerScreenContent(
     isHeroUnconfirmedPreview: Boolean,
     selectedCategory: StyleCategory,
     onCategorySelected: (StyleCategory) -> Unit,
-    onStylePreviewed: (String) -> Unit,
-    onStyleSelected: (String) -> Unit,
-    onClose: () -> Unit
+    onStyleTapped: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onClose: () -> Unit,
+    isMultiSelect: Boolean = false,
+    selectedStyleIds: List<String> = emptyList(),
+    selectedStyles: List<Style> = emptyList(),
+    isAtCap: Boolean = false,
+    maxSelectable: Int = 1,
+    capPulse: Int = 0
 ) {
     var fullScreenStyle by remember { mutableStateOf<Style?>(null) }
+
+    // Brief green flash on the multi-select subtitle when an at-cap tap is rejected.
+    var pulsing by remember { mutableStateOf(false) }
+    LaunchedEffect(capPulse) {
+        if (capPulse == 0) return@LaunchedEffect
+        pulsing = true
+        delay(150)
+        pulsing = false
+    }
+    val subtitleColor by animateColorAsState(
+        targetValue = if (pulsing) AppColors.PrimaryGreen else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(if (pulsing) 100 else 300),
+        label = "capPulseColor"
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -183,21 +234,48 @@ internal fun StylePickerScreenContent(
                         .fillMaxSize()
                         .padding(padding)
                 ) {
-                    if (heroStyle != null) {
-                        SelectedStyleHero(
-                            style = heroStyle,
-                            showSelectedBadge = !isHeroUnconfirmedPreview,
-                            onClick = { fullScreenStyle = heroStyle },
+                    if (isMultiSelect) {
+                        Text(
+                            text = stringResource(Res.string.style_picker_multi_subtitle, maxSelectable),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = subtitleColor,
                             modifier = Modifier.padding(horizontal = 20.dp)
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    if (isMultiSelect || heroStyle != null) {
+                        if (isMultiSelect) {
+                            SelectedStylesHero(
+                                selectedStyles = selectedStyles,
+                                onRemove = onStyleTapped,
+                                onSegmentTap = { fullScreenStyle = it },
+                                modifier = Modifier.padding(horizontal = 20.dp)
+                            )
+                        } else if (heroStyle != null) {
+                            SelectedStyleHero(
+                                style = heroStyle,
+                                showSelectedBadge = !isHeroUnconfirmedPreview,
+                                onClick = { fullScreenStyle = heroStyle },
+                                modifier = Modifier.padding(horizontal = 20.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.height(10.dp))
                         Button(
-                            onClick = { onStyleSelected(heroStyle.id) },
+                            onClick = onConfirm,
+                            enabled = !isMultiSelect || selectedStyleIds.isNotEmpty(),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 20.dp)
                         ) {
-                            Text(text = stringResource(Res.string.style_picker_use_this_style))
+                            Text(
+                                text = if (isMultiSelect && selectedStyleIds.size > 1) {
+                                    stringResource(Res.string.style_picker_use_n_styles, selectedStyleIds.size)
+                                } else {
+                                    stringResource(Res.string.style_picker_use_this_style)
+                                }
+                            )
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                     }
@@ -222,8 +300,11 @@ internal fun StylePickerScreenContent(
                             StylePickerCard(
                                 styleName = style.displayName.asString(),
                                 thumbnail = style.thumbnail,
-                                isSelected = style.id == heroStyleId,
-                                onClick = { onStylePreviewed(style.id) }
+                                isSelected = if (isMultiSelect) style.id in selectedStyleIds else style.id == heroStyleId,
+                                selectionIndex = if (isMultiSelect) {
+                                    selectedStyleIds.indexOf(style.id).takeIf { it >= 0 }?.plus(1)
+                                } else null,
+                                onClick = { onStyleTapped(style.id) }
                             )
                         }
 
@@ -345,6 +426,154 @@ private fun SelectedStyleHero(
     }
 }
 
+// ─── Selected Styles Hero (multi-select) ────────────────────────────────────
+
+@Composable
+private fun SelectedStylesHero(
+    selectedStyles: List<Style>,
+    onRemove: (String) -> Unit,
+    onSegmentTap: (Style) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(118.dp)
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(18.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        if (selectedStyles.isEmpty()) {
+            Text(
+                text = stringResource(Res.string.style_picker_multi_empty_hint),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 32.dp)
+            )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                selectedStyles.forEachIndexed { index, style ->
+                    key(style.id) {
+                        // New segments compose with animateIn = false, then grow from ~0 to
+                        // full weight so the strip visibly divides as selections are added.
+                        var animateIn by remember { mutableStateOf(false) }
+                        LaunchedEffect(Unit) { animateIn = true }
+                        val animatedWeight by animateFloatAsState(
+                            targetValue = if (animateIn) 1f else 0.001f,
+                            animationSpec = tween(300),
+                            label = "heroSegmentWeight"
+                        )
+                        HeroSegment(
+                            style = style,
+                            index = index + 1,
+                            onRemove = { onRemove(style.id) },
+                            onTap = { onSegmentTap(style) },
+                            modifier = Modifier
+                                .weight(animatedWeight)
+                                .fillMaxHeight()
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeroSegment(
+    style: Style,
+    index: Int,
+    onRemove: () -> Unit,
+    onTap: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier.clickable(onClick = onTap)) {
+        if (style.thumbnail != null) {
+            Image(
+                painter = painterResource(style.thumbnail),
+                contentDescription = style.displayName.asString(),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_palette),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Bottom scrim for label legibility
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.65f)),
+                        startY = 60f
+                    )
+                )
+        )
+
+        SelectionOrderBadge(
+            index = index,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(8.dp)
+        )
+
+        // Remove button — 14dp icon inside a scrim circle, 32dp touch target
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(32.dp)
+                .clickable(onClick = onRemove),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(100.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(Res.string.content_close),
+                    tint = Color.White,
+                    modifier = Modifier.size(14.dp)
+                )
+            }
+        }
+
+        Text(
+            text = style.displayName.asString(),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(8.dp)
+        )
+    }
+}
+
 // ─── Category Chips ─────────────────────────────────────────────────────────
 
 @Composable
@@ -403,6 +632,37 @@ private fun CategoryChip(
     }
 }
 
+// ─── Selection Badge ────────────────────────────────────────────────────────
+
+@Composable
+private fun SelectionOrderBadge(
+    index: Int,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(20.dp)
+            .background(AppColors.PrimaryGreen, RoundedCornerShape(100.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "$index",
+            style = TextStyle(
+                fontSize = 10.sp,
+                lineHeight = 10.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                // Trim font padding so the digit is optically centered in the circle
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.Both
+                )
+            ),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 // ─── Style Card ─────────────────────────────────────────────────────────────
 
 @Composable
@@ -411,7 +671,8 @@ private fun StylePickerCard(
     thumbnail: DrawableResource?,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selectionIndex: Int? = null
 ) {
     Column(
         modifier = modifier,
@@ -456,6 +717,16 @@ private fun StylePickerCard(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+
+            // Selection-order badge (multi-select mode only)
+            if (selectionIndex != null) {
+                SelectionOrderBadge(
+                    index = selectionIndex,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(6.dp)
+                )
             }
         }
 

@@ -7,6 +7,8 @@ import com.middleton.studiosnap.core.domain.service.AnalyticsService
 import com.middleton.studiosnap.core.domain.service.ErrorReporter
 import com.middleton.studiosnap.core.domain.service.FakeAnalyticsService
 import com.middleton.studiosnap.core.presentation.BaseViewModelTest
+import com.middleton.studiosnap.feature.history.domain.model.HistorySession
+import com.middleton.studiosnap.feature.history.domain.repository.HistoryRepository
 import com.middleton.studiosnap.feature.home.domain.model.GenerationResult
 import com.middleton.studiosnap.feature.home.domain.model.ProductPhoto
 import com.middleton.studiosnap.feature.home.domain.model.Style
@@ -121,6 +123,21 @@ class ResultsViewModelTest : BaseViewModelTest() {
         assertFalse(sut.uiState.value.results.first().showingOriginal)
     }
 
+    @Test
+    fun `hasMultipleStyles is true when results span styles`() {
+        val secondStyle = testStyle.copy(id = "warm_linen", displayName = UiText.DynamicString("Warm Linen"))
+        val result2 = successResult.copy(generationId = "gen_2", style = secondStyle)
+        val sut = createSut(results = listOf(successResult, result2))
+        assertTrue(sut.uiState.value.hasMultipleStyles)
+    }
+
+    @Test
+    fun `hasMultipleStyles is false for single style batch`() {
+        val result2 = successResult.copy(generationId = "gen_2")
+        val sut = createSut(results = listOf(successResult, result2))
+        assertFalse(sut.uiState.value.hasMultipleStyles)
+    }
+
     // Share analytics are logged only on success of the platform shareImage() call.
     // That call requires a real Android context / iOS view controller and cannot be
     // meaningfully unit-tested here — covered by manual/integration testing.
@@ -169,7 +186,7 @@ class ResultsViewModelTest : BaseViewModelTest() {
         analyticsService: AnalyticsService = FakeAnalyticsService()
     ): ResultsViewModel {
         val resultsHolder = FakeGenerationResultsHolder(results)
-        val saveToGalleryUseCase = SaveToGalleryUseCase(galleryRepo, FakeErrorReporter())
+        val saveToGalleryUseCase = SaveToGalleryUseCase(galleryRepo, FakeHistoryRepository(), FakeErrorReporter())
         return ResultsViewModel(
             generationResultsHolder = resultsHolder,
             saveToGalleryUseCase = saveToGalleryUseCase,
@@ -198,5 +215,20 @@ class ResultsViewModelTest : BaseViewModelTest() {
 
     private class FakeErrorReporter : ErrorReporter {
         override fun recordException(exception: Throwable) {}
+    }
+
+    private class FakeHistoryRepository : HistoryRepository {
+        override fun getAll() = kotlinx.coroutines.flow.flowOf(emptyList<GenerationResult.Success>())
+        override fun getSessions() = kotlinx.coroutines.flow.flowOf(emptyList<HistorySession>())
+        override fun getBySessionId(sessionId: String) =
+            kotlinx.coroutines.flow.flowOf(emptyList<GenerationResult.Success>())
+        override suspend fun save(result: GenerationResult.Success) {}
+        override suspend fun saveAll(results: List<GenerationResult.Success>) {}
+        override suspend fun getById(id: String): GenerationResult.Success? = null
+        override suspend fun delete(id: String) {}
+        override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
+        override suspend fun setGalleryUri(id: String, galleryUri: String) {}
+        override suspend fun updateSessionLabel(sessionId: String, label: String) {}
+        override suspend fun deleteSession(sessionId: String) {}
     }
 }

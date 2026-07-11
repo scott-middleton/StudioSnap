@@ -292,6 +292,9 @@
     <string name="style_picker_selected">SELECTED</string>
     <string name="style_picker_use_this_style">Use this style</string>
     <string name="style_picker_view_fullscreen">View fullscreen</string>
+    <string name="style_picker_use_n_styles">Use %1$d styles</string>
+    <string name="style_picker_multi_subtitle">Select up to %1$d styles</string>
+    <string name="style_picker_multi_empty_hint">Pick your first style</string>
 
     <!-- Home - Style Section -->
     <string name="home_background_style">Background Style</string>
@@ -299,6 +302,13 @@
     <string name="home_style_choose">Choose a style</string>
     <string name="home_style_choose_hint">Professional backgrounds</string>
     <string name="home_photos_header">Photos (%1$d / %2$d)</string>
+    <string name="home_styles_selected">%1$d styles</string>
+    <string name="home_cost_breakdown_multi_style">1 photo × %1$d styles = %2$d credits</string>
+    <string name="home_multi_style_hint">Use a single photo to try multiple styles</string>
+
+    <!-- One photo × multiple styles -->
+    <string name="processing_style_progress">Style %1$d of %2$d</string>
+    <string name="history_styles_count">%1$d styles</string>
 
     <!-- Home - Recent Generations Section -->
     <string name="home_recent_title">Recent Generations</string>

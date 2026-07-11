@@ -34,10 +34,13 @@ class GenerateBatchPreviewsUseCaseTest {
     private val photo1 = ProductPhoto(id = "photo_1", localUri = "content://photo1")
     private val photo2 = ProductPhoto(id = "photo_2", localUri = "content://photo2")
 
+    private fun unitsFor(photos: List<ProductPhoto>) = photos.map { photo ->
+        GenerationConfig.GenerationUnit(photo, testStyle, testStyle.kontextPrompt)
+    }
+
     private val config = GenerationConfig(
         photos = listOf(photo1, photo2),
-        style = testStyle,
-        resolvedPrompt = testStyle.kontextPrompt,
+        units = unitsFor(listOf(photo1, photo2)),
         shadow = false,
         reflection = false,
         exportFormat = ExportFormat.DEFAULT,
@@ -47,7 +50,7 @@ class GenerateBatchPreviewsUseCaseTest {
 
     @Test
     fun `refund uses the same key as the failed photo's deduction`() = runTest {
-        val singlePhotoConfig = config.copy(photos = listOf(photo1))
+        val singlePhotoConfig = config.copy(photos = listOf(photo1), units = unitsFor(listOf(photo1)))
         val creditDeductor = FakeCreditDeductor()
         val repo = FakeGenerationRepository(failOnIndex = 0)
         val useCase = GenerateBatchPreviewsUseCase(
@@ -271,6 +274,7 @@ class GenerateBatchPreviewsUseCaseTest {
         override suspend fun getById(id: String): GenerationResult.Success? = null
         override suspend fun delete(id: String) {}
         override suspend fun markAsPurchased(id: String, fullResLocalUri: String) {}
+        override suspend fun setGalleryUri(id: String, galleryUri: String) {}
         override suspend fun updateSessionLabel(sessionId: String, label: String) {}
         override suspend fun deleteSession(sessionId: String) {}
     }

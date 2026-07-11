@@ -24,6 +24,9 @@ interface GenerationDao {
     @Query("UPDATE generations SET isPurchased = 1, fullResLocalUri = :fullResLocalUri WHERE id = :id")
     suspend fun markAsPurchased(id: String, fullResLocalUri: String)
 
+    @Query("UPDATE generations SET galleryUri = :galleryUri WHERE id = :id")
+    suspend fun setGalleryUri(id: String, galleryUri: String)
+
     @Query("DELETE FROM generations WHERE id = :id")
     suspend fun delete(id: String)
 
@@ -42,7 +45,9 @@ interface GenerationDao {
         SELECT COALESCE(NULLIF(batchId,''), id) AS sessionId,
                COUNT(*) AS imageCount,
                sessionLabel,
+               styleId,
                styleName,
+               COUNT(DISTINCT styleId) AS styleCount,
                MAX(createdAt) AS latestCreatedAt,
                (SELECT GROUP_CONCAT(p.previewUri, ',')
                 FROM (SELECT previewUri FROM generations g2

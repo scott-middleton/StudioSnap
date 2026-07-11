@@ -73,7 +73,7 @@ class HomeViewModel(
                 addPhotos(action.uris)
             }
             is HomeUiAction.OnPhotoRemoved -> removePhoto(action.photoId)
-            is HomeUiAction.OnStyleSelected -> selectStyle(action.styleId)
+            is HomeUiAction.OnStylesSelected -> selectStyles(action.styleIds)
             is HomeUiAction.OnCustomDescriptionChanged -> onCustomDescriptionChanged(action.text)
             is HomeUiAction.OnCustomDescriptionExpandedToggled -> toggleCustomDescriptionExpanded()
             is HomeUiAction.OnShadowToggled -> toggleShadow(action.enabled)
@@ -81,7 +81,8 @@ class HomeViewModel(
             is HomeUiAction.OnExportFormatSelected -> selectExportFormat(action.format)
             is HomeUiAction.OnStylePickerClicked -> navigateTo(
                 HomeNavigationAction.GoToStylePicker(
-                    (_uiState.value.backgroundChoice as? BackgroundChoice.Preset)?.style?.id
+                    currentStyleIds = _uiState.value.selectedStyles.map { it.id },
+                    maxSelectable = _uiState.value.styleMaxSelectable
                 )
             )
             is HomeUiAction.OnGenerateClicked -> onGenerateClicked()
@@ -165,7 +166,23 @@ class HomeViewModel(
             )
         }
 
-        _uiState.update { it.copy(photos = currentPhotos + newPhotos) }
+        val updatedPhotos = currentPhotos + newPhotos
+        _uiState.update { state ->
+            // Adding a 2nd+ photo while multiple preset styles are selected collapses the
+            // selection to the first selected style (multi-style requires exactly 1 photo).
+            // A custom description is unaffected — it applies to every photo.
+            val choice = state.backgroundChoice
+            val collapsedChoice = if (
+                updatedPhotos.size > 1 &&
+                choice is BackgroundChoice.MultiPreset &&
+                choice.styles.size > 1
+            ) {
+                BackgroundChoice.MultiPreset(choice.styles.take(1))
+            } else {
+                choice
+            }
+            state.copy(photos = updatedPhotos, backgroundChoice = collapsedChoice)
+        }
         analyticsService.logEvent(AnalyticsEvents.PHOTO_ADDED, mapOf("count" to newPhotos.size.toString()))
     }
 
@@ -175,18 +192,24 @@ class HomeViewModel(
         }
     }
 
-    private fun selectStyle(styleId: String) {
-        val style = styleRepository.getStyleById(styleId)
-        if (style != null) {
-            _uiState.update { it.copy(backgroundChoice = BackgroundChoice.Preset(style)) }
+    private fun selectStyles(styleIds: List<String>) {
+        // Selecting presets is mutually exclusive with a custom description — this replaces
+        // whatever background choice was active. An empty selection clears back to null.
+        val styles = styleIds.mapNotNull { styleRepository.getStyleById(it) }.take(HomeUiState.MAX_STYLES)
+        _uiState.update {
+            it.copy(backgroundChoice = if (styles.isEmpty()) null else BackgroundChoice.MultiPreset(styles))
+        }
+        styles.firstOrNull()?.let { style ->
             analyticsService.logEvent(
                 AnalyticsEvents.STYLE_SELECTED,
-                mapOf("style_id" to styleId, "category" to style.categories.first().name)
+                mapOf("style_id" to style.id, "category" to style.categories.first().name)
             )
         }
     }
 
     private fun onCustomDescriptionChanged(text: String) {
+        // A custom description is mutually exclusive with preset styles — typing one
+        // replaces any preset selection; clearing it resets the background choice to null.
         val capped = text.take(HomeUiState.MAX_CUSTOM_DESCRIPTION_LENGTH)
         _uiState.update {
             it.copy(backgroundChoice = if (capped.isBlank()) null else BackgroundChoice.Custom(capped))
@@ -242,28 +265,10 @@ class HomeViewModel(
 
     @OptIn(ExperimentalUuidApi::class)
     private fun startGeneration(state: HomeUiState, choice: BackgroundChoice) {
-        val (style, resolvedPrompt) = when (choice) {
-            is BackgroundChoice.Preset -> choice.style to buildKontextPromptUseCase(
-                choice.style, state.shadow, state.reflection
-            )
-            is BackgroundChoice.Custom -> {
-                val placeholderStyle = Style(
-                    id = CUSTOM_STYLE_ID,
-                    displayName = UiText.DynamicString(CUSTOM_BACKGROUND_LABEL),
-                    categories = emptySet(),
-                    thumbnail = null,
-                    kontextPrompt = ""
-                )
-                placeholderStyle to buildKontextPromptUseCase(
-                    choice.description.trim(), state.shadow, state.reflection
-                )
-            }
-        }
-
+        val units = buildUnits(state, choice)
         val config = GenerationConfig(
             photos = state.photos,
-            style = style,
-            resolvedPrompt = resolvedPrompt,
+            units = units,
             shadow = state.shadow,
             reflection = state.reflection,
             exportFormat = state.exportFormat,
@@ -272,10 +277,12 @@ class HomeViewModel(
         )
 
         generationConfigHolder.currentConfig = config
+        val styles = config.styles
         analyticsService.logEvent(
             AnalyticsEvents.PREVIEW_GENERATION_STARTED,
             mapOf(
-                "style_id" to style.id,
+                "style_id" to (styles.firstOrNull()?.id ?: ""),
+                "style_count" to styles.size.toString(),
                 "photo_count" to state.photos.size.toString(),
                 "export_format" to state.exportFormat.name,
                 "shadow" to state.shadow.toString(),
@@ -285,6 +292,43 @@ class HomeViewModel(
 
         _uiState.update { it.copy(isGenerating = true) }
         _navigationEvent.value = HomeNavigationAction.GoToProcessing
+    }
+
+    /**
+     * Expands the mutually-exclusive background [choice] into the batch's atomic units:
+     *  - [BackgroundChoice.MultiPreset]: cartesian product photo-major (all styles for
+     *    photo 0, then photo 1, ...), each unit's prompt built from the style's Kontext
+     *    prompt plus shadow/reflection modifiers.
+     *  - [BackgroundChoice.Custom]: one unit per photo sharing a single placeholder Style
+     *    and the same custom-description prompt (History/Results show a generic label; the
+     *    user's text is never persisted).
+     */
+    private fun buildUnits(
+        state: HomeUiState,
+        choice: BackgroundChoice
+    ): List<GenerationConfig.GenerationUnit> = when (choice) {
+        is BackgroundChoice.MultiPreset -> state.photos.flatMap { photo ->
+            choice.styles.map { style ->
+                GenerationConfig.GenerationUnit(
+                    photo = photo,
+                    style = style,
+                    resolvedPrompt = buildKontextPromptUseCase(style, state.shadow, state.reflection)
+                )
+            }
+        }
+        is BackgroundChoice.Custom -> {
+            val placeholderStyle = Style(
+                id = CUSTOM_STYLE_ID,
+                displayName = UiText.DynamicString(CUSTOM_BACKGROUND_LABEL),
+                categories = emptySet(),
+                thumbnail = null,
+                kontextPrompt = ""
+            )
+            val prompt = buildKontextPromptUseCase(choice.description.trim(), state.shadow, state.reflection)
+            state.photos.map { photo ->
+                GenerationConfig.GenerationUnit(photo, placeholderStyle, prompt)
+            }
+        }
     }
 
     private fun onSignInResult(success: Boolean) {

@@ -22,13 +22,13 @@ sealed class HomeNavigationAction : NavigationAction {
         override val navigationCommand = NavigationCommand.Navigate(Route.CreditStore)
     }
 
-    data class GoToStylePicker(val currentStyleId: String?) : HomeNavigationAction() {
+    data class GoToStylePicker(val currentStyleIds: List<String>, val maxSelectable: Int) : HomeNavigationAction() {
         override val navigationCommand = NavigationCommand.Navigate(
-            Route.StylePicker(currentStyleId)
+            Route.StylePicker(currentStyleIds.joinToString(","), maxSelectable)
         )
     }
 
     companion object {
-        const val STYLE_PICKER_RESULT_KEY = "selected_style_id"
+        const val STYLE_PICKER_RESULT_KEY = "selected_style_ids"
     }
 }
