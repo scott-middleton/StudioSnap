@@ -386,7 +386,8 @@ class HomeViewModel(
 
     companion object {
         private const val RECENT_GENERATIONS_MAX = 5
-        private const val CUSTOM_STYLE_ID = "custom"
+        // internal so HomeViewModelTest can assert against it and stay in lockstep.
+        internal const val CUSTOM_STYLE_ID = "custom"
 
         // Fixed placeholder label for a custom-description generation — never the user's
         // actual text (decided: History/Results always show this generic label, and the

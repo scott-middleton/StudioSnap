@@ -110,6 +110,10 @@ import studiosnap.composeapp.generated.resources.home_add_photos_first
 import studiosnap.composeapp.generated.resources.home_background_style
 import studiosnap.composeapp.generated.resources.home_cost_breakdown_multi_style
 import studiosnap.composeapp.generated.resources.home_credits_error
+import studiosnap.composeapp.generated.resources.home_custom_description_char_count
+import studiosnap.composeapp.generated.resources.home_custom_description_disclaimer
+import studiosnap.composeapp.generated.resources.home_custom_description_placeholder
+import studiosnap.composeapp.generated.resources.home_custom_description_toggle
 import studiosnap.composeapp.generated.resources.home_error_credits_unavailable
 import studiosnap.composeapp.generated.resources.home_error_generation_failed
 import studiosnap.composeapp.generated.resources.home_error_sign_in_failed
@@ -134,10 +138,6 @@ import studiosnap.composeapp.generated.resources.home_recent_title
 import studiosnap.composeapp.generated.resources.home_recent_view_all
 import studiosnap.composeapp.generated.resources.home_remove_photo
 import studiosnap.composeapp.generated.resources.home_select_style_first
-import studiosnap.composeapp.generated.resources.home_custom_description_toggle
-import studiosnap.composeapp.generated.resources.home_custom_description_placeholder
-import studiosnap.composeapp.generated.resources.home_custom_description_disclaimer
-import studiosnap.composeapp.generated.resources.home_custom_description_char_count
 import studiosnap.composeapp.generated.resources.home_sign_in
 import studiosnap.composeapp.generated.resources.home_signing_in
 import studiosnap.composeapp.generated.resources.home_style_choose

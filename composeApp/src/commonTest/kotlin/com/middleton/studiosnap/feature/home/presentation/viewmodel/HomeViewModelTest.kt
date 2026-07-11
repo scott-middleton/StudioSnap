@@ -238,7 +238,7 @@ class HomeViewModelTest : BaseViewModelTest() {
         assertEquals(1, config!!.units.size)
         val unit = config.units.single()
         assertEquals("Marble countertop", unit.resolvedPrompt)
-        assertEquals("custom", unit.style.id)
+        assertEquals(HomeViewModel.CUSTOM_STYLE_ID, unit.style.id)
     }
 
     @Test
