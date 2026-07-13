@@ -51,6 +51,13 @@ sealed interface ProcessingUiState {
     sealed interface Error : ProcessingUiState {
         data class Generic(val message: UiText) : Error
         data object InsufficientCredits : Error
+
+        /**
+         * Every (photo, style) unit in the batch failed — nothing to show on Results,
+         * so the Processing screen stays put and offers Retry / Go Back instead.
+         * Retry re-runs the whole batch from scratch (all failures were refunded).
+         */
+        data class AllFailed(val refundedCredits: Int) : Error
     }
 
     data object Complete : ProcessingUiState

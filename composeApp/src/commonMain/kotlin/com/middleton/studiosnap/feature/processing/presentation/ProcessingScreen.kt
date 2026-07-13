@@ -88,6 +88,8 @@ import studiosnap.composeapp.generated.resources.Res
 import studiosnap.composeapp.generated.resources.processing_cancel
 import studiosnap.composeapp.generated.resources.processing_do_not_close
 import studiosnap.composeapp.generated.resources.processing_downloading
+import studiosnap.composeapp.generated.resources.processing_error_all_failed
+import studiosnap.composeapp.generated.resources.processing_error_all_failed_no_refund
 import studiosnap.composeapp.generated.resources.processing_error_insufficient_credits_body
 import studiosnap.composeapp.generated.resources.processing_error_insufficient_credits_title
 import studiosnap.composeapp.generated.resources.processing_error_title
@@ -173,6 +175,15 @@ fun ProcessingScreenContent(
             )
             is ProcessingUiState.Error.Generic -> GenericErrorContent(
                 message = state.message.asString(),
+                onRetry = { onAction(ProcessingUiAction.OnRetryClicked) },
+                onGoBack = { onAction(ProcessingUiAction.OnCancelClicked) }
+            )
+            is ProcessingUiState.Error.AllFailed -> GenericErrorContent(
+                message = if (state.refundedCredits > 0) {
+                    stringResource(Res.string.processing_error_all_failed, state.refundedCredits)
+                } else {
+                    stringResource(Res.string.processing_error_all_failed_no_refund)
+                },
                 onRetry = { onAction(ProcessingUiAction.OnRetryClicked) },
                 onGoBack = { onAction(ProcessingUiAction.OnCancelClicked) }
             )

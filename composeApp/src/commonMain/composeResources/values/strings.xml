@@ -280,6 +280,8 @@
     <string name="processing_get_credits">Get Credits</string>
     <string name="processing_error_insufficient_credits_title">Out of credits</string>
     <string name="processing_error_insufficient_credits_body">You don't have enough credits to continue. Buy more credits, then retry to pick up right where you left off.</string>
+    <string name="processing_error_all_failed">None of your images could be generated. %1$d credits have been refunded.</string>
+    <string name="processing_error_all_failed_no_refund">None of your images could be generated. Please try again.</string>
 
     <!-- History (additional) -->
     <string name="history_product_photo">Product photo</string>

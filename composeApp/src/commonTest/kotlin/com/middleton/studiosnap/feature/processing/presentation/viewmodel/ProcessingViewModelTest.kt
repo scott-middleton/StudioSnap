@@ -109,18 +109,79 @@ class ProcessingViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `api failure still completes batch with failure results`() {
+    fun `api failure on every unit shows all-failed error instead of navigating`() {
         val resultsHolder = FakeGenerationResultsHolder()
         val vm = createViewModel(
             generationRepo = FakeGenerationRepository(shouldFail = true),
             resultsHolder = resultsHolder
         )
 
-        // Batch still completes — individual failures are handled gracefully
+        // Nothing succeeded — Results would be a dead end, so stay on Processing
+        assertIs<ProcessingUiState.Error.AllFailed>(vm.uiState.value)
+        assertNull(vm.navigationEvent.value)
+        assertNull(resultsHolder.currentResults)
+    }
+
+    @Test
+    fun `all-failed multi-unit batch reports total refunded credits without navigating`() {
+        val twoPhotoConfig = testConfig.copy(
+            photos = listOf(testPhoto, testPhoto2),
+            units = unitsFor(listOf(testPhoto, testPhoto2), listOf(testStyle))
+        )
+        val resultsHolder = FakeGenerationResultsHolder()
+        val vm = createViewModel(
+            config = twoPhotoConfig,
+            generationRepo = FakeGenerationRepository(shouldFail = true),
+            resultsHolder = resultsHolder
+        )
+
+        assertEquals(ProcessingUiState.Error.AllFailed(refundedCredits = 2), vm.uiState.value)
+        assertNull(vm.navigationEvent.value)
+        assertNull(resultsHolder.currentResults)
+    }
+
+    @Test
+    fun `mixed batch with at least one success still navigates to results`() {
+        val twoPhotoConfig = testConfig.copy(
+            photos = listOf(testPhoto, testPhoto2),
+            units = unitsFor(listOf(testPhoto, testPhoto2), listOf(testStyle))
+        )
+        val resultsHolder = FakeGenerationResultsHolder()
+        val vm = createViewModel(
+            config = twoPhotoConfig,
+            generationRepo = FakeGenerationRepository(failOnIndex = 1),
+            resultsHolder = resultsHolder
+        )
+
         assertIs<ProcessingUiState.Complete>(vm.uiState.value)
-        val results = resultsHolder.currentResults
-        assertEquals(1, results?.size)
-        assertIs<GenerationResult.Failure>(results?.first())
+        assertIs<ProcessingNavigationAction.GoToResults>(vm.navigationEvent.value)
+        assertEquals(2, resultsHolder.currentResults?.size)
+    }
+
+    @Test
+    fun `retry after all-failed re-runs every unit from scratch`() {
+        val creditDeductor = FakeCreditDeductor()
+        val repo = FakeGenerationRepository(shouldFail = true)
+        val twoPhotoConfig = testConfig.copy(
+            photos = listOf(testPhoto, testPhoto2),
+            units = unitsFor(listOf(testPhoto, testPhoto2), listOf(testStyle))
+        )
+        val vm = createViewModelWithDeductor(
+            config = twoPhotoConfig,
+            generationRepo = repo,
+            creditDeductor = creditDeductor
+        )
+
+        assertIs<ProcessingUiState.Error.AllFailed>(vm.uiState.value)
+        assertEquals(2, creditDeductor.deductCalled)
+
+        vm.handleAction(ProcessingUiAction.OnRetryClicked)
+
+        // A resume would skip both recorded failures and re-run nothing —
+        // the all-failed retry must instead re-attempt every unit.
+        assertEquals(4, creditDeductor.deductCalled)
+        assertEquals(2, repo.callCountByPhotoId[testPhoto.id])
+        assertEquals(2, repo.callCountByPhotoId[testPhoto2.id])
     }
 
     @Test
@@ -273,12 +334,13 @@ class ProcessingViewModelTest : BaseViewModelTest() {
         assertEquals(1, creditDeductor.refundCalled)
 
         // Retry: photo2's deduction now succeeds, but its generation also fails
-        // (repo.shouldFail = true), so it gets refunded too.
+        // (repo.shouldFail = true), so it gets refunded too. With every unit now
+        // failed, the batch surfaces the all-failed error carrying both refunds.
         creditDeductor.stopFailingDeductions()
         vm.handleAction(ProcessingUiAction.OnRetryClicked)
 
         assertEquals(2, creditDeductor.refundCalled)
-        assertEquals(2, resultsHolder.refundedCredits)
+        assertEquals(ProcessingUiState.Error.AllFailed(refundedCredits = 2), vm.uiState.value)
     }
 
     @Test

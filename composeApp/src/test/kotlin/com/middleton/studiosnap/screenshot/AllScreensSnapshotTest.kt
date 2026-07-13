@@ -176,6 +176,16 @@ class AllScreensSnapshotTest {
         }
     }
 
+    @Test
+    fun processing_error_allFailed() {
+        snapshot {
+            ProcessingScreenContent(
+                state = ProcessingUiState.Error.AllFailed(refundedCredits = 3),
+                onAction = {}
+            )
+        }
+    }
+
     // endregion
 
     // region — Results

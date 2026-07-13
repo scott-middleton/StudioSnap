@@ -46,9 +46,11 @@ class ProcessingViewModel(
     private var config: GenerationConfig? = null
 
     // Progress carried across retries so a mid-batch failure doesn't re-run or
-    // re-charge photos already processed. Never explicitly reset: a ProcessingViewModel
-    // instance only ever handles one batch (a fresh instance is created per navigation
-    // to Processing), so there is no "next batch" within this VM's lifetime to leak into.
+    // re-charge photos already processed. Only reset when retrying after every unit
+    // failed (see OnRetryClicked): resuming would skip all recorded failures and
+    // instantly re-complete with nothing regenerated. Otherwise never reset: a
+    // ProcessingViewModel instance only ever handles one batch (a fresh instance is
+    // created per navigation to Processing), so there is no "next batch" to leak into.
     private var progressSoFar: BatchResumeState = BatchResumeState.EMPTY
 
     init {
@@ -58,7 +60,16 @@ class ProcessingViewModel(
 
     fun handleAction(action: ProcessingUiAction) {
         when (action) {
-            ProcessingUiAction.OnRetryClicked -> startProcessing()
+            ProcessingUiAction.OnRetryClicked -> {
+                if (_uiState.value is ProcessingUiState.Error.AllFailed) {
+                    // All recorded units are failures — resuming would skip them all
+                    // and instantly re-complete. Re-run the whole batch from scratch
+                    // (safe: every failure was refunded, and idempotency keys are
+                    // per-attempt so fresh deductions stay clean).
+                    progressSoFar = BatchResumeState.EMPTY
+                }
+                startProcessing()
+            }
             ProcessingUiAction.OnCancelClicked -> {
                 _navigationEvent.value = ProcessingNavigationAction.GoBack
             }
@@ -131,8 +142,6 @@ class ProcessingViewModel(
                     )
 
                     if (batchProgress.isComplete) {
-                        generationResultsHolder.currentResults = batchProgress.results
-                        generationResultsHolder.refundedCredits = batchProgress.refundedCredits
                         analyticsService.logEvent(
                             AnalyticsEvents.BATCH_GENERATION_COMPLETED,
                             mapOf(
@@ -141,6 +150,15 @@ class ProcessingViewModel(
                                 "failure" to batchProgress.failureCount.toString()
                             )
                         )
+                        if (batchProgress.successCount == 0) {
+                            // Every unit failed — Results would be a dead end of
+                            // FailureCards. Stay here and offer Retry / Go Back.
+                            _uiState.value =
+                                ProcessingUiState.Error.AllFailed(batchProgress.refundedCredits)
+                            return@collect
+                        }
+                        generationResultsHolder.currentResults = batchProgress.results
+                        generationResultsHolder.refundedCredits = batchProgress.refundedCredits
                         // Force 100% before navigating so the progress animation has
                         // time to reach the end — download can complete so fast that
                         // Compose never renders the intermediate values.
