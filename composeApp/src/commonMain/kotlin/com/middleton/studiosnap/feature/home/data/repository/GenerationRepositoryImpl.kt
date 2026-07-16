@@ -8,6 +8,7 @@ import com.middleton.studiosnap.core.data.datasource.KontextRemoteDataSource
 import com.middleton.studiosnap.core.data.model.KontextInput
 import com.middleton.studiosnap.core.data.model.KontextPredictionRequest
 import com.middleton.studiosnap.core.data.model.ReplicatePredictionResponse
+import com.middleton.studiosnap.core.data.util.closestKontextResolution
 import com.middleton.studiosnap.core.data.util.getImageDimensions
 import com.middleton.studiosnap.core.data.util.readBytesFromUri
 import com.middleton.studiosnap.core.data.util.resizeImage
@@ -44,9 +45,16 @@ class GenerationRepositoryImpl(
         val imageBytes = readBytesFromUri(photo.localUri)
             ?: throw IllegalStateException("Cannot read input image at ${photo.localUri}")
 
+        // Resize to whichever Kontext resolution bucket matches this image's aspect ratio, so we
+        // send exactly the pixels the model will use. Falls back to a flat cap if dimensions
+        // can't be read (resizeImage will then also fail the same decode, surfacing an error).
+        val (targetWidth, targetHeight) = imageBytes.getImageDimensions()
+            ?.let { (width, height) -> closestKontextResolution(width, height) }
+            ?: (MAX_INPUT_WIDTH to MAX_INPUT_HEIGHT)
+
         val resizedBytes = imageBytes.resizeImage(
-            maxWidth = MAX_INPUT_WIDTH,
-            maxHeight = MAX_INPUT_HEIGHT
+            maxWidth = targetWidth,
+            maxHeight = targetHeight
         ) ?: imageBytes
 
         val base64DataUri = resizedBytes.toBase64DataUri()
@@ -137,6 +145,7 @@ class GenerationRepositoryImpl(
     }
 
     companion object {
+        // Fallback only, used if the source image's dimensions can't be read up front.
         private const val MAX_INPUT_WIDTH = 1024
         private const val MAX_INPUT_HEIGHT = 1024
         private const val POLL_INTERVAL_MS = 2000L

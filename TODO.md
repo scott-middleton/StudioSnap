@@ -3,15 +3,11 @@
 ## In Progress
 
 ## Up Next
-- [ ] Image compression before upload to API
-- [ ] Investigate image size limitations and upscaling behavior — if a high-res image is downsampled due to API limits, the final upscale may not match the user's requested 2x/3x. Need to determine: should we warn the user? Skip downsampling and fail? Show expected output size before processing?
-- [ ] Result screen UI improvements:
-  - [ ] Use the same swipe comparison view as onboarding (instead of current side-by-side or tabs)
-  - [ ] Default to showing the restored image first
-  - [ ] Add fullscreen enlargement with pinch-to-zoom
-  - [ ] Support rotation like the onboarding image comparisons
 
 ## Done
+- [x] Resize-to-upload now matches Flux Kontext's actual resolution buckets instead of a flat 1024x1024 box — the model always snaps conditioning images to the closest of 17 fixed ~1MP resolutions by aspect ratio regardless of upload size (traced through black-forest-labs/flux's `prepare_kontext`), so a flat square cap under-shot non-square photos (e.g. a 3:4 portrait only got 768x1024/0.79MP when the model wanted ~880x1184/1.03MP). `closestKontextResolution()` (ImageResizer.kt) replicates the model's own bucket-selection formula; `GenerationRepositoryImpl` reads the source image's real dimensions and resizes to the matching bucket, falling back to the old flat cap only if dimension-reading fails. Covered by ImageResizerTest. Model stays Flux Kontext dev (tested against alternatives, performs better) — no model swap.
+- [x] Image compression before upload to API — already implemented (resize to closest Kontext bucket + JPEG q85 before base64 upload)
+- [x] Result screen UI improvements — reviewed: current Before/After toggle is preferred over a swipe slider; restored image already shows first by default; fullscreen pinch-to-zoom (FullScreenImageOverlay) and rotation/landscape lock already wired in
 - [x] Generation error UX (decision: option b) — when every unit in a batch fails, stay on the Processing screen with an AllFailed error state (Retry / Go Back, refund count in message) instead of navigating to the dead-end Results screen. Any success still navigates to Results as before. Retry after all-failed resets the batch resume state so all units re-run from scratch.
 - [x] Onboarding/examples screen example images updated (done outside this workflow)
 - [x] Feature: one photo × multiple styles (constrained modes: multi-select up to 4 styles only when exactly 1 photo; cost = photos × styles; "N styles" history label; per-item style labels in results/session detail when mixed). Pipeline generalized to (photo, style) units. Includes prerequisite fix: batchId now persisted, so generation runs group into one history session (legacy rows unaffected).
